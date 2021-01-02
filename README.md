@@ -2,7 +2,7 @@
 
 ## Description
 
-This repository contains the multiplayer part of the game ElectrodZ, which is a competetive online multiplayer brawler and shooter.
+This repository contains the multiplayer part of the game ElectrodZ, which is a competitive online multiplayer brawler and shooter.
 
 ## Dependencies
 
@@ -21,7 +21,7 @@ This repository contains the multiplayer part of the game ElectrodZ, which is a 
 
 Fork or rebase from this repository, make your changes and create a pull request.
 
-Please follow the following guide about GitFlow: https://guides.github.com/introduction/flow/
+Please follow the following guide about GitHub Flow: https://guides.github.com/introduction/flow/
 
 ## License
 
