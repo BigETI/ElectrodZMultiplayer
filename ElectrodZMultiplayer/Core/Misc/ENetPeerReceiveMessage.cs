@@ -6,9 +6,9 @@
 namespace ElectrodZMultiplayer
 {
     /// <summary>
-    /// Peer receive message structure
+    /// ENet peer receive message structure
     /// </summary>
-    internal readonly struct PeerReceiveMessage
+    internal readonly struct ENetPeerReceiveMessage
     {
         /// <summary>
         /// Peer
@@ -31,7 +31,7 @@ namespace ElectrodZMultiplayer
         /// <param name="peer">Peer</param>
         /// <param name="channelID">Channel ID</param>
         /// <param name="packet">PAcket</param>
-        public PeerReceiveMessage(Peer peer, uint channelID, Packet packet)
+        public ENetPeerReceiveMessage(Peer peer, uint channelID, Packet packet)
         {
             Peer = peer;
             ChannelID = channelID;

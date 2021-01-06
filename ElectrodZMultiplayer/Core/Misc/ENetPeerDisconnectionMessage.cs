@@ -6,9 +6,9 @@
 namespace ElectrodZMultiplayer
 {
     /// <summary>
-    /// Peer disconnection message structure
+    /// ENet peer disconnection message structure
     /// </summary>
-    internal readonly struct PeerDisconnectionMessage
+    internal readonly struct ENetPeerDisconnectionMessage
     {
         /// <summary>
         /// Peer
@@ -19,6 +19,6 @@ namespace ElectrodZMultiplayer
         /// Constructor
         /// </summary>
         /// <param name="peer">Peer</param>
-        public PeerDisconnectionMessage(Peer peer) => Peer = peer;
+        public ENetPeerDisconnectionMessage(Peer peer) => Peer = peer;
     }
 }

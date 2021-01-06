@@ -32,11 +32,6 @@ namespace ElectrodZMultiplayer
         event PeerDisconnectedDelegate OnPeerDisconnected;
 
         /// <summary>
-        /// This event will be invoked when a peer has timed out.
-        /// </summary>
-        event PeerTimedOutDelegate OnPeerTimedOut;
-
-        /// <summary>
         /// This event will be invoked when a peer has sent a message to this connector
         /// </summary>
         event PeerMessageReceivedDelegate OnPeerMessageReceived;
@@ -45,6 +40,13 @@ namespace ElectrodZMultiplayer
         /// Processes all events appeared since last call
         /// </summary>
         void ProcessEvents();
+
+        /// <summary>
+        /// Is connection by peer allowed
+        /// </summary>
+        /// <param name="peer">Peer</param>
+        /// <returns>"true" if connection is allowed, otherwise "false"</returns>
+        bool IsConnectionAllowed(IPeer peer);
 
         /// <summary>
         /// Closes connection to all connected peers in this connector

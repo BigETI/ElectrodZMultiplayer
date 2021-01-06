@@ -7,7 +7,7 @@ using System;
 namespace ElectrodZMultiplayer
 {
     /// <summary>
-    /// ENet peer structure
+    /// ENet peer class
     /// </summary>
     internal class ENetPeer : APeer, IENetPeer
     {

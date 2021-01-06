@@ -20,27 +20,22 @@ namespace ElectrodZMultiplayer
         /// <summary>
         /// Peer connection attempt messages
         /// </summary>
-        private readonly ConcurrentBag<PeerConnectionAttemptMessage> peerConnectionAttemptMessages = new ConcurrentBag<PeerConnectionAttemptMessage>();
+        private readonly ConcurrentBag<ENetPeerConnectionAttemptMessage> peerConnectionAttemptMessages = new ConcurrentBag<ENetPeerConnectionAttemptMessage>();
 
         /// <summary>
         /// Peer disconnection messages
         /// </summary>
-        private readonly ConcurrentBag<PeerDisconnectionMessage> peerDisconnectionMessages = new ConcurrentBag<PeerDisconnectionMessage>();
+        private readonly ConcurrentBag<ENetPeerDisconnectionMessage> peerDisconnectionMessages = new ConcurrentBag<ENetPeerDisconnectionMessage>();
 
         /// <summary>
         /// Peer time out messages
         /// </summary>
-        private readonly ConcurrentBag<PeerTimeOutMessage> peerTimeOutMessages = new ConcurrentBag<PeerTimeOutMessage>();
+        private readonly ConcurrentBag<ENetPeerTimeOutMessage> peerTimeOutMessages = new ConcurrentBag<ENetPeerTimeOutMessage>();
 
         /// <summary>
         /// Peer receive messages
         /// </summary>
-        private readonly ConcurrentBag<PeerReceiveMessage> peerReceiveMessages = new ConcurrentBag<PeerReceiveMessage>();
-
-        /// <summary>
-        /// On handle peer connection attempt
-        /// </summary>
-        private readonly HandlePeerConnectionAttemptDelegate onHandlePeerConnectionAttempt;
+        private readonly ConcurrentBag<ENetPeerReceiveMessage> peerReceiveMessages = new ConcurrentBag<ENetPeerReceiveMessage>();
 
         /// <summary>
         /// Peer ID to peer lookup
@@ -93,11 +88,6 @@ namespace ElectrodZMultiplayer
         public override event PeerDisconnectedDelegate OnPeerDisconnected;
 
         /// <summary>
-        /// On peer timed out
-        /// </summary>
-        public override event PeerTimedOutDelegate OnPeerTimedOut;
-
-        /// <summary>
         /// On peer message received
         /// </summary>
         public override event PeerMessageReceivedDelegate OnPeerMessageReceived;
@@ -108,13 +98,12 @@ namespace ElectrodZMultiplayer
         /// <param name="Host">Host</param>
         /// <param name="port">Port</param>
         /// <param name="timeoutTime">Timeout time in seconds</param>
-        /// <param name="onHandlePeerConnectionAttempt">On handle peer connection attempt/param>
-        public ENetConnector(Host host, ushort port, uint timeoutTime, HandlePeerConnectionAttemptDelegate onHandlePeerConnectionAttempt)
+        /// <param name="onHandlePeerConnectionAttempt">Handles peer connection attempts</param>
+        public ENetConnector(Host host, ushort port, uint timeoutTime, HandlePeerConnectionAttemptDelegate onHandlePeerConnectionAttempt) : base(onHandlePeerConnectionAttempt)
         {
             Host = host ?? throw new ArgumentNullException(nameof(host));
             Port = port;
             TimeoutTime = timeoutTime;
-            this.onHandlePeerConnectionAttempt = onHandlePeerConnectionAttempt ?? throw new ArgumentNullException(nameof(onHandlePeerConnectionAttempt));
             connectorThread = new Thread(() =>
             {
                 while (isConnectorThreadRunning)
@@ -129,16 +118,16 @@ namespace ElectrodZMultiplayer
                     switch (network_event.Type)
                     {
                         case EventType.Connect:
-                            peerConnectionAttemptMessages.Add(new PeerConnectionAttemptMessage(network_event.Peer));
+                            peerConnectionAttemptMessages.Add(new ENetPeerConnectionAttemptMessage(network_event.Peer));
                             break;
                         case EventType.Disconnect:
-                            peerDisconnectionMessages.Add(new PeerDisconnectionMessage(network_event.Peer));
+                            peerDisconnectionMessages.Add(new ENetPeerDisconnectionMessage(network_event.Peer));
                             break;
                         case EventType.Receive:
-                            peerReceiveMessages.Add(new PeerReceiveMessage(network_event.Peer, network_event.ChannelID, network_event.Packet));
+                            peerReceiveMessages.Add(new ENetPeerReceiveMessage(network_event.Peer, network_event.ChannelID, network_event.Packet));
                             break;
                         case EventType.Timeout:
-                            peerTimeOutMessages.Add(new PeerTimeOutMessage(network_event.Peer));
+                            peerTimeOutMessages.Add(new ENetPeerTimeOutMessage(network_event.Peer));
                             break;
                     }
                 }
@@ -150,20 +139,12 @@ namespace ElectrodZMultiplayer
         /// Remove peer
         /// </summary>
         /// <param name="peer">Peer</param>
-        /// <param name="isTimedOut">Is timed out</param>
-        private void RemovePeer(Peer peer, bool isTimedOut)
+        private void RemovePeer(Peer peer)
         {
             if (peerIDToPeerLookup.ContainsKey(peer.ID))
             {
                 IPeer peer_peer = peerIDToPeerLookup[peer.ID];
-                if (isTimedOut)
-                {
-                    OnPeerTimedOut?.Invoke(peer_peer);
-                }
-                else
-                {
-                    OnPeerDisconnected?.Invoke(peer_peer);
-                }
+                OnPeerDisconnected?.Invoke(peer_peer);
                 peerIDToPeerLookup.Remove(peer.ID);
                 peers.Remove(peer_peer.GUID.ToString());
             }
@@ -181,27 +162,30 @@ namespace ElectrodZMultiplayer
         /// </summary>
         public override void ProcessEvents()
         {
-            while (peerConnectionAttemptMessages.TryTake(out PeerConnectionAttemptMessage connection_attempt_message))
+            while (peerConnectionAttemptMessages.TryTake(out ENetPeerConnectionAttemptMessage connection_attempt_message))
             {
                 ENetPeer peer = new ENetPeer(Guid.NewGuid(), connection_attempt_message.Peer, Host);
-                bool is_connection_allowed = onHandlePeerConnectionAttempt(peer);
                 OnPeerConnectionAttempted?.Invoke(peer);
-                if (is_connection_allowed)
+                if (IsConnectionAllowed(peer))
                 {
                     peers.Add(peer.GUID.ToString(), peer);
                     peerIDToPeerLookup.Add(peer.Peer.ID, peer);
                     OnPeerConnected?.Invoke(peer);
                 }
+                else
+                {
+                    connection_attempt_message.Peer.Disconnect((uint)EDisconnectionReason.Banned);
+                }
             }
-            while (peerDisconnectionMessages.TryTake(out PeerDisconnectionMessage disconnection_message))
+            while (peerDisconnectionMessages.TryTake(out ENetPeerDisconnectionMessage disconnection_message))
             {
-                RemovePeer(disconnection_message.Peer, false);
+                RemovePeer(disconnection_message.Peer);
             }
-            while (peerTimeOutMessages.TryTake(out PeerTimeOutMessage time_out_message))
+            while (peerTimeOutMessages.TryTake(out ENetPeerTimeOutMessage time_out_message))
             {
-                RemovePeer(time_out_message.Peer, true);
+                RemovePeer(time_out_message.Peer);
             }
-            while (peerReceiveMessages.TryTake(out PeerReceiveMessage receive_message))
+            while (peerReceiveMessages.TryTake(out ENetPeerReceiveMessage receive_message))
             {
                 if (peerIDToPeerLookup.ContainsKey(receive_message.Peer.ID))
                 {

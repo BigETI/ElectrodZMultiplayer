@@ -12,6 +12,11 @@ namespace ElectrodZMultiplayer
     internal abstract class AConnector : IConnector
     {
         /// <summary>
+        /// On handle peer connection attempt
+        /// </summary>
+        private readonly HandlePeerConnectionAttemptDelegate onHandlePeerConnectionAttempt;
+
+        /// <summary>
         /// Connected peers
         /// </summary>
         protected readonly Dictionary<string, IPeer> peers = new Dictionary<string, IPeer>();
@@ -37,19 +42,34 @@ namespace ElectrodZMultiplayer
         public abstract event PeerDisconnectedDelegate OnPeerDisconnected;
 
         /// <summary>
-        /// This event will be invoked when a peer has timed out.
-        /// </summary>
-        public abstract event PeerTimedOutDelegate OnPeerTimedOut;
-
-        /// <summary>
         /// This event will be invoked when a peer has sent a message to this connector
         /// </summary>
         public abstract event PeerMessageReceivedDelegate OnPeerMessageReceived;
 
         /// <summary>
+        /// Constructs a generalized connector
+        /// </summary>
+        /// <param name="onHandlePeerConnectionAttempt">Handles peer connection attempts</param>
+        public AConnector(HandlePeerConnectionAttemptDelegate onHandlePeerConnectionAttempt) => this.onHandlePeerConnectionAttempt = onHandlePeerConnectionAttempt ?? throw new ArgumentNullException(nameof(onHandlePeerConnectionAttempt));
+
+        /// <summary>
         /// Processes all events appeared since last call
         /// </summary>
         public abstract void ProcessEvents();
+
+        /// <summary>
+        /// Is connection by peer allowed
+        /// </summary>
+        /// <param name="peer">Peer</param>
+        /// <returns>"true" if connection is allowed, otherwise "false"</returns>
+        public bool IsConnectionAllowed(IPeer peer)
+        {
+            if (peer == null)
+            {
+                throw new ArgumentNullException(nameof(peer));
+            }
+            return onHandlePeerConnectionAttempt(peer);
+        }
 
         /// <summary>
         /// Closes connection to all connected peers in this connector

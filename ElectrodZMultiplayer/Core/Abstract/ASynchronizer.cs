@@ -47,11 +47,6 @@ namespace ElectrodZMultiplayer
         public event PeerDisconnectedDelegate OnPeerDisconnected;
 
         /// <summary>
-        /// This event will be invoked when a peer has been timed out from any of the available connectors.
-        /// </summary>
-        public event PeerTimedOutDelegate OnPeerTimedOut;
-
-        /// <summary>
         /// This event will be invoked when a message has been received from a peer.
         /// </summary>
         public event PeerMessageReceivedDelegate OnPeerMessageReceived;
@@ -62,9 +57,18 @@ namespace ElectrodZMultiplayer
         public event UnknownMessageReceivedDelegate OnUnknownMessageReceived;
 
         /// <summary>
+        /// This event will be invoked when an error has been received.
+        /// </summary>
+        public event ErrorMessageReceivedDelegate OnErrorMessageReceived;
+
+        /// <summary>
         /// Constructs a generalised synchronizer object
         /// </summary>
-        public ASynchronizer() => AddMessageParser<ErrorMessageData>((_, message, json) => Console.Error.WriteLine($"[{ message.ErrorType }] { message.Message }"), MessageParseFailedEvent);
+        public ASynchronizer() => AddMessageParser<ErrorMessageData>((_, message, json) =>
+        {
+            OnErrorMessageReceived?.Invoke(message.ErrorType, message.Message);
+            Console.Error.WriteLine($"[{ message.ErrorType }] { message.Message }");
+        }, MessageParseFailedEvent);
 
         /// <summary>
         /// Listens to any message parse failed event
@@ -122,7 +126,6 @@ namespace ElectrodZMultiplayer
                 connector.OnPeerConnectionAttempted += (peer) => OnPeerConnectionAttempted?.Invoke(peer);
                 connector.OnPeerConnected += (peer) => OnPeerConnected?.Invoke(peer);
                 connector.OnPeerDisconnected += (peer) => OnPeerDisconnected?.Invoke(peer);
-                connector.OnPeerTimedOut += (peer) => OnPeerTimedOut?.Invoke(peer);
                 connector.OnPeerMessageReceived += (peer, message) =>
                 {
                     OnPeerMessageReceived?.Invoke(peer, message);
@@ -144,6 +147,39 @@ namespace ElectrodZMultiplayer
                 throw new ArgumentNullException(nameof(connector));
             }
             return connectors.Remove(connector);
+        }
+
+        /// <summary>
+        /// Gets a connector with the specified type
+        /// </summary>
+        /// <typeparam name="T">Connector type</typeparam>
+        /// <returns>Connector of specified type if successful, otherwise "null"</returns>
+        public T GetConnectorOfType<T>() where T : IConnector
+        {
+            TryGetConnectorOfType(out T ret);
+            return ret;
+        }
+
+        /// <summary>
+        /// Tries to get a connector of the specified type
+        /// </summary>
+        /// <typeparam name="T">Connector type</typeparam>
+        /// <param name="connector">Connector</param>
+        /// <returns>"true" if connector of the specified type is available, otherwise "false"</returns>
+        public bool TryGetConnectorOfType<T>(out T connector) where T : IConnector
+        {
+            bool ret = false;
+            connector = default;
+            foreach (IConnector available_connector in connectors)
+            {
+                if (available_connector is T result)
+                {
+                    connector = result;
+                    ret = true;
+                    break;
+                }
+            }
+            return ret;
         }
 
         /// <summary>

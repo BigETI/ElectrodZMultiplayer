@@ -6,9 +6,9 @@
 namespace ElectrodZMultiplayer
 {
     /// <summary>
-    /// Peer time out message structure
+    /// ENet Peer connection attempt message structure
     /// </summary>
-    internal readonly struct PeerTimeOutMessage
+    internal readonly struct ENetPeerConnectionAttemptMessage
     {
         /// <summary>
         /// Peer
@@ -19,6 +19,6 @@ namespace ElectrodZMultiplayer
         /// Constructor
         /// </summary>
         /// <param name="peer">Peer</param>
-        public PeerTimeOutMessage(Peer peer) => Peer = peer;
+        public ENetPeerConnectionAttemptMessage(Peer peer) => Peer = peer;
     }
 }

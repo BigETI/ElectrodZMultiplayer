@@ -34,7 +34,7 @@ namespace ElectrodZMultiplayer.Data.Messages
         /// <summary>
         /// Maximal user count
         /// </summary>
-        [JsonProperty("maxPlayerCOunt")]
+        [JsonProperty("maxPlayerCount")]
         public uint? MaximalUserCount { get; set; }
 
         /// <summary>
