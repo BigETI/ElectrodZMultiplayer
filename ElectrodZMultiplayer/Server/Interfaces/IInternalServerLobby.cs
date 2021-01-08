@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 
 /// <summary>
-/// ELÖectrodZ multiplayer server namespace
+/// ElectrodZ multiplayer server namespace
 /// </summary>
 namespace ElectrodZMultiplayer.Server
 {

@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 
 /// <summary>
-/// ELectrodZ multiplayer data namespace
+/// ElectrodZ multiplayer data namespace
 /// </summary>
 namespace ElectrodZMultiplayer.Data
 {

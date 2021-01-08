@@ -49,7 +49,7 @@ namespace ElectrodZMultiplayer
             }
             if ((index + length) > message.Length)
             {
-                throw new ArgumentOutOfRangeException(nameof(length), "STarting index plus length is bigger than message length.");
+                throw new ArgumentOutOfRangeException(nameof(length), "Starting index plus length is bigger than message length.");
             }
             Peer = peer ?? throw new ArgumentNullException(nameof(peer));
             Message = message;

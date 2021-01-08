@@ -1,7 +1,7 @@
 ﻿using System.Text.RegularExpressions;
 
 /// <summary>
-/// ELectrodZ multiplayer server namespace
+/// ElectrodZ multiplayer server namespace
 /// </summary>
 namespace ElectrodZMultiplayer.Server
 {

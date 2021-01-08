@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 
 /// <summary>
-/// ELectrodZ multiplayer namespace
+/// ElectrodZ multiplayer namespace
 /// </summary>
 namespace ElectrodZMultiplayer
 {
