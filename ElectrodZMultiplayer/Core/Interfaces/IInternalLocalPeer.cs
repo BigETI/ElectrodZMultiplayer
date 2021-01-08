@@ -4,7 +4,7 @@
 namespace ElectrodZMultiplayer
 {
     /// <summary>
-    /// an interface that represents an internal local peer
+    /// An interface that represents an internal local peer
     /// </summary>
     internal interface IInternalLocalPeer : ILocalPeer
     {

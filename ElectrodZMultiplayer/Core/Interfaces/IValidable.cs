@@ -4,7 +4,7 @@
 namespace ElectrodZMultiplayer
 {
     /// <summary>
-    /// An interface that describes an object that can be validated
+    /// An interface that represents an object that can be validated
     /// </summary>
     public interface IValidable
     {

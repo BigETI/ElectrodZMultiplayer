@@ -21,6 +21,11 @@ namespace ElectrodZMultiplayer
         public byte[] Message { get; }
 
         /// <summary>
+        /// Starting index
+        /// </summary>
+        public uint Index { get; }
+
+        /// <summary>
         /// Message length in bytes
         /// </summary>
         public uint Length { get; }
@@ -30,19 +35,25 @@ namespace ElectrodZMultiplayer
         /// </summary>
         /// <param name="peer">Peer</param>
         /// <param name="message">Message</param>
+        /// <param name="length">Starting index</param>
         /// <param name="length">Message length in bytes</param>
-        public LocalPeerReceiveMessage(ILocalPeer peer, byte[] message, uint length)
+        public LocalPeerReceiveMessage(ILocalPeer peer, byte[] message, uint index, uint length)
         {
             if (message == null)
             {
                 throw new ArgumentNullException(nameof(message));
             }
-            if (length > message.Length)
+            if (index >= length)
             {
-                throw new ArgumentOutOfRangeException(nameof(length), "Message length is bigger than message byte array.");
+                throw new ArgumentException("Starting index is greater or equal to length.");
+            }
+            if ((index + length) > message.Length)
+            {
+                throw new ArgumentOutOfRangeException(nameof(length), "STarting index plus length is bigger than message length.");
             }
             Peer = peer ?? throw new ArgumentNullException(nameof(peer));
             Message = message;
+            Index = index;
             Length = length;
         }
     }

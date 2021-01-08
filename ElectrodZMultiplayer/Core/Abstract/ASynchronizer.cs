@@ -2,8 +2,6 @@
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.IO.Compression;
 using System.Text;
 
 /// <summary>
@@ -201,18 +199,7 @@ namespace ElectrodZMultiplayer
             string json = JsonConvert.SerializeObject(message);
             if (!string.IsNullOrWhiteSpace(json))
             {
-                using (MemoryStream input_memory_stream = new MemoryStream(Encoding.UTF8.GetBytes(json)))
-                {
-                    using (MemoryStream output_memory_stream = new MemoryStream())
-                    {
-                        using (GZipStream gzip_stream = new GZipStream(output_memory_stream, CompressionLevel.Optimal, true))
-                        {
-                            input_memory_stream.CopyTo(gzip_stream);
-                        }
-                        output_memory_stream.Seek(0L, SeekOrigin.Begin);
-                        peer.SendMessage(output_memory_stream.ToArray());
-                    }
-                }
+                peer.SendMessage(Compression.Compress(Encoding.UTF8.GetBytes(json)));
             }
         }
 

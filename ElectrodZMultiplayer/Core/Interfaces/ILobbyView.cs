@@ -6,7 +6,7 @@
 namespace ElectrodZMultiplayer
 {
     /// <summary>
-    /// An interface that describes a view of a lobby
+    /// An interface that represents a view of a lobby
     /// </summary>
     public interface ILobbyView : IValidable
     {

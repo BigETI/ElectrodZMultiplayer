@@ -4,7 +4,7 @@
 namespace ElectrodZMultiplayer
 {
     /// <summary>
-    /// An interface that describes a base message
+    /// An interface that represents a base message
     /// </summary>
     public interface IBaseMessageParser
     {

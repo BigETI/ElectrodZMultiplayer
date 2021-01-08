@@ -7,7 +7,7 @@ using System.Collections.Generic;
 namespace ElectrodZMultiplayer
 {
     /// <summary>
-    /// An interface describing a lobby
+    /// An interface that represents a lobby
     /// </summary>
     public interface ILobby : ILobbyView, IDisposable
     {

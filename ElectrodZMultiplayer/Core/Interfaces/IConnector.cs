@@ -7,7 +7,7 @@ using System.Collections.Generic;
 namespace ElectrodZMultiplayer
 {
     /// <summary>
-    /// An interface that describes any connector
+    /// An interface that represents any connector
     /// </summary>
     public interface IConnector : IDisposable
     {

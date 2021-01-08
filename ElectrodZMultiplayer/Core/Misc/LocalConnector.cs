@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
-using System.IO.Compression;
 
 /// <summary>
 /// ElectrodZ multiplayer namespace
@@ -102,18 +100,7 @@ namespace ElectrodZMultiplayer
             }
             while (localPeerReceiveMessages.TryTake(out LocalPeerReceiveMessage local_peer_receive_message))
             {
-                using (MemoryStream input_memory_stream = new MemoryStream(local_peer_receive_message.Message, 0, (int)local_peer_receive_message.Length))
-                {
-                    using (MemoryStream output_memory_stream = new MemoryStream())
-                    {
-                        using (GZipStream gzip_stream = new GZipStream(input_memory_stream, CompressionMode.Decompress, true))
-                        {
-                            gzip_stream.CopyTo(output_memory_stream);
-                        }
-                        output_memory_stream.Seek(0L, SeekOrigin.Begin);
-                        OnPeerMessageReceived?.Invoke(local_peer_receive_message.Peer, output_memory_stream.ToArray());
-                    }
-                }
+                OnPeerMessageReceived?.Invoke(local_peer_receive_message.Peer, Compression.Decompress(local_peer_receive_message.Message, local_peer_receive_message.Index, local_peer_receive_message.Length));
             }
         }
 
@@ -124,19 +111,11 @@ namespace ElectrodZMultiplayer
         /// <param name="message">Message</param>
         public void PushMessage(ILocalPeer peer, byte[] message)
         {
-            if (peer == null)
-            {
-                throw new ArgumentNullException(nameof(peer));
-            }
             if (message == null)
             {
                 throw new ArgumentNullException(nameof(message));
             }
-            string key = peer.GUID.ToString();
-            if (peerPeerLookup.ContainsKey(key))
-            {
-                localPeerReceiveMessages.Add(new LocalPeerReceiveMessage(peerPeerLookup[key], message, (uint)message.Length));
-            }
+            PushMessage(peer, message, 0U, (uint)message.Length);
         }
 
         /// <summary>
@@ -144,8 +123,9 @@ namespace ElectrodZMultiplayer
         /// </summary>
         /// <param name="peer">Peer</param>
         /// <param name="message">Message</param>
+        /// <param name="index">Starting index</param>
         /// <param name="length">Message length in bytes</param>
-        public void PushMessage(ILocalPeer peer, byte[] message, uint length)
+        public void PushMessage(ILocalPeer peer, byte[] message, uint index, uint length)
         {
             if (peer == null)
             {
@@ -155,14 +135,18 @@ namespace ElectrodZMultiplayer
             {
                 throw new ArgumentNullException(nameof(message));
             }
-            if (length > message.Length)
+            if (index >= message.Length)
             {
-                throw new ArgumentOutOfRangeException(nameof(length), "Message length is bigger than message byte array.");
+                throw new ArgumentOutOfRangeException(nameof(index), "Starting index is out of range.");
+            }
+            if ((index + length) > message.Length)
+            {
+                throw new ArgumentOutOfRangeException(nameof(length), "Starting index plus message length is bigger than message byte array.");
             }
             string key = peer.GUID.ToString();
             if (peerPeerLookup.ContainsKey(key))
             {
-                localPeerReceiveMessages.Add(new LocalPeerReceiveMessage(peerPeerLookup[key], message, length));
+                localPeerReceiveMessages.Add(new LocalPeerReceiveMessage(peerPeerLookup[key], message, index, length));
             }
         }
 

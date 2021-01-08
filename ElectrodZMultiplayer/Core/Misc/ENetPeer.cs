@@ -64,7 +64,7 @@ namespace ElectrodZMultiplayer
             {
                 throw new ArgumentNullException(nameof(message));
             }
-            SendMessage(message, (uint)message.Length);
+            SendMessage(message, 0U, (uint)message.Length);
         }
 
         /// <summary>
@@ -72,16 +72,24 @@ namespace ElectrodZMultiplayer
         /// </summary>
         /// <param name="message">Message</param>
         /// <param name="length">Message</param>
-        public override void SendMessage(byte[] message, uint length)
+        public override void SendMessage(byte[] message, uint index, uint length)
         {
             if (message == null)
             {
                 throw new ArgumentNullException(nameof(message));
             }
+            if (index >= message.Length)
+            {
+                throw new ArgumentOutOfRangeException(nameof(index), "Starting index is out of range.");
+            }
+            if ((index + length) > message.Length)
+            {
+                throw new ArgumentOutOfRangeException(nameof(length), "Starting index plus message length is bigger than message byte array.");
+            }
             if (length > 0U)
             {
                 Packet packet = default;
-                packet.Create(message, (int)length, PacketFlags.Reliable);
+                packet.Create(message, (int)index, (int)length, PacketFlags.Reliable);
                 Peer.Send(0, ref packet);
                 Host.Flush();
             }
@@ -102,5 +110,10 @@ namespace ElectrodZMultiplayer
                 Console.Error.WriteLine(e);
             }
         }
+
+        /// <summary>
+        /// Dispose
+        /// </summary>
+        public override void Dispose() => Disconnect(EDisconnectionReason.Disposed);
     }
 }

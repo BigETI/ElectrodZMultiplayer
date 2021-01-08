@@ -4,7 +4,7 @@
 namespace ElectrodZMultiplayer
 {
     /// <summary>
-    /// An interface that describes a local peer
+    /// An interface that represents a local peer
     /// </summary>
     public interface ILocalPeer : IPeer
     {

@@ -1,5 +1,4 @@
 ﻿using ElectrodZMultiplayer.JSONConverters;
-using ElectrodZMultiplayer.Server;
 using Newtonsoft.Json;
 using System;
 
@@ -15,17 +14,17 @@ namespace ElectrodZMultiplayer.Data.Messages
     internal class AuthenticationAcknowledgedMessageData : BaseMessageData
     {
         /// <summary>
-        /// Authentication token
-        /// </summary>
-        [JsonProperty("token")]
-        public string Token { get; set; }
-
-        /// <summary>
         /// User GUID
         /// </summary>
         [JsonProperty("guid")]
         [JsonConverter(typeof(GUIDJSONConverter))]
         public Guid GUID { get; set; }
+
+        /// <summary>
+        /// Authentication token
+        /// </summary>
+        [JsonProperty("token")]
+        public string Token { get; set; }
 
         /// <summary>
         /// Is object in a valid state
@@ -46,19 +45,20 @@ namespace ElectrodZMultiplayer.Data.Messages
         /// <summary>
         /// Constructs an acknowledgment message for an authentication attempt
         /// </summary>
+        /// <param name="guid">User GUID</param>
         /// <param name="user">User being authenticated</param>
-        public AuthenticationAcknowledgedMessageData(IServerUser user) : base(Naming.GetMessageTypeNameFromMessageDataType<AuthenticationAcknowledgedMessageData>())
+        public AuthenticationAcknowledgedMessageData(Guid guid, string token) : base(Naming.GetMessageTypeNameFromMessageDataType<AuthenticationAcknowledgedMessageData>())
         {
-            if (user == null)
+            if (guid == Guid.Empty)
             {
-                throw new ArgumentNullException(nameof(user));
+                throw new ArgumentException("User GUID is empty.", nameof(guid));
             }
-            if (!user.IsValid)
+            if (string.IsNullOrWhiteSpace(token))
             {
-                throw new ArgumentException("User is not valid", nameof(user));
+                throw new ArgumentNullException(nameof(token));
             }
-            Token = user.Token;
-            GUID = user.GUID;
+            GUID = guid;
+            Token = token;
         }
     }
 }

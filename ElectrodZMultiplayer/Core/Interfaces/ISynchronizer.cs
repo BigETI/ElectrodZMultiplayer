@@ -7,7 +7,7 @@ using System.Collections.Generic;
 namespace ElectrodZMultiplayer
 {
     /// <summary>
-    /// An interface that describes a generalized synchronizer
+    /// An interface that represents a generalized synchronizer
     /// </summary>
     public interface ISynchronizer : IDisposable
     {

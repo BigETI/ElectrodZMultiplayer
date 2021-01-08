@@ -9,7 +9,7 @@ using System.Text;
 namespace ElectrodZMultiplayer
 {
     /// <summary>
-    /// An interface that describes a connector for ENet
+    /// An interface that represents a connector for ENet
     /// </summary>
     public interface IENetConnector : IConnector
     {

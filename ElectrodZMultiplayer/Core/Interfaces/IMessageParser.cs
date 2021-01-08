@@ -4,7 +4,7 @@
 namespace ElectrodZMultiplayer
 {
     /// <summary>
-    /// An interface that describes a generalized message parser
+    /// An interface that represents a generalized message parser
     /// </summary>
     /// <typeparam name="T">Message type</typeparam>
     public interface IMessageParser<T> : IBaseMessageParser where T : IBaseMessageData

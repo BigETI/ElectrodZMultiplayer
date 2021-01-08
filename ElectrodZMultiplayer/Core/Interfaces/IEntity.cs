@@ -7,7 +7,7 @@ using System.Collections.Generic;
 namespace ElectrodZMultiplayer
 {
     /// <summary>
-    /// An interface that describes a game entity
+    /// An interface that represents a game entity
     /// </summary>
     public interface IEntity : IValidable
     {

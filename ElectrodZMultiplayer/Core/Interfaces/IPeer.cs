@@ -6,9 +6,9 @@
 namespace ElectrodZMultiplayer
 {
     /// <summary>
-    /// An interface that describes a peer
+    /// An interface that represents a generalized peer
     /// </summary>
-    public interface IPeer : IValidable
+    public interface IPeer : IValidable, IDisposable
     {
         /// <summary>
         /// Peer GUID
@@ -21,17 +21,18 @@ namespace ElectrodZMultiplayer
         string Secret { get; }
 
         /// <summary>
-        /// Send message
+        /// Sends a message to peer
         /// </summary>
         /// <param name="message">Message</param>
         void SendMessage(byte[] message);
 
         /// <summary>
-        /// Send message
+        /// Sends a message to peer
         /// </summary>
         /// <param name="message">Message</param>
+        /// <param name="index">Starting index</param>
         /// <param name="length">Message</param>
-        void SendMessage(byte[] message, uint length);
+        void SendMessage(byte[] message, uint index, uint length);
 
         /// <summary>
         /// Closes the connection to peer

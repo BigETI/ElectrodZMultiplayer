@@ -6,7 +6,7 @@
 namespace ElectrodZMultiplayer
 {
     /// <summary>
-    /// An interface that describes a user
+    /// An interface that represents a generalized user
     /// </summary>
     public interface IUser : IEntity
     {

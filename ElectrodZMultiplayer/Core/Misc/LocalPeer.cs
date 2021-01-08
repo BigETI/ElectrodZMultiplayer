@@ -11,12 +11,12 @@ namespace ElectrodZMultiplayer
     internal class LocalPeer : APeer, IInternalLocalPeer
     {
         /// <summary>
-        /// Internal owning connector
+        /// Connector that owns this connector
         /// </summary>
         public IInternalLocalConnector InternalOwningConnector { get; }
 
         /// <summary>
-        /// Internal target connector
+        /// Target connector
         /// </summary>
         public IInternalLocalConnector InternalTargetConnector { get; }
 
@@ -47,22 +47,28 @@ namespace ElectrodZMultiplayer
         }
 
         /// <summary>
-        /// Sends a message
+        /// Sends a message to peer
         /// </summary>
         /// <param name="message">Message</param>
         public override void SendMessage(byte[] message) => InternalTargetConnector.PushMessage(this, message);
 
         /// <summary>
-        /// Sends a message
+        /// Sends a message to peer
         /// </summary>
         /// <param name="message">Message</param>
+        /// <param name="index">Starting index</param>s
         /// <param name="length">Message length in bytes</param>
-        public override void SendMessage(byte[] message, uint length) => InternalTargetConnector.PushMessage(this, message, length);
+        public override void SendMessage(byte[] message, uint index, uint length) => InternalTargetConnector.PushMessage(this, message, index, length);
 
         /// <summary>
         /// Disconnects peer
         /// </summary>
         /// <param name="reason">Reason</param>
         public override void Disconnect(EDisconnectionReason reason) => InternalOwningConnector.DisconnectPeer(this);
+
+        /// <summary>
+        /// Dispose
+        /// </summary>
+        public override void Dispose() => Disconnect(EDisconnectionReason.Disposed);
     }
 }

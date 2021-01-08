@@ -4,7 +4,7 @@
 namespace ElectrodZMultiplayer
 {
     /// <summary>
-    /// An interface that describes the base of any sent or received data
+    /// An interface that represents the base of any sent or received data
     /// </summary>
     public interface IBaseMessageData : IValidable
     {

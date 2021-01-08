@@ -50,13 +50,19 @@ namespace ElectrodZMultiplayer
         /// Sends a message to peer
         /// </summary>
         /// <param name="message">Message</param>
-        /// <param name="length">Message length in bytes</param>
-        public abstract void SendMessage(byte[] message, uint length);
+        /// <param name="index">Starting index</param>
+        /// <param name="length">Message</param>
+        public abstract void SendMessage(byte[] message, uint index, uint length);
 
         /// <summary>
         /// Closes the connection to peer
         /// </summary>
         /// <param name="reason">Disconnection reason</param>
         public abstract void Disconnect(EDisconnectionReason reason);
+
+        /// <summary>
+        /// Dispose
+        /// </summary>
+        public abstract void Dispose();
     }
 }

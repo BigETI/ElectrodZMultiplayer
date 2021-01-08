@@ -6,7 +6,7 @@
 namespace ElectrodZMultiplayer
 {
     /// <summary>
-    /// An interface specifically used for the internal representation of a game entity
+    /// An interface that represents a game entity
     /// </summary>
     internal interface IInternalEntity : IEntity
     {

@@ -6,7 +6,7 @@
 namespace ElectrodZMultiplayer
 {
     /// <summary>
-    /// An interface that describes a peer for ENet
+    /// An interface that represents a peer for ENet
     /// </summary>
     public interface IENetPeer : IPeer
     {

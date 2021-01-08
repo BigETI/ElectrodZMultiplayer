@@ -4,7 +4,7 @@
 namespace ElectrodZMultiplayer
 {
     /// <summary>
-    /// An interface that describes a local connector
+    /// An interface that represents a local connector
     /// </summary>
     public interface ILocalConnector : IConnector
     {
@@ -20,8 +20,9 @@ namespace ElectrodZMultiplayer
         /// </summary>
         /// <param name="peer">Peer</param>
         /// <param name="message">Message</param>
+        /// <param name="index">Starting index</param>
         /// <param name="length">Message length in bytes</param>
-        void PushMessage(ILocalPeer peer, byte[] message, uint length);
+        void PushMessage(ILocalPeer peer, byte[] message, uint index, uint length);
 
         /// <summary>
         /// Connects to a local instance

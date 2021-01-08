@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json;
-using System;
 
 /// <summary>
 /// ElectordZ multiplayer data messages namespace

@@ -2,8 +2,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
-using System.IO.Compression;
 using System.Runtime.InteropServices;
 using System.Threading;
 
@@ -194,18 +192,7 @@ namespace ElectrodZMultiplayer
                         buffer = new byte[receive_message.Packet.Length / buffer.Length * (((receive_message.Packet.Length % buffer.Length) == 0) ? 1 : 2) * buffer.Length];
                     }
                     Marshal.Copy(receive_message.Packet.Data, buffer, 0, receive_message.Packet.Length);
-                    using (MemoryStream input_memory_stream = new MemoryStream(buffer, 0, receive_message.Packet.Length))
-                    {
-                        using (MemoryStream output_memory_stream = new MemoryStream())
-                        {
-                            using (GZipStream gzip_stream = new GZipStream(input_memory_stream, CompressionMode.Decompress, true))
-                            {
-                                gzip_stream.CopyTo(output_memory_stream);
-                            }
-                            output_memory_stream.Seek(0L, SeekOrigin.Begin);
-                            OnPeerMessageReceived?.Invoke(peerIDToPeerLookup[receive_message.Peer.ID], output_memory_stream.ToArray());
-                        }
-                    }
+                    OnPeerMessageReceived?.Invoke(peerIDToPeerLookup[receive_message.Peer.ID], Compression.Decompress(buffer, 0U, (uint)receive_message.Packet.Length));
                 }
                 receive_message.Packet.Dispose();
             }

@@ -19,6 +19,11 @@ namespace ElectrodZMultiplayer
         public static readonly uint timeoutTime = 15U;
 
         /// <summary>
+        /// Maximal pipe stream count to listen to incoming connections
+        /// </summary>
+        public static readonly uint maximalListeningPipeStreamCount = 4U;
+
+        /// <summary>
         /// Default minimal user count
         /// </summary>
         public static readonly uint minimalUserCount = 2U;
