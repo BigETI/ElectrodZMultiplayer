@@ -43,7 +43,7 @@ namespace ElectrodZMultiplayer.Server
                     };
                     server_host.Create(address, (int)Library.maxPeers, 0);
                     ret = new ServerSynchronizer();
-                    HandlePeerConnectionAttemptDelegate on_handle_peer_connection_attempt = (peer) => !ret.Bans.IsPeerBanned(peer, out _);
+                    bool on_handle_peer_connection_attempt(IPeer peer) => !ret.Bans.IsPeerBanned(peer, out _);
                     connectors[0] = new LocalConnector(on_handle_peer_connection_attempt);
                     connectors[1] = new ENetConnector(server_host, networkPort, timeoutTime, on_handle_peer_connection_attempt);
                     foreach (IConnector connector in connectors)
