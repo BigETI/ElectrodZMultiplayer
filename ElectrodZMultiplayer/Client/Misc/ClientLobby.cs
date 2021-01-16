@@ -100,14 +100,17 @@ namespace ElectrodZMultiplayer.Client
             (MinimalUserCount <= MaximalUserCount) &&
             (UserCount <= MaximalUserCount) &&
             !string.IsNullOrWhiteSpace(GameMode) &&
-            !Protection.ContainsNullOrInvalid(GameModeRules) &&
-            !Protection.ContainsNullOrInvalid(Users) &&
-            !Protection.ContainsNullOrInvalid(Entities);
+            (GameModeRules != null) &&
+            (Users != null) &&
+            (Entities != null) &&
+            Protection.IsValid(GameModeRules.Values) &&
+            Protection.IsValid(Users.Values) &&
+            Protection.IsValid(Entities.Values);
 
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="connection">Connection</param>
+        /// <param name="client">Client</param>
         /// <param name="lobbyCode">Lobby code</param>
         /// <param name="name">Lobby name</param>
         /// <param name="minimalUserCount">Minimal user count</param>
@@ -116,7 +119,7 @@ namespace ElectrodZMultiplayer.Client
         /// <param name="isStartingGameAutomatically">Is starting game automatically</param>
         /// <param name="gameMode">Game mode</param>
         /// <param name="gameModeRules">Game mode rules</param>
-        public ClientLobby(IInternalClientSynchronizer connection, string lobbyCode, string name, uint minimalUserCount, uint maximalUserCount, bool isStartingGameAutomatically, string gameMode, IReadOnlyDictionary<string, object> gameModeRules, IUser owner, IReadOnlyDictionary<string, IUser> users)
+        public ClientLobby(IInternalClientSynchronizer client, string lobbyCode, string name, uint minimalUserCount, uint maximalUserCount, bool isStartingGameAutomatically, string gameMode, IReadOnlyDictionary<string, object> gameModeRules, IUser owner, IReadOnlyDictionary<string, IUser> users)
         {
             if (minimalUserCount > maximalUserCount)
             {
@@ -134,7 +137,7 @@ namespace ElectrodZMultiplayer.Client
             {
                 throw new ArgumentException("Game mode can't be unknown.");
             }
-            this.client = connection ?? throw new ArgumentNullException(nameof(connection));
+            this.client = client ?? throw new ArgumentNullException(nameof(client));
             LobbyCode = lobbyCode ?? throw new ArgumentNullException(nameof(lobbyCode));
             Name = name ?? throw new ArgumentNullException(nameof(name));
             MinimalUserCount = minimalUserCount;

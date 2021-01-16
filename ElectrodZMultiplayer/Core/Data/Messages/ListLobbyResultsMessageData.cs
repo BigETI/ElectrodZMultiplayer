@@ -24,7 +24,7 @@ namespace ElectrodZMultiplayer.Data.Messages
         /// </summary>
         public override bool IsValid =>
             base.IsValid &&
-            !Protection.ContainsNullOrInvalid(Lobbies);
+            Protection.IsValid(Lobbies);
 
         /// <summary>
         /// Constructs a message that contains a result set for listing lobbies for deserializers
@@ -40,9 +40,9 @@ namespace ElectrodZMultiplayer.Data.Messages
         /// <param name="lobbies">Lobbies</param>
         public ListLobbyResultsMessageData(IEnumerable<ILobbyView> lobbies) : base(Naming.GetMessageTypeNameFromMessageDataType<ListLobbyResultsMessageData>())
         {
-            if (Protection.ContainsNullOrInvalid(lobbies))
+            if (!Protection.IsValid(lobbies))
             {
-                throw new ArgumentException($"\"{ nameof(lobbies) }\" contains null.", nameof(lobbies));
+                throw new ArgumentException($"Lobbies are not valid.", nameof(lobbies));
             }
             Lobbies = new List<LobbyData>();
             foreach (ILobbyView lobby in lobbies)

@@ -31,7 +31,7 @@ namespace ElectrodZMultiplayer.Data.Messages
         public override bool IsValid =>
             base.IsValid &&
             (Time >= 0.0f) &&
-            !Protection.ContainsNullOrInvalid(Entities);
+            Protection.IsValid(Entities);
 
         /// <summary>
         /// Constructs a server tick message for deserializers
@@ -56,9 +56,9 @@ namespace ElectrodZMultiplayer.Data.Messages
             {
                 throw new ArgumentNullException(nameof(entities));
             }
-            if (Protection.ContainsNullOrInvalid(entities))
+            if (!Protection.IsValid(entities))
             {
-                throw new ArgumentException($"\"{ nameof(entities) }\" contains null.", nameof(entities));
+                throw new ArgumentException($"Entities are not valid.", nameof(entities));
             }
             Time = time;
             Entities = new List<EntityData>();

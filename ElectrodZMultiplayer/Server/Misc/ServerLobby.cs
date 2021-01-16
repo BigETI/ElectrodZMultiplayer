@@ -97,8 +97,10 @@ namespace ElectrodZMultiplayer.Server
             (MinimalUserCount <= MaximalUserCount) &&
             (UserCount <= MaximalUserCount) &&
             !string.IsNullOrWhiteSpace(GameMode) &&
-            !Protection.ContainsNullOrInvalid(gameModeRules) &&
-            !Protection.ContainsNullOrInvalid(InternalUsers);
+            (gameModeRules != null) &&
+            (InternalUsers != null) &&
+            Protection.IsValid(gameModeRules.Values) &&
+            Protection.IsValid(InternalUsers.Values);
 
         /// <summary>
         /// Gets invoked when lobby has been closed

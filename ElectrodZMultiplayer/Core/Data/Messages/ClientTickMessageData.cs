@@ -47,15 +47,19 @@ namespace ElectrodZMultiplayer.Data.Messages
         public List<EGameAction> Actions { get; set; }
 
         /// <summary>
+        /// Entities to update (optional)
+        /// </summary>
+        [JsonProperty("entities")]
+        public List<EntityData> Entities { get; set; }
+
+        /// <summary>
         /// Is object in a valid state
         /// </summary>
         public override bool IsValid =>
             base.IsValid &&
-            (Color != EGameColor.Unknown) &&
-            (Position != null) &&
-            (Rotation != null) &&
-            (Velocity != null) &&
-            (Actions != null);
+            ((Color == null) || (Color != EGameColor.Unknown)) &&
+            ((Actions == null) || !Actions.Contains(EGameAction.Unknown)) &&
+            ((Entities == null) || Protection.IsValid(Entities));
 
         /// <summary>
         /// Constructs a client tick message for deserializers
@@ -73,25 +77,34 @@ namespace ElectrodZMultiplayer.Data.Messages
         /// <param name="rotation">Current rotation (optional)</param>
         /// <param name="velocity">Current velocity (optional)</param>
         /// <param name="actions">Current game actions (optional)</param>
-        public ClientTickMessageData(EGameColor? color, Vector3<float>? position, Quaternion<float>? rotation, Vector3<float>? velocity, IEnumerable<EGameAction> actions) : base(Naming.GetMessageTypeNameFromMessageDataType<ClientTickMessageData>())
+        /// <param name="entities">Entities to update (optional)</param>
+        public ClientTickMessageData(EGameColor? color, Vector3<float>? position, Quaternion<float>? rotation, Vector3<float>? velocity, IEnumerable<EGameAction> actions, IEnumerable<IEntityDelta> entities) : base(Naming.GetMessageTypeNameFromMessageDataType<ClientTickMessageData>())
         {
             if ((color != null) && (color == EGameColor.Unknown))
             {
                 throw new ArgumentException($"Game color can't be unknown.", nameof(color));
             }
-            if (actions == null)
-            {
-                throw new ArgumentNullException(nameof(actions));
-            }
-            if (Protection.Contains(actions, EGameAction.Unknown))
+            if ((actions != null) && Protection.IsContained(actions, (action) => action == EGameAction.Unknown))
             {
                 throw new ArgumentException("Game actions contains unknown game action.", nameof(actions));
+            }
+            if ((entities != null) && Protection.IsValid(entities))
+            {
+                throw new ArgumentException("Entities contains invalid entities.", nameof(entities));
             }
             Color = color;
             Position = (position == null) ? null : (Vector3FloatData)position;
             Rotation = (rotation == null) ? null : (QuaternionFloatData)rotation;
             Velocity = (velocity == null) ? null : (Vector3FloatData)velocity;
-            Actions = new List<EGameAction>(actions);
+            Actions = (actions == null) ? null : new List<EGameAction>(actions);
+            if (entities != null)
+            {
+                Entities = new List<EntityData>();
+                foreach (IEntityDelta entity in entities)
+                {
+                    Entities.Add(new EntityData(entity.GUID, entity.EntityType, entity.GameColor, entity.Position, entity.Rotation, entity.Velocity, entity.AngularVelocity, entity.Actions));
+                }
+            }
         }
     }
 }

@@ -631,13 +631,15 @@ namespace ElectrodZMultiplayer.Client
         public void SendStopGameMessage(float time) => SendMessage(new StopGameMessageData(time));
 
         /// <summary>
-        /// Send client tick message
+        /// Sends a client tick message
         /// </summary>
         /// <param name="color">Game color</param>
         /// <param name="position">Position</param>
         /// <param name="rotation">Rotation</param>
         /// <param name="velocity">Velocity</param>
-        public void SendClientTickMessage(EGameColor color, Vector3<float>? position = null, Quaternion<float>? rotation = null, Vector3<float>? velocity = null, IEnumerable<EGameAction> actions = null) => SendMessage(new ClientTickMessageData(color, position, rotation, velocity, actions));
+        /// <param name="actions">Game actions</param>
+        /// <param name="entities">Entities to update</param>
+        public void SendClientTickMessage(EGameColor color, Vector3<float>? position = null, Quaternion<float>? rotation = null, Vector3<float>? velocity = null, IEnumerable<EGameAction> actions = null, IEnumerable<IEntityDelta> entities = null) => SendMessage(new ClientTickMessageData(color, position, rotation, velocity, actions, entities));
 
         /// <summary>
         /// Sends an error message

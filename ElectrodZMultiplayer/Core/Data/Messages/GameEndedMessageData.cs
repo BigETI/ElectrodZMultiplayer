@@ -30,7 +30,7 @@ namespace ElectrodZMultiplayer.Data.Messages
         /// </summary>
         public override bool IsValid =>
             base.IsValid &&
-            !Protection.ContainsNullOrInvalid(Users) &&
+            Protection.IsValid(Users) &&
             (Results != null) &&
             !Results.ContainsValue(null);
 
@@ -56,7 +56,7 @@ namespace ElectrodZMultiplayer.Data.Messages
             {
                 throw new ArgumentNullException(nameof(results));
             }
-            if (Protection.ContainsNullOrInvalid(users))
+            if (!Protection.IsValid(users))
             {
                 throw new ArgumentException($"\"{ nameof(users) }\" contains null.");
             }

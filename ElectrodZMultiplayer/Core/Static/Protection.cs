@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿//using System.Collections.Generic;
+using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 /// <summary>
@@ -12,52 +15,31 @@ namespace ElectrodZMultiplayer
     internal static class Protection
     {
         /// <summary>
-        /// Does collection contain null or invalid elements
+        /// Is object valid
         /// </summary>
-        /// <typeparam name="T">Element type</typeparam>
-        /// <param name="collection">Collection</param>
-        /// <returns>"true" if collection contains any null or invalid elements, otherwise "false"</returns>
-        public static bool ContainsNullOrInvalid<T>(IEnumerable<T> collection)
+        /// <param name="obj">Object</param>
+        /// <returns>"true" if object the specified object is valid, otherwise "false"</returns>
+        public static bool IsValid(object obj)
         {
             bool ret = false;
-            if (collection == null)
+            if (obj != null)
             {
                 ret = true;
-            }
-            else
-            {
-                Parallel.ForEach(collection, (element, parallel_loop_state) =>
+                if (obj is IValidable validable_object)
                 {
-                    if ((element == null) || ((element is IValidable validable_element) && !validable_element.IsValid))
-                    {
-                        ret = true;
-                        parallel_loop_state.Break();
-                    }
-                });
-            }
-            return ret;
-        }
-
-        /// <summary>
-        /// Does collection contain the specified element
-        /// </summary>
-        /// <typeparam name="T">Element type</typeparam>
-        /// <param name="collection">Collection</param>
-        /// <param name="findElement">Find element</param>
-        /// <returns>"true" if collection contains the specified element, otherwise "false"</returns>
-        public static bool Contains<T>(IEnumerable<T> collection, T findElement)
-        {
-            bool ret = false;
-            if (collection != null)
-            {
-                Parallel.ForEach(collection, (element, parallel_loop_state) =>
+                    ret = validable_object.IsValid;
+                }
+                else if (obj is IEnumerable enumerable_object)
                 {
-                    if (Equals(element, findElement))
+                    foreach (object element in enumerable_object)
                     {
-                        ret = true;
-                        parallel_loop_state.Break();
+                        if (!IsValid(element))
+                        {
+                            ret = false;
+                            break;
+                        }
                     }
-                });
+                }
             }
             return ret;
         }
@@ -69,29 +51,58 @@ namespace ElectrodZMultiplayer
         /// <param name="collection">Collection</param>
         /// <param name="onContains">On contains</param>
         /// <returns>"true" if collection contains specified element in method, otherwise "false"</returns>
-        public static bool Contains<T>(IEnumerable<T> collection, ContainsDelegate<T> onContains)
+        public static bool IsContained<T>(IEnumerable<T> collection, ContainsDelegate<T> onContains)
         {
-            bool ret = false;
-            if (collection != null)
+            if (collection == null)
             {
-                Parallel.ForEach(collection, (element, parallel_loop_state) =>
-                {
-                    if (onContains(element))
-                    {
-                        ret = true;
-                        parallel_loop_state.Break();
-                    }
-                });
+                throw new ArgumentNullException(nameof(collection));
             }
+            if (onContains == null)
+            {
+                throw new ArgumentNullException(nameof(onContains));
+            }
+            bool ret = false;
+            Parallel.ForEach(collection, (element, parallelLoopState) =>
+            {
+                if (onContains(element))
+                {
+                    ret = true;
+                    parallelLoopState.Break();
+                }
+            });
             return ret;
         }
 
         /// <summary>
-        /// Is valid
+        /// Are elements in collection unique
         /// </summary>
-        /// <typeparam name="T">Validable type</typeparam>
-        /// <param name="validable">Validable</param>
-        /// <returns>"true" if valid, otherwise "false"</returns>
-        public static bool IsValid<T>(T validable) where T : IValidable => (validable != null) && validable.IsValid;
+        /// <typeparam name="T">Element type</typeparam>
+        /// <param name="collection">Collection</param>
+        /// <param name="onAreUnique">Gets invoked for each element each element except self</param>
+        /// <returns></returns>
+        public static bool AreUnique<T>(IReadOnlyList<T> collection, AreUniqueDelegate<T> onAreUnique)
+        {
+            if (collection == null)
+            {
+                throw new ArgumentNullException(nameof(collection));
+            }
+            if (onAreUnique == null)
+            {
+                throw new ArgumentNullException(nameof(onAreUnique));
+            }
+            bool ret = true;
+            Parallel.For(0, collection.Count, (leftIndex, parallelLoopState) =>
+            {
+                for (int right_index = 0; right_index < collection.Count; right_index++)
+                {
+                    if ((leftIndex != right_index) && !onAreUnique(collection[leftIndex], collection[right_index]))
+                    {
+                        ret = false;
+                        parallelLoopState.Break();
+                    }
+                }
+            });
+            return ret;
+        }
     }
 }

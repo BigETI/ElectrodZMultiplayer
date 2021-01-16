@@ -40,8 +40,9 @@ namespace ElectrodZMultiplayer.Data.Messages
             base.IsValid &&
             Protection.IsValid(Rules) &&
             (OwnerGUID != Guid.Empty) &&
-            !Protection.ContainsNullOrInvalid(Users) &&
-            Protection.Contains(Users, (element) => element.GUID == OwnerGUID);
+            Protection.IsValid(Users) &&
+            Protection.IsContained(Users, (element) => element.GUID == OwnerGUID) &&
+            Protection.AreUnique(Users, (left, right) => left.GUID != right.GUID);
 
         /// <summary>
         /// Constructs an acknowledgment to join a lobby as a message for deserializers
