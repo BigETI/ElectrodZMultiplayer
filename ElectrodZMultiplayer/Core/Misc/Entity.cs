@@ -107,7 +107,7 @@ namespace ElectrodZMultiplayer
             {
                 throw new ArgumentNullException(nameof(actions));
             }
-            if (Protection.Contains(actions, EGameAction.Unknown))
+            if (Protection.IsContained(actions, (action) => action == EGameAction.Unknown))
             {
                 throw new ArgumentException($"\"{ nameof(actions) }\" contains unknown game actions.", nameof(guid));
             }

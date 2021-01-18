@@ -75,7 +75,7 @@ namespace ElectrodZMultiplayer.Data
             ((Position == null) || (Position != null)) &&
             ((Rotation == null) || (Rotation != null)) &&
             ((AngularVelocity == null) || (AngularVelocity != null)) &&
-            ((Actions == null) || !Protection.Contains(Actions, EGameAction.Unknown));
+            ((Actions == null) || !Actions.Contains(EGameAction.Unknown));
 
         /// <summary>
         /// Constructs entity data for deserializers
@@ -110,7 +110,7 @@ namespace ElectrodZMultiplayer.Data
             {
                 throw new ArgumentException("Game color can't be unknown.", nameof(color));
             }
-            if ((actions != null) && Protection.Contains(actions, EGameAction.Unknown))
+            if ((actions != null) && Protection.IsContained(actions, (action) => action == EGameAction.Unknown))
             {
                 throw new ArgumentException($"\"{ nameof(actions) }\" contains unknown game actions");
             }

@@ -27,7 +27,7 @@ namespace ElectrodZMultiplayer
         public bool IsValid =>
             (User != null) &&
             (Results != null) &&
-            !Protection.ContainsNullOrInvalid(Results.Values);
+            Protection.IsValid(Results.Values);
 
         /// <summary>
         /// Constructor

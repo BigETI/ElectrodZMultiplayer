@@ -61,7 +61,8 @@ namespace ElectrodZMultiplayer
             (MinimalUserCount <= MaximalUserCount) &&
             (UserCount <= MaximalUserCount) &&
             !string.IsNullOrWhiteSpace(GameMode) &&
-            !Protection.ContainsNullOrInvalid(GameModeRules);
+            (GameModeRules != null) &&
+            Protection.IsValid(GameModeRules.Values);
 
         /// <summary>
         /// Constructor

@@ -63,7 +63,8 @@ namespace ElectrodZMultiplayer.Data
             (Name != null) &&
             (MinimalUserCount <= MaximalUserCount) &&
             !string.IsNullOrWhiteSpace(GameMode) &&
-            !Protection.ContainsNullOrInvalid(GameModeRules);
+            (GameModeRules != null) &&
+            Protection.IsValid(GameModeRules);
 
         /// <summary>
         /// Constructs lobby rules data for deserializers
@@ -85,9 +86,13 @@ namespace ElectrodZMultiplayer.Data
         /// <param name="gameModeRules">Game mode rules</param>
         public LobbyRulesData(string lobbyCode, string name, uint minimalUserCount, uint maximalUserCount, bool isStartingGameAutomatically, string gameMode, Dictionary<string, object> gameModeRules)
         {
-            if (Protection.ContainsNullOrInvalid(gameModeRules))
+            if (gameModeRules == null)
             {
-                throw new ArgumentException($"\"{ nameof(gameModeRules) }\" contains null.", nameof(gameModeRules));
+                throw new ArgumentNullException(nameof(gameModeRules));
+            }
+            if (!Protection.IsValid(gameModeRules.Values))
+            {
+                throw new ArgumentException($"Game mode rules are not value.", nameof(gameModeRules));
             }
             if (string.IsNullOrWhiteSpace(gameMode))
             {

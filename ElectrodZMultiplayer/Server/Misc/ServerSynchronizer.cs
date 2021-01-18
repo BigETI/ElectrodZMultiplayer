@@ -303,6 +303,7 @@ namespace ElectrodZMultiplayer.Server
                             serverUser.AddGameActionInternally(action);
                         }
                     }
+                    // TODO: Process entity updates
                 }), MessageParseFailedEvent);
         }
 
