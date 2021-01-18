@@ -29,22 +29,22 @@ namespace ElectrodZMultiplayer
         /// <summary>
         /// Current position (optional)
         /// </summary>
-        Vector3<float>? Position { get; }
+        Vector3? Position { get; }
 
         /// <summary>
         /// Current rotation (optional)
         /// </summary>
-        Quaternion<float>? Rotation { get; }
+        Quaternion? Rotation { get; }
 
         /// <summary>
         /// Current velocity (optional)
         /// </summary>
-        Vector3<float>? Velocity { get; }
+        Vector3? Velocity { get; }
 
         /// <summary>
         /// Current angular velocity (optional)
         /// </summary>
-        Vector3<float>? AngularVelocity { get; }
+        Vector3? AngularVelocity { get; }
 
         /// <summary>
         /// Current game actions (optional)

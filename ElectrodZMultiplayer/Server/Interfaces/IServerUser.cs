@@ -8,7 +8,7 @@ namespace ElectrodZMultiplayer.Server
     /// <summary>
     /// An interface that describes a server user
     /// </summary>
-    public interface IServerUser : IUser
+    public interface IServerUser : IServerEntity, IUser
     {
         /// <summary>
         /// Peer

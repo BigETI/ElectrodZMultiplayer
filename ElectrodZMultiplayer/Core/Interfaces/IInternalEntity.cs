@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 /// <summary>
 /// ElectrodZ multiplayer namespace
@@ -32,43 +33,31 @@ namespace ElectrodZMultiplayer
         /// Sets a new position internally
         /// </summary>
         /// <param name="position">New position</param>
-        void SetPositionInternally(Vector3<float> position);
+        void SetPositionInternally(Vector3 position);
 
         /// <summary>
         /// Sets a new rotation internally
         /// </summary>
         /// <param name="rotation">New rotation</param>
-        void SetRotationInternally(Quaternion<float> rotation);
+        void SetRotationInternally(Quaternion rotation);
 
         /// <summary>
         /// Sets a new velocity internally
         /// </summary>
         /// <param name="velocity">New velocity</param>
-        void SetVelocityInternally(Vector3<float> velocity);
+        void SetVelocityInternally(Vector3 velocity);
 
         /// <summary>
         /// Sets a new angular velocity
         /// </summary>
         /// <param name="angularVelocity">New angular velocity</param>
-        void SetAngularVelocityInternally(Vector3<float> angularVelocity);
+        void SetAngularVelocityInternally(Vector3 angularVelocity);
 
         /// <summary>
-        /// Adds a new game action to the current game actions internally.
+        /// Sets the game actions internally
         /// </summary>
-        /// <param name="action">New game action</param>
-        /// <returns>"true" if new game action was successfully added, otherwise "false"</returns>
-        bool AddGameActionInternally(EGameAction action);
-
-        /// <summary>
-        /// Removes the specified game action from the current game actions internally.
-        /// </summary>
-        /// <param name="action">Game action</param>
-        /// <returns>"true" if the specified game action was successfully removed, otherwise "false"</returns>
-        bool RemoveActionInternally(EGameAction action);
-
-        /// <summary>
-        /// Clears all set game actions internally.
-        /// </summary>
-        void ClearGameActionsInternally();
+        /// <param name="actions">Game actions</param>
+        /// <returns>Number of actions added</returns>
+        uint SetActionsInternally(IEnumerable<EGameAction> actions);
     }
 }

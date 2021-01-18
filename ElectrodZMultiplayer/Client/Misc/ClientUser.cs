@@ -35,20 +35,19 @@ namespace ElectrodZMultiplayer.Client
         /// Constructor
         /// </summary>
         /// <param name="guid">Entity GUID</param>
-        /// <param name="gameColor">Game color</param>
-        public ClientUser(Guid guid, EGameColor gameColor) : base(guid, gameColor)
+        public ClientUser(Guid guid) : base(guid, Defaults.playerEntityType)
         {
             // ...
         }
 
         /// <summary>
-        /// Constructor
+        /// Constructs a client user
         /// </summary>
         /// <param name="guid">Entity GUID</param>
         /// <param name="gameColor">Entity game color</param>
         /// <param name="name">Username</param>
         /// <param name="lobbyColor">User lobby color</param>
-        public ClientUser(Guid guid, EGameColor gameColor, string name, Color lobbyColor) : base(guid, gameColor)
+        public ClientUser(Guid guid, EGameColor gameColor, string name, Color lobbyColor) : base(guid, Defaults.playerEntityType, gameColor, Vector3.Zero, Quaternion.Identity, Vector3.Zero, Vector3.Zero, Array.Empty<EGameAction>())
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
             LobbyColor = lobbyColor;

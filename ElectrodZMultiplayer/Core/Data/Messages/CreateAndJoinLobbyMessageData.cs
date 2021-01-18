@@ -26,15 +26,21 @@ namespace ElectrodZMultiplayer.Data.Messages
         public string LobbyName { get; set; }
 
         /// <summary>
+        /// Game mode
+        /// </summary>
+        [JsonProperty("gameMode")]
+        public string GameMode { get; set; }
+
+        /// <summary>
         /// Minimal user count
         /// </summary>
-        [JsonProperty("minPlayerCount")]
+        [JsonProperty("minUserCount")]
         public uint? MinimalUserCount { get; set; }
 
         /// <summary>
         /// Maximal user count
         /// </summary>
-        [JsonProperty("maxPlayerCount")]
+        [JsonProperty("maxUserCount")]
         public uint? MaximalUserCount { get; set; }
 
         /// <summary>
@@ -42,12 +48,6 @@ namespace ElectrodZMultiplayer.Data.Messages
         /// </summary>
         [JsonProperty("isStartingGameAutomatically")]
         public bool? IsStartingGameAutomatically { get; set; }
-
-        /// <summary>
-        /// Game mode
-        /// </summary>
-        [JsonProperty("gameMode")]
-        public string GameMode { get; set; }
 
         /// <summary>
         /// Game mode rules
@@ -66,7 +66,8 @@ namespace ElectrodZMultiplayer.Data.Messages
             (LobbyName != null) &&
             (LobbyName.Trim().Length >= Defaults.minimalLobbyNameLength) &&
             (LobbyName.Trim().Length <= Defaults.maximalLobbyNameLength) &&
-            ((GameMode == null) || !string.IsNullOrWhiteSpace(GameMode)) &&
+            (GameMode != null) &&
+            !string.IsNullOrWhiteSpace(GameMode) &&
             ((GameModeRules == null) || !GameModeRules.ContainsValue(null));
 
         /// <summary>
@@ -82,12 +83,12 @@ namespace ElectrodZMultiplayer.Data.Messages
         /// </summary>
         /// <param name="username">Username</param>
         /// <param name="lobbyName">Lobby name</param>
+        /// <param name="gameMode">Game mode</param>
         /// <param name="minimalUserCount">Minimal user count</param>
         /// <param name="maximalUserCount">Maximal user count</param>
         /// <param name="isStartingGameAutomatically">Is starting game automatically</param>
-        /// <param name="gameMode">Game mode</param>
         /// <param name="gameModeRules">Game mode rules</param>
-        public CreateAndJoinLobbyMessageData(string username, string lobbyName, uint? minimalUserCount, uint? maximalUserCount, bool? isStartingGameAutomatically, string gameMode, Dictionary<string, object> gameModeRules) : base(Naming.GetMessageTypeNameFromMessageDataType<CreateAndJoinLobbyMessageData>())
+        public CreateAndJoinLobbyMessageData(string username, string lobbyName, string gameMode, uint? minimalUserCount, uint? maximalUserCount, bool? isStartingGameAutomatically, Dictionary<string, object> gameModeRules) : base(Naming.GetMessageTypeNameFromMessageDataType<CreateAndJoinLobbyMessageData>())
         {
             if (username == null)
             {
@@ -107,13 +108,17 @@ namespace ElectrodZMultiplayer.Data.Messages
             {
                 throw new ArgumentException($"Lobby name must be between { Defaults.minimalLobbyNameLength } and { Defaults.maximalLobbyNameLength } characters long.", nameof(lobbyName));
             }
+            if (string.IsNullOrWhiteSpace(gameMode))
+            {
+                throw new ArgumentNullException(nameof(gameMode));
+            }
             if ((minimalUserCount != null) && (maximalUserCount != null) && (minimalUserCount > maximalUserCount))
             {
                 throw new ArgumentException("Minimal user count can't be greater than maximal user count.", nameof(minimalUserCount));
             }
-            if ((gameMode != null) && string.IsNullOrWhiteSpace(gameMode))
+            if (string.IsNullOrWhiteSpace(gameMode))
             {
-                throw new ArgumentException("Game mode can't be unknown.", nameof(gameMode));
+                throw new ArgumentNullException(nameof(gameMode));
             }
             if ((gameModeRules != null) && gameModeRules.ContainsValue(null))
             {
@@ -121,10 +126,10 @@ namespace ElectrodZMultiplayer.Data.Messages
             }
             Username = new_username;
             LobbyName = new_lobby_name;
+            GameMode = gameMode;
             MinimalUserCount = minimalUserCount;
             MaximalUserCount = maximalUserCount;
             IsStartingGameAutomatically = isStartingGameAutomatically;
-            GameMode = gameMode;
             GameModeRules = gameModeRules;
         }
     }

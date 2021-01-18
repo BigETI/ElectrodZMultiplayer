@@ -131,12 +131,12 @@ namespace ElectrodZMultiplayer.Client
         /// </summary>
         /// <param name="username">Username</param>
         /// <param name="lobbyName">Lobby name</param>
+        /// <param name="gameMode">Game mode</param>
         /// <param name="minimalUserCount">Minimal user count</param>
         /// <param name="maximalUserCount">Maximal user count</param>
         /// <param name="isStartingGameAutomatically">Is starting game automatically</param>
-        /// <param name="gameMode">Game mode</param>
         /// <param name="gameModeRules">Game mode rules</param>
-        void CreateAndJoinLobby(string username, string lobbyName, uint? minimalUserCount = null, uint? maximalUserCount = null, bool? isStartingGameAutomatically = null, string gameMode = null, IReadOnlyDictionary<string, object> gameModeRules = null);
+        void CreateAndJoinLobby(string username, string lobbyName, string gameMode, uint? minimalUserCount = null, uint? maximalUserCount = null, bool? isStartingGameAutomatically = null, IReadOnlyDictionary<string, object> gameModeRules = null);
 
         /// <summary>
         /// Joins a lobby with the specified lobby code
@@ -169,12 +169,12 @@ namespace ElectrodZMultiplayer.Client
         /// </summary>
         /// <param name="username">Username</param>
         /// <param name="lobbyName">Lobby name</param>
+        /// <param name="gameMode">Game mode</param>
         /// <param name="minimalUserCount">Minimal user count</param>
         /// <param name="maximalUserCount">Maximal user count</param>
         /// <param name="isStartingGameAutomatically">Is starting game automatically</param>
-        /// <param name="gameMode">Game mode</param>
         /// <param name="gameModeRules">Game mode rules</param>
-        void SendCreateAndJoinLobbyMessage(string username, string lobbyName, uint? minimalUserCount = null, uint? maximalUserCount = null, bool? isStartingGameAutomatically = null, string gameMode = null, IReadOnlyDictionary<string, object> gameModeRules = null);
+        void SendCreateAndJoinLobbyMessage(string username, string lobbyName, string gameMode, uint? minimalUserCount = null, uint? maximalUserCount = null, bool? isStartingGameAutomatically = null, IReadOnlyDictionary<string, object> gameModeRules = null);
 
         /// <summary>
         /// Sends a quit lobbym message to peer
@@ -238,13 +238,8 @@ namespace ElectrodZMultiplayer.Client
         /// <summary>
         /// Sends a client tick message
         /// </summary>
-        /// <param name="color">Game color</param>
-        /// <param name="position">Position</param>
-        /// <param name="rotation">Rotation</param>
-        /// <param name="velocity">Velocity</param>
-        /// <param name="actions">Game actions</param>
         /// <param name="entities">Entities to update</param>
-        void SendClientTickMessage(EGameColor color, Vector3<float>? position = null, Quaternion<float>? rotation = null, Vector3<float>? velocity = null, IEnumerable<EGameAction> actions = null, IEnumerable<IEntityDelta> entities = null);
+        void SendClientTickMessage(IEnumerable<IEntityDelta> entities = null);
 
         /// <summary>
         /// Sends an error message to peer

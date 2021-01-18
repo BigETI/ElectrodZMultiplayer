@@ -59,7 +59,7 @@ namespace ElectrodZMultiplayer.Server
         /// <param name="peer">Peer</param>
         /// <param name="server">Server</param>
         /// <param name="token">Token</param>
-        public ServerUser(IPeer peer, IServerSynchronizer server, string token) : base((peer == null) ? Guid.Empty : peer.GUID, EGameColor.Default)
+        public ServerUser(IPeer peer, IServerSynchronizer server, string token) : base((peer == null) ? Guid.Empty : peer.GUID, Defaults.playerEntityType)
         {
             Peer = peer ?? throw new ArgumentNullException(nameof(peer));
             Server = server ?? throw new ArgumentNullException(nameof(server));
@@ -153,6 +153,12 @@ namespace ElectrodZMultiplayer.Server
         public void SendListLobbyResultsMessage(IEnumerable<ILobbyView> lobbies) => SendMessage(new ListLobbyResultsMessageData(lobbies));
 
         /// <summary>
+        /// Sends a list available game mode results message
+        /// </summary>
+        /// <param name="gameModes">Available game modes</param>
+        public void SendListAvailableGameModeResultsMessage(IEnumerable<string> gameModes) => SendMessage(new ListAvailableGameModeResultsMessageData(gameModes));
+
+        /// <summary>
         /// Sends an error message
         /// </summary>
         /// <param name="errorType">Error type</param>
@@ -196,5 +202,42 @@ namespace ElectrodZMultiplayer.Server
             }
             Disconnect(EDisconnectionReason.Banned);
         }
+
+        /// <summary>
+        /// Sets the new game color
+        /// </summary>
+        /// <param name="newGameColor">New game color</param>
+        public void SetGameColor(EGameColor newGameColor) => SetGameColorInternally(newGameColor);
+
+        /// <summary>
+        /// Sets the new position
+        /// </summary>
+        /// <param name="newPosition"></param>
+        public void SetPosition(Vector3 newPosition) => SetPositionInternally(newPosition);
+
+        /// <summary>
+        /// Sets the new rotation
+        /// </summary>
+        /// <param name="newRotation"></param>
+        public void SetRotation(Quaternion newRotation) => SetRotationInternally(newRotation);
+
+        /// <summary>
+        /// Sets the new velocity
+        /// </summary>
+        /// <param name="newVelocity"></param>
+        public void SetVelocity(Vector3 newVelocity) => SetVelocityInternally(newVelocity);
+
+        /// <summary>
+        /// Sets the angular velocity
+        /// </summary>
+        /// <param name="newAngularVelocity"></param>
+        public void SetAngularVelocity(Vector3 newAngularVelocity) => SetAngularVelocityInternally(newAngularVelocity);
+
+        /// <summary>
+        /// Sets the new game actions
+        /// </summary>
+        /// <param name="newActions">New game actions</param>
+        /// <returns>Number of game actions set</returns>
+        public uint SetActions(IEnumerable<EGameAction> newActions) => SetActionsInternally(newActions);
     }
 }

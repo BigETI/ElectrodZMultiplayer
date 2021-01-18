@@ -6,42 +6,46 @@ namespace ElectrodZMultiplayer
     /// <summary>
     /// Quaternion structure
     /// </summary>
-    /// <typeparam name="T">Quaternion component type</typeparam>
-    public readonly struct Quaternion<T>
+    public readonly struct Quaternion
     {
         /// <summary>
-        /// W component of the quaternion
+        /// Identity
         /// </summary>
-        public T W { get; }
+        public static Quaternion Identity { get; } = new Quaternion(0.0f, 0.0f, 0.0f, 1.0f);
 
         /// <summary>
         /// X component of the quaternion
         /// </summary>
-        public T X { get; }
+        public float X { get; }
 
         /// <summary>
         /// Y component of the quaternion
         /// </summary>
-        public T Y { get; }
+        public float Y { get; }
 
         /// <summary>
         /// Z component of the quaternion
         /// </summary>
-        public T Z { get; }
+        public float Z { get; }
+
+        /// <summary>
+        /// W component of the quaternion
+        /// </summary>
+        public float W { get; }
 
         /// <summary>
         /// Constructs a quaternion
         /// </summary>
-        /// <param name="w">W component of the quaternion</param>
         /// <param name="x">X component of the quaternion</param>
         /// <param name="y">Y component of the quaternion</param>
         /// <param name="z">Z component of the quaternion</param>
-        public Quaternion(T w, T x, T y, T z)
+        /// <param name="w">W component of the quaternion</param>
+        public Quaternion(float x, float y, float z, float w)
         {
-            W = w;
             X = x;
             Y = y;
             Z = z;
+            W = w;
         }
     }
 }

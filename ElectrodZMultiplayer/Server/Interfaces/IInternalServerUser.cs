@@ -53,6 +53,12 @@ namespace ElectrodZMultiplayer.Server
         void SendListLobbyResultsMessage(IEnumerable<ILobbyView> lobbies);
 
         /// <summary>
+        /// Sends a list available game mode results message
+        /// </summary>
+        /// <param name="gameModes">Available game modes</param>
+        void SendListAvailableGameModeResultsMessage(IEnumerable<string> gameModes);
+
+        /// <summary>
         /// Sends a join lobby acknowledged message
         /// </summary>
         /// <param name="lobby">Lobby</param>

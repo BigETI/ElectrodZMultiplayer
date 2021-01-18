@@ -54,6 +54,6 @@ namespace ElectrodZMultiplayer.Data
         /// Explicitly casts a 3D vector to 3D vector data
         /// </summary>
         /// <param name="vector">3D Vector</param>
-        public static explicit operator Vector3FloatData(Vector3<float> vector) => new Vector3FloatData(vector.X, vector.Y, vector.Z);
+        public static explicit operator Vector3FloatData(Vector3 vector) => new Vector3FloatData(vector.X, vector.Y, vector.Z);
     }
 }

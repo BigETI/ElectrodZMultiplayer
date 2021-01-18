@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 /// <summary>
 /// ElectrodZ multiplayer namespace
@@ -30,22 +29,22 @@ namespace ElectrodZMultiplayer
         /// <summary>
         /// Current position (optional)
         /// </summary>
-        public Vector3<float>? Position { get; }
+        public Vector3? Position { get; }
 
         /// <summary>
         /// Current rotation (optional)
         /// </summary>
-        public Quaternion<float>? Rotation { get; }
+        public Quaternion? Rotation { get; }
 
         /// <summary>
         /// Current velocity (optional)
         /// </summary>
-        public Vector3<float>? Velocity { get; }
+        public Vector3? Velocity { get; }
 
         /// <summary>
         /// Current angular velocity (optional)
         /// </summary>
-        public Vector3<float>? AngularVelocity { get; }
+        public Vector3? AngularVelocity { get; }
 
         /// <summary>
         /// Current game actions (optional)
@@ -68,7 +67,7 @@ namespace ElectrodZMultiplayer
         /// <param name="velocity">Velocity</param>
         /// <param name="angularVelocity">Angular velocity</param>
         /// <param name="actions">Actions</param>
-        public EntityDelta(Guid guid, string entityType = null, EGameColor? gameColor = null, Vector3<float>? position = null, Quaternion<float>? rotation = null, Vector3<float>? velocity = null, Vector3<float>? angularVelocity = null, IEnumerable<EGameAction> actions = null)
+        public EntityDelta(Guid guid, string entityType = null, EGameColor? gameColor = null, Vector3? position = null, Quaternion? rotation = null, Vector3? velocity = null, Vector3? angularVelocity = null, IEnumerable<EGameAction> actions = null)
         {
             GUID = guid;
             EntityType = entityType;

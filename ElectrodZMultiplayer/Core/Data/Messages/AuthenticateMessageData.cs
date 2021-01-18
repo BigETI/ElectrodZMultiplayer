@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 
 /// <summary>
-/// ElectordZ multiplayer data messages namespace
+/// ElectrodZ multiplayer data messages namespace
 /// </summary>
 namespace ElectrodZMultiplayer.Data.Messages
 {

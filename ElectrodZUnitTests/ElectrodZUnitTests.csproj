@@ -13,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ElectrodZExampleGameResource\ElectrodZExampleGameResource.csproj" />
     <ProjectReference Include="..\ElectrodZMultiplayer\ElectrodZMultiplayer.csproj" />
   </ItemGroup>
 

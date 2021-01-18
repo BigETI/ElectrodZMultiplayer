@@ -96,7 +96,7 @@ namespace ElectrodZMultiplayer.Data
         /// <param name="velocity">Current velocity (optional)</param>
         /// <param name="angularVelocity">Current angular velocity (optional)</param>
         /// <param name="actions">Current game actions (optional)</param>
-        public EntityData(Guid guid, string entityType, EGameColor? color, Vector3<float>? position, Quaternion<float>? rotation, Vector3<float>? velocity, Vector3<float>? angularVelocity, IEnumerable<EGameAction> actions)
+        public EntityData(Guid guid, string entityType, EGameColor? color, Vector3? position, Quaternion? rotation, Vector3? velocity, Vector3? angularVelocity, IEnumerable<EGameAction> actions)
         {
             if (guid != Guid.Empty)
             {

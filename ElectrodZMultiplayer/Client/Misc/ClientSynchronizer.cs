@@ -147,7 +147,7 @@ namespace ElectrodZMultiplayer.Client
                 else
                 {
                     Token = message.Token;
-                    user = new ClientUser(message.GUID, EGameColor.Default);
+                    user = new ClientUser(message.GUID);
                     OnAuthenticationAcknowledged?.Invoke(User);
                 }
             }, FatalMessageParseFailedEvent);
@@ -302,27 +302,23 @@ namespace ElectrodZMultiplayer.Client
                                 }
                                 if (entity.Position != null)
                                 {
-                                    client_user.SetPositionInternally(new Vector3<float>(entity.Position.X, entity.Position.Y, entity.Position.Z));
+                                    client_user.SetPositionInternally(new Vector3(entity.Position.X, entity.Position.Y, entity.Position.Z));
                                 }
                                 if (entity.Rotation != null)
                                 {
-                                    client_user.SetRotationInternally(new Quaternion<float>(entity.Rotation.W, entity.Rotation.X, entity.Rotation.Y, entity.Rotation.Z));
+                                    client_user.SetRotationInternally(new Quaternion(entity.Rotation.X, entity.Rotation.Y, entity.Rotation.Z, entity.Rotation.W));
                                 }
                                 if (entity.Velocity != null)
                                 {
-                                    client_user.SetVelocityInternally(new Vector3<float>(entity.Velocity.X, entity.Velocity.Y, entity.Velocity.Z));
+                                    client_user.SetVelocityInternally(new Vector3(entity.Velocity.X, entity.Velocity.Y, entity.Velocity.Z));
                                 }
                                 if (entity.AngularVelocity != null)
                                 {
-                                    client_user.SetAngularVelocityInternally(new Vector3<float>(entity.AngularVelocity.X, entity.AngularVelocity.Y, entity.AngularVelocity.Z));
+                                    client_user.SetAngularVelocityInternally(new Vector3(entity.AngularVelocity.X, entity.AngularVelocity.Y, entity.AngularVelocity.Z));
                                 }
                                 if (entity.Actions != null)
                                 {
-                                    client_user.ClearGameActionsInternally();
-                                    foreach (EGameAction action in entity.Actions)
-                                    {
-                                        client_user.AddGameActionInternally(action);
-                                    }
+                                    client_user.SetActionsInternally(entity.Actions);
                                 }
                             }
                         }
@@ -442,16 +438,16 @@ namespace ElectrodZMultiplayer.Client
         /// </summary>
         /// <param name="username">Username</param>
         /// <param name="lobbyName">Lobby name</param>
+        /// <param name="gameMode">Game mode</param>
         /// <param name="minimalUserCount">Minimal user count</param>
         /// <param name="maximalUserCount">Maximal user count</param>
         /// <param name="isStartingGameAutomatically">Is starting game automatically</param>
-        /// <param name="gameMode">Game mode</param>
         /// <param name="gameModeRules">Game mode rules</param>
-        public void CreateAndJoinLobby(string username, string lobbyName, uint? minimalUserCount = null, uint? maximalUserCount = null, bool? isStartingGameAutomatically = null, string gameMode = null, IReadOnlyDictionary<string, object> gameModeRules = null)
+        public void CreateAndJoinLobby(string username, string lobbyName, string gameMode, uint? minimalUserCount = null, uint? maximalUserCount = null, bool? isStartingGameAutomatically = null, IReadOnlyDictionary<string, object> gameModeRules = null)
         {
             if (User.Lobby == null)
             {
-                SendCreateAndJoinLobbyMessage(username, lobbyName, minimalUserCount, maximalUserCount, isStartingGameAutomatically, gameMode, gameModeRules);
+                SendCreateAndJoinLobbyMessage(username, lobbyName, gameMode, minimalUserCount, maximalUserCount, isStartingGameAutomatically, gameModeRules);
             }
         }
 
@@ -533,13 +529,25 @@ namespace ElectrodZMultiplayer.Client
         /// </summary>
         /// <param name="username">Username</param>
         /// <param name="lobbyName">Lobby name</param>
+        /// <param name="gameMode">Game mode</param>
         /// <param name="minimalUserCount">Minimal user count</param>
         /// <param name="maximalUserCount">Maximal user count</param>
         /// <param name="isStartingGameAutomatically">Is starting game automatically</param>
-        /// <param name="gameMode">Game mode</param>
         /// <param name="gameModeRules">Game mode rules</param>
-        public void SendCreateAndJoinLobbyMessage(string username, string lobbyName, uint? minimalUserCount = null, uint? maximalUserCount = null, bool? isStartingGameAutomatically = null, string gameMode = null, IReadOnlyDictionary<string, object> gameModeRules = null)
+        public void SendCreateAndJoinLobbyMessage(string username, string lobbyName, string gameMode, uint? minimalUserCount = null, uint? maximalUserCount = null, bool? isStartingGameAutomatically = null, IReadOnlyDictionary<string, object> gameModeRules = null)
         {
+            if (string.IsNullOrWhiteSpace(username))
+            {
+                throw new ArgumentNullException(nameof(username));
+            }
+            if (string.IsNullOrWhiteSpace(lobbyName))
+            {
+                throw new ArgumentNullException(nameof(lobbyName));
+            }
+            if (string.IsNullOrWhiteSpace(gameMode))
+            {
+                throw new ArgumentNullException(nameof(gameMode));
+            }
             Dictionary<string, object> game_mode_rules = null;
             if (gameModeRules != null)
             {
@@ -549,7 +557,7 @@ namespace ElectrodZMultiplayer.Client
                     game_mode_rules.Add(game_mode_rule.Key, game_mode_rule.Value);
                 }
             }
-            SendMessage(new CreateAndJoinLobbyMessageData(username, lobbyName, minimalUserCount, maximalUserCount, isStartingGameAutomatically, gameMode, game_mode_rules));
+            SendMessage(new CreateAndJoinLobbyMessageData(username, lobbyName, gameMode, minimalUserCount, maximalUserCount, isStartingGameAutomatically, game_mode_rules));
         }
 
         /// <summary>
@@ -633,13 +641,8 @@ namespace ElectrodZMultiplayer.Client
         /// <summary>
         /// Sends a client tick message
         /// </summary>
-        /// <param name="color">Game color</param>
-        /// <param name="position">Position</param>
-        /// <param name="rotation">Rotation</param>
-        /// <param name="velocity">Velocity</param>
-        /// <param name="actions">Game actions</param>
         /// <param name="entities">Entities to update</param>
-        public void SendClientTickMessage(EGameColor color, Vector3<float>? position = null, Quaternion<float>? rotation = null, Vector3<float>? velocity = null, IEnumerable<EGameAction> actions = null, IEnumerable<IEntityDelta> entities = null) => SendMessage(new ClientTickMessageData(color, position, rotation, velocity, actions, entities));
+        public void SendClientTickMessage(IEnumerable<IEntityDelta> entities = null) => SendMessage(new ClientTickMessageData(entities));
 
         /// <summary>
         /// Sends an error message

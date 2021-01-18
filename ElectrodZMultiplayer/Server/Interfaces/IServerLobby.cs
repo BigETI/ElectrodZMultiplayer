@@ -1,4 +1,6 @@
-﻿/// <summary>
+﻿using System.Collections.Generic;
+
+/// <summary>
 /// ElectrodZ multiplayer server namespace
 /// </summary>
 namespace ElectrodZMultiplayer.Server
@@ -14,17 +16,52 @@ namespace ElectrodZMultiplayer.Server
         IServerSynchronizer Server { get; }
 
         /// <summary>
+        /// Currently loaded game mode
+        /// </summary>
+        IGameMode CurrentlyLoadedGameMode { get; }
+
+        /// <summary>
+        /// Gets invoked when a game mode has been started
+        /// </summary>
+        event GameModeStartedDelegate OnGameModeStarted;
+
+        /// <summary>
+        /// Gets invoked when a game mode has been stopped
+        /// </summary>
+        event GameModeStoppedDelegate OnGameModeStopped;
+
+        /// <summary>
         /// Gets invoked when lobby has been closed
         /// </summary>
         event LobbyClosedDelegate OnLobbyClosed;
 
         /// <summary>
-        /// Remove user
+        /// Removes the specified user
         /// </summary>
         /// <param name="user">User</param>
         /// <param name="reason">Reason</param>
-        /// <returns>"true" if user was removed, otherwise "false"</returns>
+        /// <returns>"true" if the specified user has been successfully removed, otherwise "false"</returns>
         bool RemoveUser(IUser user, string reason);
+
+        /// <summary>
+        /// Creates a new game entity
+        /// </summary>
+        /// <param name="entityType">Game entity type</param>
+        /// <param name="gameColor">Game entity game color (optional)</param>
+        /// <param name="position">Game entity position (optional)</param>
+        /// <param name="rotation">Game entity rotation (optional)</param>
+        /// <param name="velocity">Game entity velocity (optional)</param>
+        /// <param name="angularVelocity">Game entity angular valocity (optional)</param>
+        /// <param name="actions">Game entity game actions (optional)</param>
+        /// <returns>Game entity</returns>
+        IGameEntity CreateNewGameEntity(string entityType, EGameColor? gameColor = null, Vector3? position = null, Quaternion? rotation = null, Vector3? velocity = null, Vector3? angularVelocity = null, IEnumerable<EGameAction> actions = null);
+
+        /// <summary>
+        /// Removes the specified entity
+        /// </summary>
+        /// <param name="entity">Entity</param>
+        /// <returns>"true" if the specified entity has been successfully removed, otherwise "false"</returns>
+        bool RemoveEntity(IEntity entity);
 
         /// <summary>
         /// Close lobby

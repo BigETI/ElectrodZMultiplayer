@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 /// <summary>
 /// ElectrodZ multiplayer server namespace
@@ -11,14 +12,27 @@ namespace ElectrodZMultiplayer.Server
     internal interface IInternalServerLobby : IServerLobby
     {
         /// <summary>
-        /// Internal users
+        /// Remaining game start time in seconds
         /// </summary>
-        Dictionary<string, IUser> InternalUsers { get; }
+        double RemainingGameStartTime { get; set; }
 
         /// <summary>
-        /// Internal entities
+        /// Remaining game stop time in seconds
         /// </summary>
-        Dictionary<string, IEntity> InternalEntities { get; }
+        double RemainingGameStopTime { get; set; }
+
+        /// <summary>
+        /// Adds the specified user
+        /// </summary>
+        /// <param name="user">User</param>
+        /// <returns>"true" if the specified user has been successfully added, otherwise "false"</returns>
+        bool AddUser(IInternalServerUser user);
+
+        /// <summary>
+        /// Performs a tick
+        /// </summary>
+        /// <param name="deltaTime">Delta time</param>
+        void Tick(TimeSpan deltaTime);
 
         /// <summary>
         /// Sets a new lobby name
@@ -52,10 +66,10 @@ namespace ElectrodZMultiplayer.Server
         void SetStartingGameAutomaticallyStateInternally(bool isStartingGameAutomatically);
 
         /// <summary>
-        /// Sets a new gamemode
+        /// Sets a new game mode type
         /// </summary>
-        /// <param name="gameMode"></param>
-        void SetGameModeInternally(string gameMode);
+        /// <param name="gameModeType">Game mode type</param>
+        void SetGameModeTypeInternally((IGameResource, Type) gameModeType);
 
         /// <summary>
         /// Adds a new game mode rule
@@ -75,6 +89,17 @@ namespace ElectrodZMultiplayer.Server
         /// Clears all game mode rules
         /// </summary>
         void ClearGameModeRulesInternally();
+
+        /// <summary>
+        /// Starts a new game mode instance 
+        /// </summary>
+        void StartNewGameModeInstance();
+
+        /// <summary>
+        /// Stops the currently running game mode instance
+        /// </summary>
+        /// <returns>"true" if a running game mode instance has been stopped, otherwise "false"</returns>
+        bool StopGameModeInstance();
 
         /// <summary>
         /// Sends a message to all

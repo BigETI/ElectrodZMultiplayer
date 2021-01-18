@@ -59,8 +59,8 @@ namespace ElectrodZMultiplayer
         public static readonly uint maximalLobbyNameLength = 32U;
 
         /// <summary>
-        /// Default game mode
+        /// Default player entity type
         /// </summary>
-        public static readonly string gameMode = "Empty";
+        public static readonly string playerEntityType = "Player";
     }
 }

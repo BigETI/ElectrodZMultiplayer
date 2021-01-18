@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ElectrodZMultiplayer\ElectrodZMultiplayer.csproj" />
+  </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="mkdir &quot;$(SolutionDir)ElectrodZServer/bin/$(ConfigurationName)/netcoreapp3.1/GameResources/&quot;&#xD;&#xA;copy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)ElectrodZServer/bin/$(ConfigurationName)/netcoreapp3.1/GameResources/$(TargetFileName)&quot;" />
+  </Target>
+
+</Project>
