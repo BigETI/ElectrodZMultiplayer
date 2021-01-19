@@ -78,5 +78,58 @@ namespace ElectrodZMultiplayer
             AngularVelocity = angularVelocity;
             Actions = actions;
         }
+
+        /// <summary>
+        /// Combines two entity deltas to create a new entity delta
+        /// </summary>
+        /// <param name="baseEntityDelta">Base entity delta</param>
+        /// <param name="patchEntityDelta">Patch entity delta</param>
+        /// <returns>Combined entity delta</returns>
+        public static EntityDelta Combine(IEntityDelta baseEntityDelta, IEntityDelta patchEntityDelta)
+        {
+            if (baseEntityDelta == null)
+            {
+                throw new ArgumentNullException(nameof(baseEntityDelta));
+            }
+            if (!baseEntityDelta.IsValid)
+            {
+                throw new ArgumentException("Base entity delta is not valid.", nameof(baseEntityDelta));
+            }
+            if (patchEntityDelta == null)
+            {
+                throw new ArgumentNullException(nameof(patchEntityDelta));
+            }
+            if (!patchEntityDelta.IsValid)
+            {
+                throw new ArgumentException("Patch entity delta is not valid.", nameof(patchEntityDelta));
+            }
+            if (baseEntityDelta.GUID != patchEntityDelta.GUID)
+            {
+                throw new ArgumentException($"Base entity delta GUID \"{ baseEntityDelta.GUID }\" does not match path entity delta GUID \"{ patchEntityDelta.GUID }\".", nameof(patchEntityDelta));
+            }
+            HashSet<EGameAction> actions = (baseEntityDelta.Actions == null) ? null : new HashSet<EGameAction>(baseEntityDelta.Actions);
+            if (patchEntityDelta.Actions != null)
+            {
+                if (actions == null)
+                {
+                    actions = new HashSet<EGameAction>(patchEntityDelta.Actions);
+                }
+                else
+                {
+                    actions.IntersectWith(patchEntityDelta.Actions);
+                }
+            }
+            return new EntityDelta
+            (
+                baseEntityDelta.GUID,
+                patchEntityDelta.EntityType ?? baseEntityDelta.EntityType,
+                patchEntityDelta.GameColor ?? baseEntityDelta.GameColor,
+                patchEntityDelta.Position ?? baseEntityDelta.Position,
+                patchEntityDelta.Rotation ?? baseEntityDelta.Rotation,
+                patchEntityDelta.Velocity ?? baseEntityDelta.Velocity,
+                patchEntityDelta.AngularVelocity ?? baseEntityDelta.AngularVelocity,
+                actions
+            );
+        }
     }
 }
