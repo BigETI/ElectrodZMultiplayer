@@ -98,7 +98,7 @@ namespace ElectrodZMultiplayer.Data
         /// <param name="actions">Current game actions (optional)</param>
         public EntityData(Guid guid, string entityType, EGameColor? color, Vector3? position, Quaternion? rotation, Vector3? velocity, Vector3? angularVelocity, IEnumerable<EGameAction> actions)
         {
-            if (guid != Guid.Empty)
+            if (guid == Guid.Empty)
             {
                 throw new ArgumentException("Entity GUID can't be empty.", nameof(guid));
             }

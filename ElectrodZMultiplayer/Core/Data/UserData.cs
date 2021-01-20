@@ -70,7 +70,7 @@ namespace ElectrodZMultiplayer.Data
         {
             if (guid == Guid.Empty)
             {
-                throw new ArgumentException("User GUID is empty.", nameof(guid));
+                throw new ArgumentException("User GUID can't be empty.", nameof(guid));
             }
             if (gameColor == EGameColor.Unknown)
             {

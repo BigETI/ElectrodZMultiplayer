@@ -69,6 +69,10 @@ namespace ElectrodZMultiplayer
         /// <param name="actions">Actions</param>
         public EntityDelta(Guid guid, string entityType = null, EGameColor? gameColor = null, Vector3? position = null, Quaternion? rotation = null, Vector3? velocity = null, Vector3? angularVelocity = null, IEnumerable<EGameAction> actions = null)
         {
+            if (guid == Guid.Empty)
+            {
+                throw new ArgumentException("Entity GUID can't be empty.", nameof(guid));
+            }
             GUID = guid;
             EntityType = entityType;
             GameColor = gameColor;
