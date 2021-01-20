@@ -17,7 +17,6 @@ namespace ElectrodZMultiplayer.Data.Messages
         /// Error type
         /// </summary>
         [JsonProperty("errorType")]
-        [JsonConverter(typeof(ErrorTypeJSONConverter))]
         public EErrorType ErrorType { get; set; } = EErrorType.Unknown;
 
         /// <summary>

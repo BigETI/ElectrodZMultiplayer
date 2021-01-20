@@ -1,4 +1,7 @@
-﻿/// <summary>
+﻿using ElectrodZMultiplayer.JSONConverters;
+using Newtonsoft.Json;
+
+/// <summary>
 /// ElectrodZ multiplayer namespace
 /// </summary>
 namespace ElectrodZMultiplayer
@@ -6,6 +9,7 @@ namespace ElectrodZMultiplayer
     /// <summary>
     /// Error type enumerator
     /// </summary>
+    [JsonConverter(typeof(ErrorTypeJSONConverter))]
     public enum EErrorType
     {
         /// <summary>

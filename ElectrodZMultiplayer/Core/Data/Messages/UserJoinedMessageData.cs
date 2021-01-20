@@ -25,7 +25,6 @@ namespace ElectrodZMultiplayer.Data.Messages
         /// Joining user game color
         /// </summary>
         [JsonProperty("gameColor")]
-        [JsonConverter(typeof(GameColorJSONConverter))]
         public EGameColor GameColor { get; set; }
 
         /// <summary>

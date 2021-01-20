@@ -31,7 +31,6 @@ namespace ElectrodZMultiplayer.Data
         /// Entity game color (optional)
         /// </summary>
         [JsonProperty("color")]
-        [JsonConverter(typeof(GameColorJSONConverter))]
         public EGameColor? GameColor { get; set; }
 
         /// <summary>
@@ -62,7 +61,6 @@ namespace ElectrodZMultiplayer.Data
         /// Current game actions (optional)
         /// </summary>
         [JsonProperty("actions")]
-        [JsonConverter(typeof(GameActionJSONConverter))]
         public List<EGameAction> Actions { get; set; }
 
         /// <summary>
