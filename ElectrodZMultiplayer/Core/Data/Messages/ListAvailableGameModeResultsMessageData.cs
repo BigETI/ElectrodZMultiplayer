@@ -8,7 +8,7 @@ using System.Collections.Generic;
 namespace ElectrodZMultiplayer.Data.Messages
 {
     /// <summary>
-    /// A class that describes an authentication message
+    /// A class that describes a list of available game mode results message
     /// </summary>
     [JsonObject(MemberSerialization.OptIn)]
     internal class ListAvailableGameModeResultsMessageData : BaseMessageData

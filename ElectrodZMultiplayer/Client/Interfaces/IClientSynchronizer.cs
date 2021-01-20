@@ -32,9 +32,9 @@ namespace ElectrodZMultiplayer.Client
         bool IsConnected { get; }
 
         /// <summary>
-        /// Is user authenticated
+        /// Is user authentificated
         /// </summary>
-        bool IsAuthenticated { get; }
+        bool IsAuthentificated { get; }
 
         /// <summary>
         /// On lobby join acknowledged

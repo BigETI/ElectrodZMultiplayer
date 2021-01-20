@@ -41,9 +41,9 @@ namespace ElectrodZMultiplayer.Client
         public bool IsConnected => Peer != null;
 
         /// <summary>
-        /// Is user authenticated
+        /// Is user authentificated
         /// </summary>
-        public bool IsAuthenticated => user != null;
+        public bool IsAuthentificated => user != null;
 
         /// <summary>
         /// This event will be invoked when an authentification was acknowledged.
@@ -73,9 +73,9 @@ namespace ElectrodZMultiplayer.Client
         public ClientSynchronizer(IPeer peer, string token) : base()
         {
             Peer = peer ?? throw new ArgumentNullException(nameof(peer));
-            AddMessageParser<AuthenticationAcknowledgedMessageData>((_, message, json) =>
+            AddMessageParser<AuthentificationAcknowledgedMessageData>((_, message, json) =>
             {
-                if (IsAuthenticated)
+                if (IsAuthentificated)
                 {
                     SendErrorMessageToPeer(peer, EErrorType.InvalidMessageContext, "Authentification has been already acknowledged.", true);
                 }
@@ -94,7 +94,7 @@ namespace ElectrodZMultiplayer.Client
             }, MessageParseFailedEvent);
             AddMessageParser<ListAvailableGameModeResultsMessageData>((_, message, json) => OnAvailableGameModesListed?.Invoke(message.GameModes), MessageParseFailedEvent);
             AddMessageParser<JoinLobbyAcknowledgedMessageData>((_, message, json) =>
-                AssertIsUserAuthenticated((clientUser) =>
+                AssertIsUserAuthentificated((clientUser) =>
                 {
                     if (clientUser.Lobby == null)
                     {
@@ -190,22 +190,22 @@ namespace ElectrodZMultiplayer.Client
                     }
                     clientLobby.InvokeGameEndedEventInternally(users, message.Results);
                 }), MessageParseFailedEvent);
-            OnPeerConnected += (_) => SendAuthenticationMessage(token);
+            OnPeerConnected += (_) => SendAuthenticateMessage(token);
         }
 
         /// <summary>
-        /// Asserts that user is authenticated
+        /// Asserts that user is authentificated
         /// </summary>
-        /// <param name="onUserIsAuthenticated">On user is authenticated</param>
-        private void AssertIsUserAuthenticated(UserIsAuthenticatedDelegate onUserIsAuthenticated)
+        /// <param name="onUserIsAuthentificated">On user is authentificated</param>
+        private void AssertIsUserAuthentificated(UserIsAuthentificatedDelegate onUserIsAuthentificated)
         {
             if (User == null)
             {
-                SendErrorMessage(EErrorType.InvalidMessageContext, "User has not been authenticated yet.", true);
+                SendErrorMessage(EErrorType.InvalidMessageContext, "User has not been authentificated yet.", true);
             }
             else if (User is IInternalClientUser client_user)
             {
-                onUserIsAuthenticated(client_user);
+                onUserIsAuthentificated(client_user);
             }
             else
             {
@@ -218,7 +218,7 @@ namespace ElectrodZMultiplayer.Client
         /// </summary>
         /// <param name="onUserIsInLobby">On user is in lobby</param>
         private void AssertIsUserInLobby(UserIsInLobbyDelegate onUserIsInLobby) =>
-            AssertIsUserAuthenticated((clientUser) =>
+            AssertIsUserAuthentificated((clientUser) =>
             {
                 if (clientUser.ClientLobby == null)
                 {
@@ -307,15 +307,15 @@ namespace ElectrodZMultiplayer.Client
         public void SendMessage<T>(T message) where T : IBaseMessageData => SendMessageToPeer(Peer, message);
 
         /// <summary>
-        /// Sends a authentication message to peer
+        /// Sends an authenticate message to peer
         /// </summary>
-        public void SendAuthenticationMessage() => SendAuthenticationMessage(null);
+        public void SendAuthenticateMessage() => SendAuthenticateMessage(null);
 
         /// <summary>
-        /// Sends a authentication message to peer
+        /// Sends an authenticate message to peer
         /// </summary>
-        /// <param name="token">Existing authentication token</param>
-        public void SendAuthenticationMessage(string token) => SendMessage(new AuthenticateMessageData(token));
+        /// <param name="token">Existing authentification token</param>
+        public void SendAuthenticateMessage(string token) => SendMessage(new AuthenticateMessageData(token));
 
         /// <summary>
         /// Sends a list lobbies message to peer

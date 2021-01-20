@@ -174,9 +174,9 @@ namespace ElectrodZMultiplayer.Server
         public void SendMessage<T>(T message) where T : IBaseMessageData => Server.SendMessageToPeer(Peer, message);
 
         /// <summary>
-        /// Sends an authentication acknowledged message
+        /// Sends an authentification acknowledged message
         /// </summary>
-        public void SendAuthenticationAcknowledgedMessage() => SendMessage(new AuthenticationAcknowledgedMessageData(GUID, Token));
+        public void SendAuthentificationAcknowledgedMessage() => SendMessage(new AuthentificationAcknowledgedMessageData(GUID, Token));
 
         /// <summary>
         /// Sends a list lobby results message

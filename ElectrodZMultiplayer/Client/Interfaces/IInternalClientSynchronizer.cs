@@ -16,14 +16,14 @@ namespace ElectrodZMultiplayer.Client
         void SendMessage<T>(T message) where T : IBaseMessageData;
 
         /// <summary>
-        /// Sends a authentication message to peer
+        /// Sends an authenticate message to peer
         /// </summary>
-        void SendAuthenticationMessage();
+        void SendAuthenticateMessage();
 
         /// <summary>
-        /// Sends a authentication message to peer
+        /// Sends an authenticate message to peer
         /// </summary>
-        /// <param name="token">Existing authentication token</param>
-        void SendAuthenticationMessage(string token);
+        /// <param name="token">Existing authentification token</param>
+        void SendAuthenticateMessage(string token);
     }
 }

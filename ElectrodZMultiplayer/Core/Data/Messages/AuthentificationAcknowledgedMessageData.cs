@@ -8,10 +8,10 @@ using System;
 namespace ElectrodZMultiplayer.Data.Messages
 {
     /// <summary>
-    /// A class that describes an acknowledgment message for an authentication attempt
+    /// A class that describes an authentification acknowledgment message
     /// </summary>
     [JsonObject(MemberSerialization.OptIn)]
-    internal class AuthenticationAcknowledgedMessageData : BaseMessageData
+    internal class AuthentificationAcknowledgedMessageData : BaseMessageData
     {
         /// <summary>
         /// User GUID
@@ -21,7 +21,7 @@ namespace ElectrodZMultiplayer.Data.Messages
         public Guid GUID { get; set; }
 
         /// <summary>
-        /// Authentication token
+        /// Authentification token
         /// </summary>
         [JsonProperty("token")]
         public string Token { get; set; }
@@ -35,19 +35,19 @@ namespace ElectrodZMultiplayer.Data.Messages
             (GUID != Guid.Empty);
 
         /// <summary>
-        /// Constructs an acknowledgment message for an authentication attempt for deserializers
+        /// Constructs an authentification acknowledgment message for deserializers
         /// </summary>
-        public AuthenticationAcknowledgedMessageData() : base()
+        public AuthentificationAcknowledgedMessageData() : base()
         {
             // ...
         }
 
         /// <summary>
-        /// Constructs an acknowledgment message for an authentication attempt
+        /// Constructs an authentification acknowledgment message
         /// </summary>
         /// <param name="guid">User GUID</param>
-        /// <param name="user">User being authenticated</param>
-        public AuthenticationAcknowledgedMessageData(Guid guid, string token) : base(Naming.GetMessageTypeNameFromMessageDataType<AuthenticationAcknowledgedMessageData>())
+        /// <param name="token">User token</param>
+        public AuthentificationAcknowledgedMessageData(Guid guid, string token) : base(Naming.GetMessageTypeNameFromMessageDataType<AuthentificationAcknowledgedMessageData>())
         {
             if (guid == Guid.Empty)
             {

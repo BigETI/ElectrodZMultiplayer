@@ -140,7 +140,7 @@ namespace ElectrodZUnitTests
             uint no_lobby_client_count = 0U;
             for (int index = 0; index < clients.Length; index++)
             {
-                Assert.IsNotNull(users[index], $"User at client index { index } was not authenticated.", index);
+                Assert.IsNotNull(users[index], $"User at client index { index } was not authentificated.", index);
                 if (lobbies[index] == null)
                 {
                     ++no_lobby_client_count;

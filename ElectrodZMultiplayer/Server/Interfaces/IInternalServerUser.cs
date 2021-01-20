@@ -48,9 +48,9 @@ namespace ElectrodZMultiplayer.Server
         void SendMessage<T>(T message) where T : IBaseMessageData;
 
         /// <summary>
-        /// Sends an authentication acknowledged message
+        /// Sends an authentification acknowledged message
         /// </summary>
-        void SendAuthenticationAcknowledgedMessage();
+        void SendAuthentificationAcknowledgedMessage();
 
         /// <summary>
         /// Sends a list lobby results message

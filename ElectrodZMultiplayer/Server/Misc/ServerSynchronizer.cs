@@ -110,7 +110,7 @@ namespace ElectrodZMultiplayer.Server
                 string key = peer.GUID.ToString();
                 if (users.ContainsKey(key))
                 {
-                    SendErrorMessageToPeer(peer, EErrorType.InvalidMessageContext, "User is already authenticated");
+                    SendErrorMessageToPeer(peer, EErrorType.InvalidMessageContext, "User is already authentificated");
                 }
                 else if ((message.Token == null) || !tokenToUserLookup.ContainsKey(message.Token))
                 {
@@ -124,7 +124,7 @@ namespace ElectrodZMultiplayer.Server
                     users.Add(key, server_user);
                     tokenToUserLookup.Add(token, server_user);
                     OnAuthentificationAcknowledged?.Invoke(server_user);
-                    server_user.SendAuthenticationAcknowledgedMessage();
+                    server_user.SendAuthentificationAcknowledgedMessage();
                 }
                 else
                 {
@@ -138,13 +138,13 @@ namespace ElectrodZMultiplayer.Server
                         server_user.SetPeerInternally(peer);
                         users.Add(key, server_user);
                         OnAuthentificationAcknowledged?.Invoke(server_user);
-                        server_user.SendAuthenticationAcknowledgedMessage();
+                        server_user.SendAuthentificationAcknowledgedMessage();
                         // TODO: Establish state back after returning from the dead.
                     }
                 }
             }, FatalMessageParseFailedEvent);
             AddMessageParser<ListLobbiesMessageData>((peer, message, json) =>
-                AssertAuthenticatedPeer(peer, (serverUser) =>
+                AssertPeerIsAuthentificated(peer, (serverUser) =>
                 {
                     List<ILobbyView> lobby_list = new List<ILobbyView>();
                     foreach (ILobby lobby in lobbies.Values)
@@ -168,7 +168,7 @@ namespace ElectrodZMultiplayer.Server
                     lobby_list.Clear();
                 }), MessageParseFailedEvent);
             AddMessageParser<ListAvailableGameModesMessageData>((peer, message, json) =>
-                AssertAuthenticatedPeer(peer, (serverUser) =>
+                AssertPeerIsAuthentificated(peer, (serverUser) =>
                 {
                     HashSet<string> available_game_modes = new HashSet<string>();
                     string name = message.Name ?? string.Empty;
@@ -426,18 +426,18 @@ namespace ElectrodZMultiplayer.Server
         }
 
         /// <summary>
-        /// Asserts authenticated peer
+        /// Asserts peer is authentificated
         /// </summary>
         /// <param name="peer">Peer</param>
-        /// <param name="onPeerAuthenticated">On peer authenticated</param>
-        private void AssertAuthenticatedPeer(IPeer peer, PeerAuthenticatedDelegate onPeerAuthenticated)
+        /// <param name="onPeerIsAuthentificated">On peer is authentificated</param>
+        private void AssertPeerIsAuthentificated(IPeer peer, PeerIsAuthentificatedDelegate onPeerIsAuthentificated)
         {
             string key = peer.GUID.ToString();
             if (users.ContainsKey(key))
             {
                 if (users[key] is IInternalServerUser server_user)
                 {
-                    onPeerAuthenticated(server_user);
+                    onPeerIsAuthentificated(server_user);
                 }
                 else
                 {
@@ -446,7 +446,7 @@ namespace ElectrodZMultiplayer.Server
             }
             else
             {
-                SendErrorMessageToPeer(peer, EErrorType.InvalidMessageContext, "User is not authenticated yet.", true);
+                SendErrorMessageToPeer(peer, EErrorType.InvalidMessageContext, "User is not authentificated yet.", true);
             }
         }
 
@@ -456,7 +456,7 @@ namespace ElectrodZMultiplayer.Server
         /// <param name="peer">Peer</param>
         /// <param name="onPeerIsInLobby">On peer is not in lobby</param>
         private void AssertPeerIsNotInLobby(IPeer peer, PeerIsNotInLobbyDelegate onPeerIsNotInLobby) =>
-            AssertAuthenticatedPeer(peer, (serverUser) =>
+            AssertPeerIsAuthentificated(peer, (serverUser) =>
             {
                 if (serverUser.ServerLobby == null)
                 {
@@ -474,7 +474,7 @@ namespace ElectrodZMultiplayer.Server
         /// <param name="peer">Peer</param>
         /// <param name="onPeerIsInLobby">On peer is in lobby</param>
         private void AssertPeerIsInLobby(IPeer peer, PeerIsInLobbyDelegate onPeerIsInLobby) =>
-            AssertAuthenticatedPeer(peer, (serverUser) =>
+            AssertPeerIsAuthentificated(peer, (serverUser) =>
             {
                 if (serverUser.ServerLobby == null)
                 {

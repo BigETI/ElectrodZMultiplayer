@@ -4,8 +4,8 @@
 namespace ElectrodZMultiplayer.Server
 {
     /// <summary>
-    /// Used to assert a peer being authenticated
+    /// Used to assert a peer being authentificated
     /// </summary>
     /// <param name="serverUser">Server user</param>
-    internal delegate void PeerAuthenticatedDelegate(IInternalServerUser serverUser);
+    internal delegate void PeerIsAuthentificatedDelegate(IInternalServerUser serverUser);
 }
