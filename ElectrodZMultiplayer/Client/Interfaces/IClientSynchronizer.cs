@@ -108,6 +108,12 @@ namespace ElectrodZMultiplayer.Client
         void SendChangeUsernameMessage(string newUsername);
 
         /// <summary>
+        /// Sends a list available game modes message
+        /// </summary>
+        /// <param name="name">Game mode name filter</param>
+        void SendListAvailableGameModesMessage(string name);
+
+        /// <summary>
         /// Send change lobby color message
         /// </summary>
         /// <param name="lobbyColor">Lobby color</param>

@@ -318,6 +318,12 @@ namespace ElectrodZMultiplayer.Client
         public void SendAuthenticateMessage(string token) => SendMessage(new AuthenticateMessageData(token));
 
         /// <summary>
+        /// Sends a list available game modes message
+        /// </summary>
+        /// <param name="name">Game mode name filter</param>
+        public void SendListAvailableGameModesMessage(string name) => SendMessage(new ListAvailableGameModesMessageData(name));
+
+        /// <summary>
         /// Sends a list lobbies message to peer
         /// </summary>
         /// <param name="excludeFull">Exclude full lobbies</param>

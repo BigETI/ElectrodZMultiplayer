@@ -287,7 +287,7 @@ namespace ElectrodZMultiplayer
                 throw new ArgumentNullException(nameof(json));
             }
             BaseMessageData base_network_message_data = JsonConvert.DeserializeObject<BaseMessageData>(json);
-            if (base_network_message_data != null)
+            if ((base_network_message_data != null) && base_network_message_data.IsValid)
             {
                 if (messageParsers.ContainsKey(base_network_message_data.MessageType))
                 {
