@@ -119,6 +119,11 @@ namespace ElectrodZMultiplayer.Server
         public uint UserCount => (uint)users.Count;
 
         /// <summary>
+        /// Current game time in seconds
+        /// </summary>
+        public double CurrentGameTime { get; private set; }
+
+        /// <summary>
         /// Is object in a valid state
         /// </summary>
         public bool IsValid =>
@@ -137,6 +142,56 @@ namespace ElectrodZMultiplayer.Server
         /// Currently loaded game mode
         /// </summary>
         public IGameMode CurrentlyLoadedGameMode { get; private set; }
+
+        /// <summary>
+        /// This event will be invoked when an user has joined this lobby.
+        /// </summary>
+        public event UserJoinedDelegate OnUserJoined;
+
+        /// <summary>
+        /// This event will be invoked when an user left this lobby.
+        /// </summary>
+        public event UserLeftDelegate OnUserLeft;
+
+        /// <summary>
+        /// This event will be invoked when the lobby rules of this lobby has been updated.
+        /// </summary>
+        public event LobbyRulesUpdatedDelegate OnLobbyRulesUpdated;
+
+        /// <summary>
+        /// This event will be invoked when a game start has been requested.
+        /// </summary>
+        public event GameStartRequestedDelegate OnGameStartRequested;
+
+        /// <summary>
+        /// This event will be invoked when a game restart has been requested.
+        /// </summary>
+        public event GameRestartRequestedDelegate OnGameRestartRequested;
+
+        /// <summary>
+        /// This event will be invoked when a game stop has been requested.
+        /// </summary>
+        public event GameStopRequestedDelegate OnGameStopRequested;
+
+        /// <summary>
+        /// This event will be invoked when a game has been started.
+        /// </summary>
+        public event GameStartedDelegate OnGameStarted;
+
+        /// <summary>
+        /// This event will be invoked when a game has been restarted.
+        /// </summary>
+        public event GameRestartedDelegate OnGameRestarted;
+
+        /// <summary>
+        /// This event will be invoked when a game has been stopped.
+        /// </summary>
+        public event GameStoppedDelegate OnGameStopped;
+
+        /// <summary>
+        /// This event will be invoked when the game has ended.
+        /// </summary>
+        public event GameEndedDelegate OnGameEnded;
 
         /// <summary>
         /// Gets invoked when a game mode has been started
@@ -396,6 +451,7 @@ namespace ElectrodZMultiplayer.Server
                 remove_users.Clear();
                 gameUsers.Clear();
                 OnGameModeStopped?.Invoke(CurrentlyLoadedGameMode);
+                OnGameEnded?.Invoke(CurrentlyLoadedGameMode.UserResults, CurrentlyLoadedGameMode.Results);
                 CurrentlyLoadedGameMode.OnClosed();
                 gameUserFactory = null;
                 gameEntityFactory = null;
@@ -439,6 +495,7 @@ namespace ElectrodZMultiplayer.Server
                     gameUsers.Add(key, game_user);
                     CurrentlyLoadedGameMode.OnUserJoined(game_user);
                 }
+                OnUserJoined?.Invoke(user);
                 SendUserJoinedMessage(user);
                 ret = true;
             }
@@ -474,10 +531,54 @@ namespace ElectrodZMultiplayer.Server
             }
             if (users.ContainsKey(key))
             {
+                OnUserLeft?.Invoke(user, reason);
                 SendUserLeftMessage(user, reason);
                 ret = users.Remove(key);
             }
             return ret;
+        }
+
+        /// <summary>
+        /// Updates the lobby rules
+        /// </summary>
+        /// <param name="newName">New lobby name</param>
+        /// <param name="newGameMode">New game mode</param>
+        /// <param name="newMinimalUserCount">New minimal user count</param>
+        /// <param name="newMaximalUserCount">New maximal user count</param>
+        /// <param name="newStartingGameAutomaticallyState">New starting game automatically state</param>
+        /// <param name="newGameModeRules">New game mode ruels</param>
+        public void UpdateLobbyRules(string newName = null, (IGameResource, Type)? newGameMode = null, uint? newMinimalUserCount = null, uint? newMaximalUserCount = null, bool? newStartingGameAutomaticallyState = null, IReadOnlyDictionary<string, object> newGameModeRules = null)
+        {
+            if (newName != null)
+            {
+                SetNameInternally(newName);
+            }
+            if (newMinimalUserCount != null)
+            {
+                SetMinimalUserCountInternally(newMinimalUserCount.Value);
+            }
+            if (newMaximalUserCount != null)
+            {
+                SetMaximalUserCountInternally(newMaximalUserCount.Value);
+            }
+            if (newStartingGameAutomaticallyState != null)
+            {
+                SetStartingGameAutomaticallyStateInternally(newStartingGameAutomaticallyState.Value);
+            }
+            if (newGameMode != null)
+            {
+                SetGameModeTypeInternally(newGameMode.Value);
+            }
+            if (newGameModeRules != null)
+            {
+                ClearGameModeRulesInternally();
+                foreach (KeyValuePair<string, object> new_game_mode_rule in newGameModeRules)
+                {
+                    AddGameModeRuleInternally(new_game_mode_rule.Key, new_game_mode_rule.Value);
+                }
+            }
+            OnLobbyRulesUpdated?.Invoke();
+            SendLobbyRulesChangedMessage();
         }
 
         /// <summary>
@@ -593,12 +694,6 @@ namespace ElectrodZMultiplayer.Server
         public void SendUserLeftMessage(IUser user, string reason) => SendMessageToAll(new UserLeftMessageData(user, reason));
 
         /// <summary>
-        /// Sends an user game color changed message
-        /// </summary>
-        /// <param name="user">User</param>
-        public void SendUserGameColorChangedMessage(IUser user) => SendMessageToAll(new UserGameColorChangedMessageData(user));
-
-        /// <summary>
         /// Sends an user color changed message
         /// </summary>
         /// <param name="user">User</param>
@@ -619,41 +714,76 @@ namespace ElectrodZMultiplayer.Server
         /// Sends a game start requested message
         /// </summary>
         /// <param name="time">Time to start game in seconds</param>
-        public void SendGameStartRequestedMessage(float time) => SendMessageToAll(new GameStartRequestedMessageData(time));
+        public void SendGameStartRequestedMessage(double time)
+        {
+            if (time < double.Epsilon)
+            {
+                throw new ArgumentException("Time can't be zero or negative.");
+            }
+            RemainingGameStartTime = time;
+            OnGameStartRequested?.Invoke(time);
+            SendMessageToAll(new GameStartRequestedMessageData(time));
+        }
 
         /// <summary>
         /// Sends a game restart requested message
         /// </summary>
         /// <param name="time">Time to restart in seconds</param>
-        public void SendGameRestartRequestedMessage(float time) => SendMessageToAll(new GameRestartRequestedMessageData(time));
+        public void SendGameRestartRequestedMessage(double time)
+        {
+            if (time < double.Epsilon)
+            {
+                throw new ArgumentException("Time can't be zero or negative.");
+            }
+            RemainingGameStartTime = time;
+            OnGameRestartRequested?.Invoke(time);
+            SendMessageToAll(new GameRestartRequestedMessageData(time));
+        }
 
         /// <summary>
         /// Sends a game stop requested message
         /// </summary>
         /// <param name="time">Time to stop game in seconds</param>
-        public void SendGameStopRequestedMessage(float time) => SendMessageToAll(new GameStopRequestedMessageData(time));
+        public void SendGameStopRequestedMessage(double time)
+        {
+            if (time < double.Epsilon)
+            {
+                throw new ArgumentException("Time can't be zero or negative.");
+            }
+            RemainingGameStopTime = time;
+            OnGameStopRequested?.Invoke(time);
+            SendMessageToAll(new GameStopRequestedMessageData(time));
+        }
 
         /// <summary>
         /// Sends a start game message
         /// </summary>
-        public void SendStartGameMessage() => SendMessageToAll(new GameStartedMessageData());
+        public void SendStartGameMessage()
+        {
+            RemainingGameStartTime = 0.0;
+            OnGameStarted?.Invoke();
+            SendMessageToAll(new GameStartedMessageData());
+        }
 
         /// <summary>
         /// Sends a restart game message
         /// </summary>
-        public void SendRestartGameMessage() => SendMessageToAll(new GameRestartedMessageData());
+        public void SendRestartGameMessage()
+        {
+            RemainingGameStartTime = 0.0;
+            OnGameRestarted?.Invoke();
+            SendMessageToAll(new GameRestartedMessageData());
+        }
 
         /// <summary>
         /// Sends a stop game message
         /// </summary>
-        public void SendStopGameMessage() => SendMessageToAll(new GameStoppedMessageData());
-
-        /// <summary>
-        /// Sends a server tick message
-        /// </summary>
-        /// <param name="time">Time</param>
-        /// <param name="entities">Entities</param>
-        public void SendServerTickMessage(float time, IEnumerable<IEntity> entities) => SendMessageToAll(new ServerTickMessageData(time, entities));
+        public void SendStopGameMessage()
+        {
+            RemainingGameStopTime = 0.0;
+            OnGameStopped?.Invoke();
+            SendMessageToAll(new GameStoppedMessageData());
+        }
 
         /// <summary>
         /// Closes lobby
@@ -675,34 +805,47 @@ namespace ElectrodZMultiplayer.Server
         /// </summary>
         public void Dispose() => Close();
 
+        /// <summary>
+        /// Performs a game tick
+        /// </summary>
+        /// <param name="deltaTime"></param>
         public void Tick(TimeSpan deltaTime)
         {
             if (CurrentlyLoadedGameMode == null)
             {
-                RemainingGameStopTime = 0.0f;
+                CurrentGameTime = 0.0;
+                RemainingGameStopTime = 0.0;
                 if (RemainingGameStartTime > double.Epsilon)
                 {
                     RemainingGameStartTime -= deltaTime.TotalSeconds;
                     if (RemainingGameStartTime <= double.Epsilon)
                     {
-                        RemainingGameStartTime = 0.0f;
+                        RemainingGameStartTime = 0.0;
                         StartNewGameModeInstance();
                     }
                 }
             }
             else
             {
-                RemainingGameStartTime = 0.0f;
+                CurrentGameTime += deltaTime.TotalSeconds;
+                RemainingGameStartTime = 0.0;
                 if (RemainingGameStopTime > double.Epsilon)
                 {
                     RemainingGameStopTime -= deltaTime.TotalSeconds;
                     if (RemainingGameStopTime <= double.Epsilon)
                     {
-                        RemainingGameStopTime = 0.0f;
+                        RemainingGameStopTime = 0.0;
                         StopGameModeInstance();
                     }
                 }
                 CurrentlyLoadedGameMode?.OnGameTicked(deltaTime);
+                foreach (IUser user in users.Values)
+                {
+                    if (user is IInternalServerUser server_user)
+                    {
+                        server_user.SendServerTickMessage(CurrentGameTime);
+                    }
+                }
             }
         }
     }

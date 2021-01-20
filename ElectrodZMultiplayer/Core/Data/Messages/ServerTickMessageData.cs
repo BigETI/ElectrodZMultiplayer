@@ -17,10 +17,10 @@ namespace ElectrodZMultiplayer.Data.Messages
         /// Elapsed time in seconds since game start
         /// </summary>
         [JsonProperty("time")]
-        public float Time { get; set; }
+        public double Time { get; set; }
 
         /// <summary>
-        /// Currently available entities
+        /// Entities to update
         /// </summary>
         [JsonProperty("entities")]
         public List<EntityData> Entities { get; set; }
@@ -30,7 +30,7 @@ namespace ElectrodZMultiplayer.Data.Messages
         /// </summary>
         public override bool IsValid =>
             base.IsValid &&
-            (Time >= 0.0f) &&
+            (Time >= 0.0) &&
             Protection.IsValid(Entities);
 
         /// <summary>
@@ -45,10 +45,10 @@ namespace ElectrodZMultiplayer.Data.Messages
         /// Constructs a server tick message
         /// </summary>
         /// <param name="time">Time</param>
-        /// <param name="entities">Entities</param>
-        public ServerTickMessageData(float time, IEnumerable<IEntity> entities) : base(Naming.GetMessageTypeNameFromMessageDataType<ServerTickMessageData>())
+        /// <param name="entities">Entities to update</param>
+        public ServerTickMessageData(double time, IEnumerable<IEntityDelta> entities) : base(Naming.GetMessageTypeNameFromMessageDataType<ServerTickMessageData>())
         {
-            if (time < 0.0f)
+            if (time < 0.0)
             {
                 throw new ArgumentException("Time must be positive.", nameof(time));
             }

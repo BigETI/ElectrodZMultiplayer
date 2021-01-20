@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 
 /// <summary>
-/// ElectrodZ multiplayer client namespace
+/// ElectrodZ multiplayer namespace
 /// </summary>
-namespace ElectrodZMultiplayer.Client
+namespace ElectrodZMultiplayer
 {
     /// <summary>
     /// This is being used to signal that lobbies are being listed

@@ -7,5 +7,5 @@ namespace ElectrodZMultiplayer
     /// Used to signal a request to restart a game
     /// </summary>
     /// <param name="time">Time to restart game in seconds</param>
-    public delegate void GameRestartRequestedDelegate(float time);
+    public delegate void GameRestartRequestedDelegate(double time);
 }

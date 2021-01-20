@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ElectrodZMultiplayer.Data;
+using System;
 using System.Collections.Generic;
 
 /// <summary>
@@ -17,14 +18,24 @@ namespace ElectrodZMultiplayer.Client
         private readonly IInternalClientSynchronizer client;
 
         /// <summary>
+        /// Users
+        /// </summary>
+        private readonly Dictionary<string, IUser> users = new Dictionary<string, IUser>();
+
+        /// <summary>
+        /// Entities
+        /// </summary>
+        private Dictionary<string, IEntity> entities = new Dictionary<string, IEntity>();
+
+        /// <summary>
+        /// Game mode rules
+        /// </summary>
+        private readonly Dictionary<string, object> gameModeRules = new Dictionary<string, object>();
+
+        /// <summary>
         /// Client
         /// </summary>
         public IClientSynchronizer Client => client;
-
-        /// <summary>
-        /// Internal game mode rules
-        /// </summary>
-        public Dictionary<string, object> InternalGameModeRules { get; } = new Dictionary<string, object>();
 
         /// <summary>
         /// Lobby owner
@@ -32,24 +43,14 @@ namespace ElectrodZMultiplayer.Client
         public IUser Owner { get; }
 
         /// <summary>
-        /// Internal users
-        /// </summary>
-        public Dictionary<string, IUser> InternalUsers { get; } = new Dictionary<string, IUser>();
-
-        /// <summary>
         /// Users
         /// </summary>
-        public IReadOnlyDictionary<string, IUser> Users => InternalUsers;
-
-        /// <summary>
-        /// Internal entities
-        /// </summary>
-        public Dictionary<string, IEntity> InternalEntities { get; } = new Dictionary<string, IEntity>();
+        public IReadOnlyDictionary<string, IUser> Users => users;
 
         /// <summary>
         /// Entities
         /// </summary>
-        public IReadOnlyDictionary<string, IEntity> Entities => InternalEntities;
+        public IReadOnlyDictionary<string, IEntity> Entities => entities;
 
         /// <summary>
         /// Lobby code
@@ -74,7 +75,7 @@ namespace ElectrodZMultiplayer.Client
         /// <summary>
         /// User count
         /// </summary>
-        public uint UserCount => (uint)InternalUsers.Count;
+        public uint UserCount => (uint)users.Count;
 
         /// <summary>
         /// Is starting game automatically
@@ -89,7 +90,12 @@ namespace ElectrodZMultiplayer.Client
         /// <summary>
         /// Game mode rules
         /// </summary>
-        public IReadOnlyDictionary<string, object> GameModeRules => InternalGameModeRules;
+        public IReadOnlyDictionary<string, object> GameModeRules => gameModeRules;
+
+        /// <summary>
+        /// Current game time
+        /// </summary>
+        public double CurrentGameTime { get; private set; }
 
         /// <summary>
         /// Is valid
@@ -100,12 +106,59 @@ namespace ElectrodZMultiplayer.Client
             (MinimalUserCount <= MaximalUserCount) &&
             (UserCount <= MaximalUserCount) &&
             !string.IsNullOrWhiteSpace(GameMode) &&
-            (GameModeRules != null) &&
-            (Users != null) &&
-            (Entities != null) &&
-            Protection.IsValid(GameModeRules.Values) &&
-            Protection.IsValid(Users.Values) &&
-            Protection.IsValid(Entities.Values);
+            Protection.IsValid(gameModeRules.Values) &&
+            Protection.IsValid(users.Values) &&
+            Protection.IsValid(entities.Values);
+
+        /// <summary>
+        /// This event will be invoked when an user has joined this lobby.
+        /// </summary>
+        public event UserJoinedDelegate OnUserJoined;
+
+        /// <summary>
+        /// This event will be invoked when an user left this lobby.
+        /// </summary>
+        public event UserLeftDelegate OnUserLeft;
+
+        /// <summary>
+        /// This event will be invoked when the lobby rules of this lobby has been updated.
+        /// </summary>
+        public event LobbyRulesUpdatedDelegate OnLobbyRulesUpdated;
+
+        /// <summary>
+        /// This event will be invoked when a game start has been requested.
+        /// </summary>
+        public event GameStartRequestedDelegate OnGameStartRequested;
+
+        /// <summary>
+        /// This event will be invoked when a game restart has been requested.
+        /// </summary>
+        public event GameRestartRequestedDelegate OnGameRestartRequested;
+
+        /// <summary>
+        /// This event will be invoked when a game stop has been requested.
+        /// </summary>
+        public event GameStopRequestedDelegate OnGameStopRequested;
+
+        /// <summary>
+        /// This event will be invoked when a game has been started.
+        /// </summary>
+        public event GameStartedDelegate OnGameStarted;
+
+        /// <summary>
+        /// This event will be invoked when a game has been restarted.
+        /// </summary>
+        public event GameRestartedDelegate OnGameRestarted;
+
+        /// <summary>
+        /// This event will be invoked when a game has been stopped.
+        /// </summary>
+        public event GameStoppedDelegate OnGameStopped;
+
+        /// <summary>
+        /// This event will be invoked when the game has ended.
+        /// </summary>
+        public event GameEndedDelegate OnGameEnded;
 
         /// <summary>
         /// Constructor
@@ -150,7 +203,7 @@ namespace ElectrodZMultiplayer.Client
                 {
                     throw new ArgumentException($"Value of key \"{ game_mode_rule.Key }\" is null.");
                 }
-                InternalGameModeRules.Add(game_mode_rule.Key, game_mode_rule.Value);
+                this.gameModeRules.Add(game_mode_rule.Key, game_mode_rule.Value);
             }
             Owner = owner ?? throw new ArgumentNullException(nameof(owner));
             foreach (KeyValuePair<string, IUser> user in users)
@@ -159,7 +212,7 @@ namespace ElectrodZMultiplayer.Client
                 {
                     throw new ArgumentException($"Value of key \"{ user.Key }\" is null.");
                 }
-                InternalUsers.Add(user.Key, user.Value);
+                this.users.Add(user.Key, user.Value);
             }
         }
 
@@ -169,47 +222,204 @@ namespace ElectrodZMultiplayer.Client
         public void Leave() => client.SendQuitLobbyMessage();
 
         /// <summary>
-        /// Sets a new game mode internally
+        /// Adds a new user to the lobby
         /// </summary>
-        /// <param name="gameMode">Game mode</param>
-        public void SetGameModeInternally(string gameMode)
+        /// <param name="user"></param>
+        /// <returns>"true" if user was successfully added, otherwise "false"</returns>
+        public bool AddUserInternally(IUser user)
         {
-            if (string.IsNullOrWhiteSpace(gameMode))
+            if (user == null)
             {
-                throw new ArgumentException("Game mode can't be unknown.");
+                throw new ArgumentNullException(nameof(user));
             }
-            GameMode = gameMode;
+            bool ret = false;
+            string key = user.GUID.ToString();
+            if (!users.ContainsKey(key))
+            {
+                users.Add(key, user);
+                OnUserJoined?.Invoke(user);
+                ret = true;
+            }
+            return ret;
         }
 
         /// <summary>
-        /// Sets the lobby code
+        /// Removes the specified user
         /// </summary>
-        /// <param name="lobbyCode">Lobby code</param>
-        public void SetLobbyCodeInternally(string lobbyCode) => LobbyCode = lobbyCode ?? throw new ArgumentNullException(nameof(lobbyCode));
+        /// <param name="user">User</param>
+        /// <param name="reason">Reason</param>
+        /// <returns>"true" if user was successfully removed, othewrwise </returns>
+        public bool RemoveUserInternally(IUser user, string reason)
+        {
+            bool ret = false;
+            string key = user.GUID.ToString();
+            if (users.ContainsKey(key))
+            {
+                OnUserLeft?.Invoke(user, reason);
+                ret = users.Remove(key);
+            }
+            return ret;
+        }
 
         /// <summary>
-        /// Sets the name of this lobby
+        /// Invokes the game start requested event internally
         /// </summary>
-        /// <param name="name">Lobby name</param>
-        public void SetNameInternally(string name) => Name = name ?? throw new ArgumentNullException(nameof(name));
+        /// <param name="time">Time to start game in seconds</param>
+        public void InvokeGameStartRequestedEventInternally(double time) => OnGameStartRequested?.Invoke(time);
 
         /// <summary>
-        /// Sets the minimal amount of users to allow starting a game
+        /// Invokes the game restart requested event internally
         /// </summary>
-        /// <param name="minimalUserCount">Minimal user count</param>
-        public void SetMinimalUserCountInternally(uint minimalUserCount) => MinimalUserCount = minimalUserCount;
+        /// <param name="time">Time to restart the game in seconds</param>
+        public void InvokeGameRestartRequestedEventInternally(double time) => OnGameRestartRequested?.Invoke(time);
 
         /// <summary>
-        /// Sets the maximal amount of users allowed
+        /// Invokes the game stop requested event internally
         /// </summary>
-        /// <param name="maximalUserCount">Maximal user count</param>
-        public void SetMaximalUserCountInternally(uint maximalUserCount) => MaximalUserCount = maximalUserCount;
+        /// <param name="time">Time to stop the game in seconds</param>
+        public void InvokeGameStopRequestedEventInternally(double time) => OnGameStopRequested?.Invoke(time);
 
         /// <summary>
-        /// Sets the starting game automatically state
+        /// Invokes the game started event internally
         /// </summary>
-        /// <param name="isStartingGameAutomatically">Is starting game automatically</param>
-        public void SetStartingGameAutomaticallyStateInternally(bool isStartingGameAutomatically) => IsStartingGameAutomatically = isStartingGameAutomatically;
+        public void InvokeGameStartedEventInternally()
+        {
+            CurrentGameTime = 0.0;
+            OnGameStarted?.Invoke();
+        }
+
+        /// <summary>
+        /// Invokes the game restarted event internally
+        /// </summary>
+        public void InvokeGameRestartedEventInternally()
+        {
+            CurrentGameTime = 0.0;
+            OnGameRestarted?.Invoke();
+        }
+
+        /// <summary>
+        /// Invokes the game stopped event internally
+        /// </summary>
+        public void InvokeGameStoppedEventInternally()
+        {
+            CurrentGameTime = 0.0;
+            OnGameStopped?.Invoke();
+        }
+
+        /// <summary>
+        /// Updates game mode rules internally
+        /// </summary>
+        /// <param name="newLobbyCode">New lobby code</param>
+        /// <param name="newName">New lobby name</param>
+        /// <param name="newGameMode">New game mode</param>
+        /// <param name="newMinimalUserCount">New minimal user count</param>
+        /// <param name="newMaximalUserCount">New maximal user count</param>
+        /// <param name="newStartingGameAutomaticallyState">New starting game automatically state</param>
+        /// <param name="newGameModeRules">New game mode rules</param>
+        public void UpdateGameModeRulesInternally(string newLobbyCode, string newName, string newGameMode, uint newMinimalUserCount, uint newMaximalUserCount, bool newStartingGameAutomaticallyState, IReadOnlyDictionary<string, object> newGameModeRules)
+        {
+            if (string.IsNullOrWhiteSpace(newGameMode))
+            {
+                throw new ArgumentException("Game mode can't be unknown.", nameof(newGameMode));
+            }
+            if (newGameModeRules == null)
+            {
+                throw new ArgumentNullException(nameof(newGameModeRules));
+            }
+            LobbyCode = newLobbyCode ?? throw new ArgumentNullException(nameof(newLobbyCode));
+            Name = newName ?? throw new ArgumentNullException(nameof(newName));
+            GameMode = newGameMode;
+            MinimalUserCount = newMinimalUserCount;
+            MaximalUserCount = newMaximalUserCount;
+            IsStartingGameAutomatically = newStartingGameAutomaticallyState;
+            gameModeRules.Clear();
+            foreach (KeyValuePair<string, object> game_mode_rule in newGameModeRules)
+            {
+                gameModeRules.Add(game_mode_rule.Key, game_mode_rule.Value);
+            }
+            OnLobbyRulesUpdated?.Invoke();
+        }
+
+        /// <summary>
+        /// Processes server tick internally
+        /// </summary>
+        /// <param name="time">Time in seconds elapsed since game start</param>
+        /// <param name="entityDeltas">Entity deltas</param>
+        public void ProcessServerTickInternally(double time, IEnumerable<EntityData> entityDeltas)
+        {
+            List<IEntityDelta> entity_deltas = new List<IEntityDelta>();
+            HashSet<string> remove_entity_keys = new HashSet<string>(entities.Keys);
+            foreach (EntityData entity in entityDeltas)
+            {
+                string key = entity.GUID.ToString();
+                if (users.ContainsKey(key))
+                {
+                    remove_entity_keys.Remove(key);
+                    if (users[key] is IInternalClientUser client_user)
+                    {
+                        if (entity.EntityType != null)
+                        {
+                            client_user.SetEntityTypeInternally(entity.EntityType);
+                        }
+                        if (entity.Position != null)
+                        {
+                            client_user.SetPositionInternally(new Vector3(entity.Position.X, entity.Position.Y, entity.Position.Z));
+                        }
+                        if (entity.Rotation != null)
+                        {
+                            client_user.SetRotationInternally(new Quaternion(entity.Rotation.X, entity.Rotation.Y, entity.Rotation.Z, entity.Rotation.W));
+                        }
+                        if (entity.Velocity != null)
+                        {
+                            client_user.SetVelocityInternally(new Vector3(entity.Velocity.X, entity.Velocity.Y, entity.Velocity.Z));
+                        }
+                        if (entity.AngularVelocity != null)
+                        {
+                            client_user.SetAngularVelocityInternally(new Vector3(entity.AngularVelocity.X, entity.AngularVelocity.Y, entity.AngularVelocity.Z));
+                        }
+                        if (entity.Actions != null)
+                        {
+                            client_user.SetActionsInternally(entity.Actions);
+                        }
+                    }
+                }
+                else if (entities.ContainsKey(key))
+                {
+                    remove_entity_keys.Remove(key);
+                }
+                entity_deltas.Add
+                (
+                    new EntityDelta
+                    (
+                        entity.GUID,
+                        entity.EntityType,
+                        entity.GameColor,
+                        (entity.Position == null) ? (Vector3?)null : new Vector3(entity.Position.X, entity.Position.Y, entity.Position.Z),
+                        (entity.Rotation == null) ? (Quaternion?)null : new Quaternion(entity.Rotation.X, entity.Rotation.Y, entity.Rotation.Z, entity.Rotation.W),
+                        (entity.Velocity == null) ? (Vector3?)null : new Vector3(entity.Velocity.X, entity.Velocity.Y, entity.Velocity.Z),
+                        (entity.AngularVelocity == null) ? (Vector3?)null : new Vector3(entity.AngularVelocity.X, entity.AngularVelocity.Y, entity.AngularVelocity.Z),
+                        entity.Actions
+                    )
+                );
+            }
+            foreach (string remove_entity_key in remove_entity_keys)
+            {
+                entities.Remove(remove_entity_key);
+            }
+            remove_entity_keys.Clear();
+            CurrentGameTime = time;
+            if (client.User is IInternalClientUser my_client_user)
+            {
+                my_client_user.InvokeServerTickedEvent(time, entity_deltas);
+            }
+        }
+
+        /// <summary>
+        /// Invokes the game ended event internally
+        /// </summary>
+        /// <param name="users">Users</param>
+        /// <param name="results">Results</param>
+        public void InvokeGameEndedEventInternally(IReadOnlyDictionary<string, UserWithResults> users, IReadOnlyDictionary<string, object> results) => OnGameEnded?.Invoke(users, results);
 
         /// <summary>
         /// Dispose

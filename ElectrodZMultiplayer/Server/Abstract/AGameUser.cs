@@ -18,6 +18,11 @@ namespace ElectrodZMultiplayer.Server
         public IServerUser ServerUser { get; }
 
         /// <summary>
+        /// Server entity
+        /// </summary>
+        public IServerEntity ServerEntity => ServerUser;
+
+        /// <summary>
         /// User GUID
         /// </summary>
         public virtual Guid GUID => ServerUser.GUID;
@@ -95,6 +100,26 @@ namespace ElectrodZMultiplayer.Server
             ServerUser.IsValid;
 
         /// <summary>
+        /// This event will be invoked when the username changes.
+        /// </summary>
+        public event UsernameUpdatedDelegate OnUsernameUpdated;
+
+        /// <summary>
+        /// This event will be invoked when the user lobby color changes.
+        /// </summary>
+        public event UserLobbyColorUpdatedDelegate OnUserLobbyColorUpdated;
+
+        /// <summary>
+        /// This event will be invoked when a client tick has been performed.
+        /// </summary>
+        public event ClientTickedDelegate OnClientTicked;
+
+        /// <summary>
+        /// This event will be invoked when a server tick has been performed.
+        /// </summary>
+        public event ServerTickedDelegate OnServerTicked;
+
+        /// <summary>
         /// Constructs a game user
         /// </summary>
         /// <param name="serverUser">Server user</param>
@@ -109,19 +134,23 @@ namespace ElectrodZMultiplayer.Server
                 throw new ArgumentException("Server user is not valid.", nameof(serverUser));
             }
             ServerUser = serverUser;
+            serverUser.OnUsernameUpdated += () => OnUsernameUpdated?.Invoke();
+            serverUser.OnUserLobbyColorUpdated += () => OnUserLobbyColorUpdated?.Invoke();
+            serverUser.OnClientTicked += (entityDeltas) => OnClientTicked?.Invoke(entityDeltas);
+            serverUser.OnServerTicked += (time, entityDeltas) => OnServerTicked?.Invoke(time, entityDeltas);
         }
 
         /// <summary>
         /// Updates username
         /// </summary>
         /// <param name="name">Username</param>
-        public virtual void UpdateName(string name) => ServerUser.UpdateName(name);
+        public virtual void UpdateUsername(string name) => ServerUser.UpdateUsername(name);
 
         /// <summary>
         /// Updates user lobby color
         /// </summary>
         /// <param name="lobbyColor">User lobby color</param>
-        public virtual void UpdateLobbyColor(Color lobbyColor) => ServerUser.UpdateLobbyColor(lobbyColor);
+        public virtual void UpdateUserLobbyColor(Color lobbyColor) => ServerUser.UpdateUserLobbyColor(lobbyColor);
 
         /// <summary>
         /// Disconnects this user

@@ -51,6 +51,11 @@ namespace ElectrodZMultiplayer.Server
         private readonly Dictionary<string, (IGameResource, Type)> availableGameModeTypes = new Dictionary<string, (IGameResource, Type)>();
 
         /// <summary>
+        /// Entity deltas
+        /// </summary>
+        private readonly List<IEntityDelta> entityDeltas = new List<IEntityDelta>();
+
+        /// <summary>
         /// Tick stopwatch
         /// </summary>
         private Stopwatch tickStopwatch = new Stopwatch();
@@ -81,6 +86,21 @@ namespace ElectrodZMultiplayer.Server
         public IReadOnlyDictionary<string, (IGameResource, Type)> AvailableGameModeTypes => availableGameModeTypes;
 
         /// <summary>
+        /// This event will be invoked when an authentification was acknowledged.
+        /// </summary>
+        public override event AuthentificationAcknowledgedDelegate OnAuthentificationAcknowledged;
+
+        /// <summary>
+        /// This event will be invoked when lobbies have been listed.
+        /// </summary>
+        public override event LobbiesListedDelegate OnLobbiesListed;
+
+        /// <summary>
+        /// This event will be invoked when available game modes have been listed.
+        /// </summary>
+        public override event AvailableGameModesListedDelegate OnAvailableGameModesListed;
+
+        /// <summary>
         /// Constructs a server synchronizer
         /// </summary>
         public ServerSynchronizer() : base()
@@ -103,6 +123,7 @@ namespace ElectrodZMultiplayer.Server
                     IInternalServerUser server_user = new ServerUser(peer, this, token);
                     users.Add(key, server_user);
                     tokenToUserLookup.Add(token, server_user);
+                    OnAuthentificationAcknowledged?.Invoke(server_user);
                     server_user.SendAuthenticationAcknowledgedMessage();
                 }
                 else
@@ -116,6 +137,7 @@ namespace ElectrodZMultiplayer.Server
                     {
                         server_user.SetPeerInternally(peer);
                         users.Add(key, server_user);
+                        OnAuthentificationAcknowledged?.Invoke(server_user);
                         server_user.SendAuthenticationAcknowledgedMessage();
                         // TODO: Establish state back after returning from the dead.
                     }
@@ -141,6 +163,7 @@ namespace ElectrodZMultiplayer.Server
                             lobby_list.Add(lobby);
                         }
                     }
+                    OnLobbiesListed?.Invoke(lobby_list);
                     serverUser.SendListLobbyResultsMessage(lobby_list);
                     lobby_list.Clear();
                 }), MessageParseFailedEvent);
@@ -156,6 +179,7 @@ namespace ElectrodZMultiplayer.Server
                             available_game_modes.Add(available_game_mode);
                         }
                     }
+                    OnAvailableGameModesListed?.Invoke(available_game_modes);
                     serverUser.SendListAvailableGameModeResultsMessage(available_game_modes);
                     available_game_modes.Clear();
                 }), MessageParseFailedEvent);
@@ -217,58 +241,22 @@ namespace ElectrodZMultiplayer.Server
                     serverLobby.RemoveUser(serverUser, "User has left the lobby.");
                     serverUser.ServerLobby = null;
                 }), MessageParseFailedEvent);
-            AddMessageParser<ChangeUsernameMessageData>((peer, message, json) =>
-                AssertPeerIsInLobby(peer, (serverUser, serverLobby) =>
-                {
-                    serverUser.SetNameInternally(message.NewUsername.Trim());
-                    serverLobby.SendUsernameChangedMessage(serverUser);
-                }), MessageParseFailedEvent);
-            AddMessageParser<ChangeUserGameColorMessageData>((peer, message, json) =>
-                AssertPeerIsInLobby(peer, (serverUser, serverLobby) =>
-                {
-                    serverUser.SetGameColorInternally(message.NewUserGameColor);
-                    serverLobby.SendUserGameColorChangedMessage(serverUser);
-                }), MessageParseFailedEvent);
-            AddMessageParser<ChangeUserLobbyColorMessageData>((peer, message, json) =>
-                AssertPeerIsInLobby(peer, (serverUser, serverLobby) =>
-                {
-                    serverUser.SetLobbyColorInternally(message.NewUserLobbyColor);
-                    serverLobby.SendUserLobbyColorChangedMessage(serverUser);
-                }), MessageParseFailedEvent);
+            AddMessageParser<ChangeUsernameMessageData>((peer, message, json) => AssertPeerIsInLobby(peer, (serverUser, serverLobby) => serverUser.UpdateUsername(message.NewUsername.Trim())), MessageParseFailedEvent);
+            AddMessageParser<ChangeUserLobbyColorMessageData>((peer, message, json) => AssertPeerIsInLobby(peer, (serverUser, serverLobby) => serverUser.UpdateUserLobbyColor(message.NewUserLobbyColor)), MessageParseFailedEvent);
             AddMessageParser<ChangeLobbyRulesMessageData>((peer, message, json) =>
                 AssertPeerIsLobbyOwner(peer, (serverUser, serverLobby) =>
                 {
                     if ((message.GameMode == null) || availableGameModeTypes.ContainsKey(message.GameMode))
                     {
-                        if (message.Name != null)
-                        {
-                            serverLobby.SetNameInternally(message.Name);
-                        }
-                        if (message.MinimalUserCount != null)
-                        {
-                            serverLobby.SetMinimalUserCountInternally(message.MinimalUserCount.Value);
-                        }
-                        if (message.MaximalUserCount != null)
-                        {
-                            serverLobby.SetMaximalUserCountInternally(message.MaximalUserCount.Value);
-                        }
-                        if (message.IsStartingGameAutomatically != null)
-                        {
-                            serverLobby.SetStartingGameAutomaticallyStateInternally(message.IsStartingGameAutomatically.Value);
-                        }
-                        if (message.GameMode != null)
-                        {
-                            serverLobby.SetGameModeTypeInternally(availableGameModeTypes[message.GameMode]);
-                        }
-                        if (message.GameModeRules != null)
-                        {
-                            serverLobby.ClearGameModeRulesInternally();
-                            foreach (KeyValuePair<string, object> game_mode_rule in message.GameModeRules)
-                            {
-                                serverLobby.AddGameModeRuleInternally(game_mode_rule.Key, game_mode_rule.Value);
-                            }
-                        }
-                        serverLobby.SendLobbyRulesChangedMessage();
+                        serverLobby.UpdateLobbyRules
+                        (
+                            message.Name,
+                            (message.GameMode == null) ? ((IGameResource, Type)?)null : availableGameModeTypes[message.GameMode],
+                            message.MinimalUserCount,
+                            message.MaximalUserCount,
+                            message.IsStartingGameAutomatically,
+                            message.GameModeRules
+                        );
                     }
                     else
                     {
@@ -304,14 +292,14 @@ namespace ElectrodZMultiplayer.Server
                 {
                     if (serverLobby.CurrentlyLoadedGameMode == null)
                     {
-                        if (message.Time <= float.Epsilon)
+                        if (message.Time <= double.Epsilon)
                         {
                             serverLobby.StartNewGameModeInstance();
                         }
                         else
                         {
                             serverLobby.RemainingGameStartTime = message.Time;
-                            serverLobby.SendGameRestartRequestedMessage(message.Time);
+                            serverLobby.SendGameStartRequestedMessage(message.Time);
                         }
                     }
                     else
@@ -328,7 +316,7 @@ namespace ElectrodZMultiplayer.Server
                     }
                     else
                     {
-                        if (message.Time <= float.Epsilon)
+                        if (message.Time <= double.Epsilon)
                         {
                             serverLobby.StartNewGameModeInstance();
                         }
@@ -346,7 +334,7 @@ namespace ElectrodZMultiplayer.Server
                     {
                         serverUser.SendErrorMessage(EErrorType.InvalidMessageContext, $"User \"{ serverUser.Name }\" with GUID \"{ serverUser.GUID }\" lobby \"{ serverLobby.Name }\" with lobby code \"{ serverLobby.LobbyCode }\" is not in a running game.");
                     }
-                    else if (message.Time <= float.Epsilon)
+                    else if (message.Time <= double.Epsilon)
                     {
                         serverLobby.StopGameModeInstance();
                     }
@@ -359,6 +347,7 @@ namespace ElectrodZMultiplayer.Server
             AddMessageParser<ClientTickMessageData>((peer, message, json) =>
                 AssertPeerIsInRunningGame(peer, (serverUser, serverLobby, gameMode) =>
                 {
+                    entityDeltas.Clear();
                     if (message.Entities != null)
                     {
                         foreach (EntityData entity in message.Entities)
@@ -380,36 +369,38 @@ namespace ElectrodZMultiplayer.Server
                                     }
                                     if (is_simulating)
                                     {
-                                        if (entity.Color != null)
+                                        EntityDelta entity_delta = (EntityDelta)entity;
+                                        if (entity_delta.GameColor != null)
                                         {
-                                            game_entity.SetGameColor(entity.Color.Value);
+                                            game_entity.SetGameColor(entity_delta.GameColor.Value);
                                         }
-                                        if (entity.Position != null)
+                                        if (entity_delta.Position != null)
                                         {
-                                            game_entity.SetPosition(new Vector3(entity.Position.X, entity.Position.Y, entity.Position.Z));
+                                            game_entity.SetPosition(entity_delta.Position.Value);
                                         }
-                                        if (entity.Rotation != null)
+                                        if (entity_delta.Rotation != null)
                                         {
-                                            game_entity.SetRotation(new Quaternion(entity.Rotation.X, entity.Rotation.Y, entity.Rotation.Z, entity.Rotation.W));
+                                            game_entity.SetRotation(entity_delta.Rotation.Value);
                                         }
-                                        if (entity.Velocity != null)
+                                        if (entity_delta.Velocity != null)
                                         {
-                                            game_entity.SetVelocity(new Vector3(entity.Velocity.X, entity.Velocity.Y, entity.Velocity.Z));
+                                            game_entity.SetVelocity(entity_delta.Velocity.Value);
                                         }
-                                        if (entity.AngularVelocity != null)
+                                        if (entity_delta.AngularVelocity != null)
                                         {
-                                            game_entity.SetAngularVelocity(new Vector3(entity.AngularVelocity.X, entity.AngularVelocity.Y, entity.AngularVelocity.Z));
+                                            game_entity.SetAngularVelocity(entity_delta.AngularVelocity.Value);
                                         }
-                                        if (entity.Actions != null)
+                                        if (entity_delta.Actions != null)
                                         {
-                                            game_entity.SetActions(entity.Actions);
+                                            game_entity.SetActions(entity_delta.Actions);
                                         }
+                                        entityDeltas.Add(entity_delta);
                                     }
                                 }
                             }
                         }
                     }
-                    // TODO: Process entity updates
+                    serverUser.InvokeClientTickedEvent(entityDeltas);
                 }), MessageParseFailedEvent);
             tickStopwatch.Start();
         }

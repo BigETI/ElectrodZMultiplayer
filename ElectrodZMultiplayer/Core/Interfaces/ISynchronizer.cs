@@ -47,6 +47,21 @@ namespace ElectrodZMultiplayer
         event ErrorMessageReceivedDelegate OnErrorMessageReceived;
 
         /// <summary>
+        /// This event will be invoked when an authentification was acknowledged.
+        /// </summary>
+        event AuthentificationAcknowledgedDelegate OnAuthentificationAcknowledged;
+
+        /// <summary>
+        /// This event will be invoked when lobbies have been listed.
+        /// </summary>
+        event LobbiesListedDelegate OnLobbiesListed;
+
+        /// <summary>
+        /// This event will be invoked when available game modes have been listed.
+        /// </summary>
+        event AvailableGameModesListedDelegate OnAvailableGameModesListed;
+
+        /// <summary>
         /// Add connector
         /// </summary>
         /// <param name="connector">Connector</param>

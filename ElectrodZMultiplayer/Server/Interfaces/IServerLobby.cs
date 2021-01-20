@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 /// <summary>
 /// ElectrodZ multiplayer server namespace
@@ -42,6 +43,17 @@ namespace ElectrodZMultiplayer.Server
         /// <param name="reason">Reason</param>
         /// <returns>"true" if the specified user has been successfully removed, otherwise "false"</returns>
         bool RemoveUser(IUser user, string reason);
+
+        /// <summary>
+        /// Updates the lobby rules
+        /// </summary>
+        /// <param name="newName">New lobby name</param>
+        /// <param name="newGameMode">New game mode</param>
+        /// <param name="newMinimalUserCount">New minimal user count</param>
+        /// <param name="newMaximalUserCount">New maximal user count</param>
+        /// <param name="newStartingGameAutomaticallyState">New starting game automatically state</param>
+        /// <param name="newGameModeRules">New game mode ruels</param>
+        void UpdateLobbyRules(string newName = null, (IGameResource, Type)? newGameMode = null, uint? newMinimalUserCount = null, uint? newMaximalUserCount = null, bool? newStartingGameAutomaticallyState = null, IReadOnlyDictionary<string, object> newGameModeRules = null);
 
         /// <summary>
         /// Creates a new game entity

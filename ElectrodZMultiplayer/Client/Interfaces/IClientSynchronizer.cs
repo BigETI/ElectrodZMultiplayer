@@ -37,89 +37,9 @@ namespace ElectrodZMultiplayer.Client
         bool IsAuthenticated { get; }
 
         /// <summary>
-        /// On acknowledge authentication message received
-        /// </summary>
-        event AuthenticationAcknowledgedDelegate OnAuthenticationAcknowledged;
-
-        /// <summary>
-        /// On lobbies listed
-        /// </summary>
-        event LobbiesListedDelegate OnLobbiesListed;
-
-        /// <summary>
         /// On lobby join acknowledged
         /// </summary>
         event LobbyJoinAcknowledgedDelegate OnLobbyJoinAcknowledged;
-
-        /// <summary>
-        /// On user joined
-        /// </summary>
-        event UserJoinedDelegate OnUserJoined;
-
-        /// <summary>
-        /// On user left
-        /// </summary>
-        event UserLeftDelegate OnUserLeft;
-
-        /// <summary>
-        /// On lobby rules changed
-        /// </summary>
-        event LobbyRulesChangedDelegate OnLobbyRulesChanged;
-
-        /// <summary>
-        /// On username changed
-        /// </summary>
-        event UsernameChangedDelegate OnUsernameChanged;
-
-        /// <summary>
-        /// On user game color changed
-        /// </summary>
-        event UserGameColorChangedDelegate OnUserGameColorChanged;
-
-        /// <summary>
-        /// On user lobby color changed
-        /// </summary>
-        event UserGameColorChangedDelegate OnUserLobbyColorChanged;
-
-        /// <summary>
-        /// On game start requested
-        /// </summary>
-        event GameStartRequestedDelegate OnGameStartRequested;
-
-        /// <summary>
-        /// On game restart requested
-        /// </summary>
-        event GameRestartRequestedDelegate OnGameRestartRequested;
-
-        /// <summary>
-        /// On game stop requested
-        /// </summary>
-        event GameStopRequestedDelegate OnGameStopRequested;
-
-        /// <summary>
-        /// On game started
-        /// </summary>
-        event GameStartedDelegate OnGameStarted;
-
-        /// <summary>
-        /// On game restarted
-        /// </summary>
-        event GameRestartedDelegate OnGameRestarted;
-
-        /// <summary>
-        /// On game stopped
-        /// </summary>
-        event GameStoppedDelegate OnGameStopped;
-
-        /// <summary>
-        /// On server ticked
-        /// </summary>
-        event ServerTickedDelegate OnServerTicked;
-
-        /// <summary>
-        /// On game ended
-        /// </summary>
-        event GameEndedDelegate OnGameEnded;
 
         /// <summary>
         /// Process events
@@ -188,12 +108,6 @@ namespace ElectrodZMultiplayer.Client
         void SendChangeUsernameMessage(string newUsername);
 
         /// <summary>
-        /// Send change game color message
-        /// </summary>
-        /// <param name="gameColor">Game color</param>
-        void SendChangeGameColorMessage(EGameColor gameColor);
-
-        /// <summary>
         /// Send change lobby color message
         /// </summary>
         /// <param name="lobbyColor">Lobby color</param>
@@ -221,19 +135,19 @@ namespace ElectrodZMultiplayer.Client
         /// Sends a start game message to peer
         /// </summary>
         /// <param name="time">Time to start game in seconds</param>
-        void SendStartGameMessage(float time);
+        void SendStartGameMessage(double time);
 
         /// <summary>
         /// Sends a restart game message to peer
         /// </summary>
         /// <param name="time">Time to restart game in seconds</param>
-        void SendRestartGameMessage(float time);
+        void SendRestartGameMessage(double time);
 
         /// <summary>
         /// Sends a stop game message to peer
         /// </summary>
         /// <param name="time">Time to stop game in seconds</param>
-        void SendStopGameMessage(float time);
+        void SendStopGameMessage(double time);
 
         /// <summary>
         /// Sends a client tick message

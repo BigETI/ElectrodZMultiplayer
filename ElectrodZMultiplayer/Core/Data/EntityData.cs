@@ -32,7 +32,7 @@ namespace ElectrodZMultiplayer.Data
         /// </summary>
         [JsonProperty("color")]
         [JsonConverter(typeof(GameColorJSONConverter))]
-        public EGameColor? Color { get; set; }
+        public EGameColor? GameColor { get; set; }
 
         /// <summary>
         /// Current position (optional)
@@ -71,7 +71,7 @@ namespace ElectrodZMultiplayer.Data
         public bool IsValid =>
             (GUID != Guid.Empty) &&
             ((EntityType == null) || !string.IsNullOrWhiteSpace(EntityType)) &&
-            ((Color == null) || (Color != EGameColor.Unknown)) &&
+            ((GameColor == null) || (GameColor != EGameColor.Unknown)) &&
             ((Position == null) || (Position != null)) &&
             ((Rotation == null) || (Rotation != null)) &&
             ((AngularVelocity == null) || (AngularVelocity != null)) &&
@@ -116,13 +116,36 @@ namespace ElectrodZMultiplayer.Data
             }
             GUID = guid;
             EntityType = entityType;
-            Color = color;
+            GameColor = color;
             Position = (position == null) ? null : (Vector3FloatData)position;
             Rotation = (rotation == null) ? null : (QuaternionFloatData)rotation;
             Velocity = (velocity == null) ? null : (Vector3FloatData)velocity;
             AngularVelocity = (angularVelocity == null) ? null : (Vector3FloatData)angularVelocity;
-            Color = color;
+            GameColor = color;
             Actions = (actions == null) ? null : new List<EGameAction>(actions ?? throw new ArgumentNullException(nameof(actions)));
+        }
+
+        /// <summary>
+        /// Explicitly casts entity data to entity delta
+        /// </summary>
+        /// <param name="entity">Entity data</param>
+        public static explicit operator EntityDelta(EntityData entity)
+        {
+            if (entity == null)
+            {
+                throw new ArgumentNullException(nameof(entity));
+            }
+            return new EntityDelta
+            (
+                entity.GUID,
+                entity.EntityType,
+                entity.GameColor,
+                new Vector3(entity.Position.X, entity.Position.Y, entity.Position.Z),
+                new Quaternion(entity.Rotation.X, entity.Rotation.Y, entity.Rotation.Z, entity.Rotation.W),
+                new Vector3(entity.Velocity.X, entity.Velocity.Y, entity.Velocity.Z),
+                new Vector3(entity.AngularVelocity.X, entity.AngularVelocity.Y, entity.AngularVelocity.Z),
+                entity.Actions
+            );
         }
     }
 }

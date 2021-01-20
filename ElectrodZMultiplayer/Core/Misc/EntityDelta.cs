@@ -105,7 +105,7 @@ namespace ElectrodZMultiplayer
             }
             if (baseEntityDelta.GUID != patchEntityDelta.GUID)
             {
-                throw new ArgumentException($"Base entity delta GUID \"{ baseEntityDelta.GUID }\" does not match path entity delta GUID \"{ patchEntityDelta.GUID }\".", nameof(patchEntityDelta));
+                throw new ArgumentException($"Base entity delta GUID \"{ baseEntityDelta.GUID }\" does not match patch entity delta GUID \"{ patchEntityDelta.GUID }\".", nameof(patchEntityDelta));
             }
             HashSet<EGameAction> actions = (baseEntityDelta.Actions == null) ? null : new HashSet<EGameAction>(baseEntityDelta.Actions);
             if (patchEntityDelta.Actions != null)

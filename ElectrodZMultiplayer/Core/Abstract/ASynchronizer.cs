@@ -60,6 +60,21 @@ namespace ElectrodZMultiplayer
         public event ErrorMessageReceivedDelegate OnErrorMessageReceived;
 
         /// <summary>
+        /// This event will be invoked when an authentification was acknowledged.
+        /// </summary>
+        public abstract event AuthentificationAcknowledgedDelegate OnAuthentificationAcknowledged;
+
+        /// <summary>
+        /// This event will be invoked when lobbies have been listed.
+        /// </summary>
+        public abstract event LobbiesListedDelegate OnLobbiesListed;
+
+        /// <summary>
+        /// This event will be invoked when available game modes have been listed.
+        /// </summary>
+        public abstract event AvailableGameModesListedDelegate OnAvailableGameModesListed;
+
+        /// <summary>
         /// Constructs a generalised synchronizer object
         /// </summary>
         public ASynchronizer() => AddMessageParser<ErrorMessageData>((_, message, json) =>

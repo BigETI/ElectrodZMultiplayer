@@ -46,89 +46,24 @@ namespace ElectrodZMultiplayer.Client
         public bool IsAuthenticated => user != null;
 
         /// <summary>
-        /// On acknowledge authentication message received
+        /// This event will be invoked when an authentification was acknowledged.
         /// </summary>
-        public event AuthenticationAcknowledgedDelegate OnAuthenticationAcknowledged;
+        public override event AuthentificationAcknowledgedDelegate OnAuthentificationAcknowledged;
 
         /// <summary>
-        /// On lobbies listed
+        /// This event will be invoked when lobbies have been listed.
         /// </summary>
-        public event LobbiesListedDelegate OnLobbiesListed;
+        public override event LobbiesListedDelegate OnLobbiesListed;
+
+        /// <summary>
+        /// This event will be invoked when available game modes have been listed.
+        /// </summary>
+        public override event AvailableGameModesListedDelegate OnAvailableGameModesListed;
 
         /// <summary>
         /// On lobby join acknowledged
         /// </summary>
         public event LobbyJoinAcknowledgedDelegate OnLobbyJoinAcknowledged;
-
-        /// <summary>
-        /// On user joined
-        /// </summary>
-        public event UserJoinedDelegate OnUserJoined;
-
-        /// <summary>
-        /// On user left
-        /// </summary>
-        public event UserLeftDelegate OnUserLeft;
-
-        /// <summary>
-        /// On lobby rules changed
-        /// </summary>
-        public event LobbyRulesChangedDelegate OnLobbyRulesChanged;
-
-        /// <summary>
-        /// On username changed
-        /// </summary>
-        public event UsernameChangedDelegate OnUsernameChanged;
-
-        /// <summary>
-        /// On user game color changed
-        /// </summary>
-        public event UserGameColorChangedDelegate OnUserGameColorChanged;
-
-        /// <summary>
-        /// On user lobby color changed
-        /// </summary>
-        public event UserGameColorChangedDelegate OnUserLobbyColorChanged;
-
-        /// <summary>
-        /// On game start requested
-        /// </summary>
-        public event GameStartRequestedDelegate OnGameStartRequested;
-
-        /// <summary>
-        /// On game restart requested
-        /// </summary>
-        public event GameRestartRequestedDelegate OnGameRestartRequested;
-
-        /// <summary>
-        /// On game stop requested
-        /// </summary>
-        public event GameStopRequestedDelegate OnGameStopRequested;
-
-        /// <summary>
-        /// On game started
-        /// </summary>
-        public event GameStartedDelegate OnGameStarted;
-
-        /// <summary>
-        /// On game restarted
-        /// </summary>
-        public event GameRestartedDelegate OnGameRestarted;
-
-        /// <summary>
-        /// On game stopped
-        /// </summary>
-        public event GameStoppedDelegate OnGameStopped;
-
-        /// <summary>
-        /// On server ticked
-        /// </summary>
-        public event ServerTickedDelegate OnServerTicked;
-
-        /// <summary>
-        /// On game ended
-        /// </summary>
-        public event GameEndedDelegate OnGameEnded;
 
         /// <summary>
         /// Constructor
@@ -148,7 +83,7 @@ namespace ElectrodZMultiplayer.Client
                 {
                     Token = message.Token;
                     user = new ClientUser(message.GUID);
-                    OnAuthenticationAcknowledged?.Invoke(User);
+                    OnAuthentificationAcknowledged?.Invoke(User);
                 }
             }, FatalMessageParseFailedEvent);
             AddMessageParser<ListLobbyResultsMessageData>((_, message, json) =>
@@ -157,6 +92,7 @@ namespace ElectrodZMultiplayer.Client
                 Parallel.For(0, lobbies.Length, (index) => lobbies[index] = (LobbyView)message.Lobbies[index]);
                 OnLobbiesListed?.Invoke(lobbies);
             }, MessageParseFailedEvent);
+            AddMessageParser<ListAvailableGameModeResultsMessageData>((_, message, json) => OnAvailableGameModesListed?.Invoke(message.GameModes), MessageParseFailedEvent);
             AddMessageParser<JoinLobbyAcknowledgedMessageData>((_, message, json) =>
                 AssertIsUserAuthenticated((clientUser) =>
                 {
@@ -198,174 +134,62 @@ namespace ElectrodZMultiplayer.Client
                 AssertIsUserInLobby((clientUser, clientLobby) =>
                 {
                     LobbyRulesData rules = message.Rules;
-                    clientLobby.SetLobbyCodeInternally(rules.LobbyCode);
-                    clientLobby.SetNameInternally(rules.Name);
-                    clientLobby.SetMinimalUserCountInternally(rules.MinimalUserCount);
-                    clientLobby.SetMaximalUserCountInternally(rules.MaximalUserCount);
-                    clientLobby.SetStartingGameAutomaticallyStateInternally(rules.IsStartingGameAutomatically);
-                    clientLobby.SetGameModeInternally(rules.GameMode);
-                    clientLobby.InternalGameModeRules.Clear();
-                    foreach (KeyValuePair<string, object> game_mode_rule in rules.GameModeRules)
-                    {
-                        clientLobby.InternalGameModeRules.Add(game_mode_rule.Key, game_mode_rule.Value);
-                    }
-                    OnLobbyRulesChanged(clientLobby);
+                    clientLobby.UpdateGameModeRulesInternally
+                    (
+                        rules.LobbyCode,
+                        rules.Name,
+                        rules.GameMode,
+                        rules.MinimalUserCount,
+                        rules.MaximalUserCount,
+                        rules.IsStartingGameAutomatically,
+                        rules.GameModeRules
+                    );
                 }), MessageParseFailedEvent);
             AddMessageParser<UserJoinedMessageData>((_, message, json) =>
                 AssertIsUserInLobby((clientUser, clientLobby) =>
                 {
-                    Dictionary<string, IUser> users = clientLobby.InternalUsers;
-                    string key = message.GUID.ToString();
-                    if (users.ContainsKey(key))
+                    IUser user = new ClientUser(message.GUID, message.GameColor, message.Name, message.LobbyColor);
+                    if (!clientLobby.AddUserInternally(user))
                     {
-                        SendErrorMessageToPeer(peer, EErrorType.InvalidMessageContext, $"User \"{ users[key].Name }\" with GUID \"{ key }\" is already in a lobby.");
-                    }
-                    else
-                    {
-                        IUser user = new ClientUser(message.GUID, message.GameColor, message.Name, message.LobbyColor);
-                        users.Add(key, user);
-                        OnUserJoined?.Invoke(user);
+                        SendErrorMessageToPeer(peer, EErrorType.InvalidMessageContext, $"Failed to add user \"{ user.Name }\" with GUID \"{ user.GUID }\" to lobby \"{ clientLobby.Name }\" with lobby code \"{ clientLobby.LobbyCode }\".");
                     }
                 }), MessageParseFailedEvent);
             AddMessageParser<UserLeftMessageData>((_, message, json) =>
                 AssertTargetLobbyUser(message.GUID, (clientUser, clientLobby, targetUser) =>
                 {
-                    clientLobby.InternalUsers.Remove(targetUser.GUID.ToString());
+                    if (!clientLobby.RemoveUserInternally(targetUser, message.Reason))
+                    {
+                        SendErrorMessageToPeer(peer, EErrorType.InvalidMessageContext, $"Failed to remove user \"{ targetUser.Name }\" with GUID \"{ targetUser.GUID }\" from lobby \"{ clientLobby.Name }\" with lobby code \"{ clientLobby.LobbyCode }\".");
+                    }
                     targetUser.ClientLobby = null;
-                    OnUserLeft?.Invoke(user, message.Reason);
                 }), MessageParseFailedEvent);
-            AddMessageParser<UsernameChangedMessageData>((_, message, json) =>
-                AssertTargetLobbyUser(message.GUID, (clientUser, clientLobby, targetUser) =>
-                {
-                    targetUser.SetNameInternally(message.NewUsername);
-                    OnUsernameChanged?.Invoke(targetUser);
-                }), MessageParseFailedEvent);
-            AddMessageParser<UserGameColorChangedMessageData>((_, message, json) =>
-                AssertTargetLobbyUser(message.GUID, (clientUser, clientLobby, targetUser) =>
-                {
-                    targetUser.SetGameColorInternally(message.NewGameColor);
-                    OnUserGameColorChanged?.Invoke(targetUser);
-                }), MessageParseFailedEvent);
-            AddMessageParser<UserLobbyColorChangedMessageData>((_, message, json) =>
-                AssertTargetLobbyUser(message.GUID, (clientUser, clientLobby, targetUser) =>
-                {
-                    targetUser.SetLobbyColorInternally(message.NewLobbyColor);
-                    OnUserLobbyColorChanged?.Invoke(targetUser);
-                }), MessageParseFailedEvent);
-            AddMessageParser<GameStartRequestedMessageData>((_, message, json) =>
-                AssertIsUserInLobby((clientUser, clientLobby) =>
-                {
-                    OnGameStartRequested?.Invoke(message.Time);
-                }), MessageParseFailedEvent);
-            AddMessageParser<GameRestartRequestedMessageData>((_, message, json) =>
-                AssertIsUserInLobby((clientUser, clientLobby) =>
-                {
-                    OnGameRestartRequested?.Invoke(message.Time);
-                }), MessageParseFailedEvent);
-            AddMessageParser<GameStopRequestedMessageData>((_, message, json) =>
-                AssertIsUserInLobby((clientUser, clientLobby) =>
-                {
-                    OnGameStopRequested?.Invoke(message.Time);
-                }), MessageParseFailedEvent);
-            AddMessageParser<StartGameMessageData>((_, message, json) =>
-                AssertIsUserInLobby((clientUser, clientLobby) =>
-                {
-                    OnGameStarted?.Invoke(message.Time);
-                }), MessageParseFailedEvent);
-            AddMessageParser<RestartGameMessageData>((_, message, json) =>
-                AssertIsUserInLobby((clientUser, clientLobby) =>
-                {
-                    OnGameRestarted?.Invoke(message.Time);
-                }), MessageParseFailedEvent);
-            AddMessageParser<StopGameMessageData>((_, message, json) =>
-                AssertIsUserInLobby((clientUser, clientLobby) =>
-                {
-                    OnGameStopped?.Invoke();
-                }), MessageParseFailedEvent);
-            AddMessageParser<ServerTickMessageData>((_, message, json) =>
-                AssertIsUserInLobby((clientUser, clientLobby) =>
-                {
-                    Dictionary<string, IUser> users = clientLobby.InternalUsers;
-                    Dictionary<string, IEntity> entities = clientLobby.InternalEntities;
-                    HashSet<string> remove_entity_keys = new HashSet<string>(clientLobby.InternalEntities.Keys);
-                    foreach (EntityData entity in message.Entities)
-                    {
-                        string key = entity.GUID.ToString();
-                        if (users.ContainsKey(key))
-                        {
-                            remove_entity_keys.Remove(key);
-                            if (users[key] is IInternalClientUser client_user)
-                            {
-                                if (entity.EntityType != null)
-                                {
-                                    client_user.SetEntityTypeInternally(entity.EntityType);
-                                }
-                                if (entity.Position != null)
-                                {
-                                    client_user.SetPositionInternally(new Vector3(entity.Position.X, entity.Position.Y, entity.Position.Z));
-                                }
-                                if (entity.Rotation != null)
-                                {
-                                    client_user.SetRotationInternally(new Quaternion(entity.Rotation.X, entity.Rotation.Y, entity.Rotation.Z, entity.Rotation.W));
-                                }
-                                if (entity.Velocity != null)
-                                {
-                                    client_user.SetVelocityInternally(new Vector3(entity.Velocity.X, entity.Velocity.Y, entity.Velocity.Z));
-                                }
-                                if (entity.AngularVelocity != null)
-                                {
-                                    client_user.SetAngularVelocityInternally(new Vector3(entity.AngularVelocity.X, entity.AngularVelocity.Y, entity.AngularVelocity.Z));
-                                }
-                                if (entity.Actions != null)
-                                {
-                                    client_user.SetActionsInternally(entity.Actions);
-                                }
-                            }
-                        }
-                        else if (entities.ContainsKey(key))
-                        {
-                            remove_entity_keys.Remove(key);
-                        }
-                    }
-                    foreach (string remove_entity_key in remove_entity_keys)
-                    {
-                        entities.Remove(remove_entity_key);
-                    }
-                    remove_entity_keys.Clear();
-                    OnServerTicked?.Invoke(clientLobby, message.Time);
-                }), MessageParseFailedEvent);
+            AddMessageParser<UsernameChangedMessageData>((_, message, json) => AssertTargetLobbyUser(message.GUID, (clientUser, clientLobby, targetUser) => targetUser.SetNameInternally(message.NewUsername)), MessageParseFailedEvent);
+            AddMessageParser<UserLobbyColorChangedMessageData>((_, message, json) => AssertTargetLobbyUser(message.GUID, (clientUser, clientLobby, targetUser) => targetUser.SetLobbyColorInternally(message.NewLobbyColor)), MessageParseFailedEvent);
+            AddMessageParser<GameStartRequestedMessageData>((_, message, json) => AssertIsUserInLobby((clientUser, clientLobby) => clientLobby.InvokeGameStartRequestedEventInternally(message.Time)), MessageParseFailedEvent);
+            AddMessageParser<GameRestartRequestedMessageData>((_, message, json) => AssertIsUserInLobby((clientUser, clientLobby) => clientLobby.InvokeGameRestartRequestedEventInternally(message.Time)), MessageParseFailedEvent);
+            AddMessageParser<GameStopRequestedMessageData>((_, message, json) => AssertIsUserInLobby((clientUser, clientLobby) => clientLobby.InvokeGameStopRequestedEventInternally(message.Time)), MessageParseFailedEvent);
+            AddMessageParser<GameStartedMessageData>((_, message, json) => AssertIsUserInLobby((clientUser, clientLobby) => clientLobby.InvokeGameStartedEventInternally()), MessageParseFailedEvent);
+            AddMessageParser<GameRestartedMessageData>((_, message, json) => AssertIsUserInLobby((clientUser, clientLobby) => clientLobby.InvokeGameRestartedEventInternally()), MessageParseFailedEvent);
+            AddMessageParser<GameStoppedMessageData>((_, message, json) => AssertIsUserInLobby((clientUser, clientLobby) => clientLobby.InvokeGameStoppedEventInternally()), MessageParseFailedEvent);
+            AddMessageParser<ServerTickMessageData>((_, message, json) => AssertIsUserInLobby((clientUser, clientLobby) => clientLobby.ProcessServerTickInternally(message.Time, message.Entities)), MessageParseFailedEvent);
             AddMessageParser<GameEndedMessageData>((_, message, json) =>
-            {
-                if (User == null)
+                AssertIsUserInLobby((clientUser, clientLobby) =>
                 {
-                    SendErrorMessageToPeer(peer, EErrorType.InvalidMessageContext, "User has not been authenticated yet.", true);
-                }
-                else
-                {
-                    IClientLobby client_lobby = user.ClientLobby;
-                    if (client_lobby == null)
+                    Dictionary<string, UserWithResults> users = new Dictionary<string, UserWithResults>();
+                    foreach (GameEndUserData user in message.Users)
                     {
-                        SendErrorMessageToPeer(peer, EErrorType.InvalidMessageContext, "User is not in any lobby yet.");
-                    }
-                    else
-                    {
-                        Dictionary<string, UserWithResults> users = new Dictionary<string, UserWithResults>();
-                        foreach (GameEndUserData user in message.Users)
+                        string key = user.GUID.ToString();
+                        if (clientLobby.Users.ContainsKey(key))
                         {
-                            string key = user.GUID.ToString();
-                            if (client_lobby.Users.ContainsKey(key))
-                            {
-                                users.Add(key, new UserWithResults(client_lobby.Users[key], user.Results));
-                            }
-                            else
-                            {
-                                SendErrorMessageToPeer(peer, EErrorType.InvalidMessageContext, $"User with GUID \"{ key }\" is not in lobby \"{ client_lobby.Name }\" with lobby code \"{ client_lobby.LobbyCode }\".");
-                            }
+                            users.Add(key, new UserWithResults(clientLobby.Users[key], user.Results));
                         }
-                        OnGameEnded?.Invoke(users, message.Results);
+                        else
+                        {
+                            SendErrorMessage(EErrorType.InvalidMessageContext, $"User with GUID \"{ key }\" is not in lobby \"{ clientLobby.Name }\" with lobby code \"{ clientLobby.LobbyCode }\".");
+                        }
                     }
-                }
-            }, MessageParseFailedEvent);
+                    clientLobby.InvokeGameEndedEventInternally(users, message.Results);
+                }), MessageParseFailedEvent);
             OnPeerConnected += (_) => SendAuthenticationMessage(token);
         }
 
@@ -414,7 +238,7 @@ namespace ElectrodZMultiplayer.Client
         private void AssertTargetLobbyUser(Guid targetUserGUID, TargetLobbyUserDelegate onTargetLobbyUser) =>
             AssertIsUserInLobby((clientUser, clientLobby) =>
             {
-                Dictionary<string, IUser> users = clientLobby.InternalUsers;
+                IReadOnlyDictionary<string, IUser> users = clientLobby.Users;
                 string key = targetUserGUID.ToString();
                 if (users.ContainsKey(key))
                 {
@@ -572,12 +396,6 @@ namespace ElectrodZMultiplayer.Client
         public void SendChangeUsernameMessage(string newUsername) => SendMessage(new ChangeUsernameMessageData(newUsername));
 
         /// <summary>
-        /// Send change game color message
-        /// </summary>
-        /// <param name="gameColor">Game color</param>
-        public void SendChangeGameColorMessage(EGameColor gameColor) => SendMessage(new ChangeUserGameColorMessageData(gameColor));
-
-        /// <summary>
         /// Send change lobby color message
         /// </summary>
         /// <param name="lobbyColor">Lobby color</param>
@@ -624,19 +442,19 @@ namespace ElectrodZMultiplayer.Client
         /// Sends a start game message to peer
         /// </summary>
         /// <param name="time">Time to start game in seconds</param>
-        public void SendStartGameMessage(float time) => SendMessage(new StartGameMessageData(time));
+        public void SendStartGameMessage(double time) => SendMessage(new StartGameMessageData(time));
 
         /// <summary>
         /// Sends a restart game message to peer
         /// </summary>
         /// <param name="time">Time to restart game in seconds</param>
-        public void SendRestartGameMessage(float time) => SendMessage(new RestartGameMessageData(time));
+        public void SendRestartGameMessage(double time) => SendMessage(new RestartGameMessageData(time));
 
         /// <summary>
         /// Sends a stop game message to peer
         /// </summary>
         /// <param name="time">Time to stop game in seconds</param>
-        public void SendStopGameMessage(float time) => SendMessage(new StopGameMessageData(time));
+        public void SendStopGameMessage(double time) => SendMessage(new StopGameMessageData(time));
 
         /// <summary>
         /// Sends a client tick message

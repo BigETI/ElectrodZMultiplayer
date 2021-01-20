@@ -85,6 +85,112 @@ namespace ElectrodZMultiplayer
         }
 
         /// <summary>
+        /// Gets the delta for the specified entities
+        /// </summary>
+        /// <param name="baseEntity">Base entity</param>
+        /// <param name="patchEntity">Patch entity</param>
+        /// <returns>Entity delta if there are differences between the specified entities, otherwise "null"</returns>
+        public static IEntityDelta GetDelta(IEntity baseEntity, IEntity patchEntity) => TryGetDelta(baseEntity, patchEntity, out IEntityDelta ret) ? ret : null;
+
+        /// <summary>
+        /// Tries to get entity delta from the specified entities
+        /// </summary>
+        /// <param name="baseEntity">Base entity</param>
+        /// <param name="patchEntity">Patch entity</param>
+        /// <param name="entityDelta">Entity data</param>
+        /// <returns>"true" if differences between base and patch entities exist, otherwise "false"</returns>
+        public static bool TryGetDelta(IEntity baseEntity, IEntity patchEntity, out IEntityDelta entityDelta)
+        {
+            if (baseEntity == null)
+            {
+                throw new ArgumentNullException(nameof(baseEntity));
+            }
+            if (!baseEntity.IsValid)
+            {
+                throw new ArgumentException("Base entity is not valid.", nameof(baseEntity));
+            }
+            if (patchEntity == null)
+            {
+                throw new ArgumentNullException(nameof(patchEntity));
+            }
+            if (!patchEntity.IsValid)
+            {
+                throw new ArgumentException("Patch entity is not valid.", nameof(patchEntity));
+            }
+            if (baseEntity.GUID != patchEntity.GUID)
+            {
+                throw new ArgumentException($"Base entity GUID \"{ baseEntity.GUID }\" does not match patch entity GUID \"{ patchEntity.GUID }\".", nameof(patchEntity));
+            }
+            bool ret = false;
+            string entity_type = null;
+            EGameColor? game_color = null;
+            Vector3? position = null;
+            Quaternion? rotation = null;
+            Vector3? velocity = null;
+            Vector3? angular_velocity = null;
+            IEnumerable<EGameAction> actions = null;
+            if (baseEntity != patchEntity)
+            {
+                if (baseEntity.EntityType != patchEntity.EntityType)
+                {
+                    ret = true;
+                    entity_type = patchEntity.EntityType;
+                }
+                if (baseEntity.EntityType != patchEntity.EntityType)
+                {
+                    ret = true;
+                    entity_type = patchEntity.EntityType;
+                }
+                if (baseEntity.GameColor != patchEntity.GameColor)
+                {
+                    ret = true;
+                    game_color = patchEntity.GameColor;
+                }
+                if (baseEntity.Position != patchEntity.Position)
+                {
+                    ret = true;
+                    position = patchEntity.Position;
+                }
+                if (baseEntity.Rotation != patchEntity.Rotation)
+                {
+                    ret = true;
+                    rotation = patchEntity.Rotation;
+                }
+                if (baseEntity.Velocity != patchEntity.Velocity)
+                {
+                    ret = true;
+                    velocity = patchEntity.Velocity;
+                }
+                if (baseEntity.AngularVelocity != patchEntity.AngularVelocity)
+                {
+                    ret = true;
+                    angular_velocity = patchEntity.AngularVelocity;
+                }
+                foreach (EGameAction action in baseEntity.Actions)
+                {
+                    if (!Protection.IsContained(patchEntity.Actions, (patch_entity_action) => patch_entity_action == action))
+                    {
+                        actions = patchEntity.Actions;
+                        break;
+                    }
+                }
+                if (actions == null)
+                {
+                    foreach (EGameAction action in patchEntity.Actions)
+                    {
+                        if (!Protection.IsContained(baseEntity.Actions, (base_entity_action) => base_entity_action == action))
+                        {
+                            actions = patchEntity.Actions;
+                            break;
+                        }
+                    }
+                }
+            }
+            entityDelta = ret ? (IEntityDelta)new EntityDelta(baseEntity.GUID, entity_type, game_color, position, rotation, velocity, angular_velocity, actions) : null;
+            return ret;
+        }
+
+        /// <summary>
         /// Constructs an entity object
         /// </summary>
         /// <param name="guid">Entity GUID</param>
@@ -227,7 +333,7 @@ namespace ElectrodZMultiplayer
             {
                 throw new ArgumentException("Entity is not valid.", nameof(entity));
             }
-            return new Entity(entity.GUID, entity.EntityType, (entity.Color == null) ? EGameColor.Default : entity.Color.Value, (entity.Position == null) ? Vector3.Zero : new Vector3(entity.Position.X, entity.Position.Y, entity.Position.Z), (entity.Rotation == null) ? Quaternion.Identity : new Quaternion(entity.Rotation.X, entity.Rotation.Y, entity.Rotation.Z, entity.Rotation.W), (entity.Velocity == null) ? Vector3.Zero : new Vector3(entity.Velocity.X, entity.Velocity.Y, entity.Velocity.Z), (entity.AngularVelocity == null) ? Vector3.Zero : new Vector3(entity.AngularVelocity.X, entity.AngularVelocity.Y, entity.AngularVelocity.Z), entity.Actions ?? (IEnumerable<EGameAction>)Array.Empty<EGameAction>());
+            return new Entity(entity.GUID, entity.EntityType, (entity.GameColor == null) ? EGameColor.Default : entity.GameColor.Value, (entity.Position == null) ? Vector3.Zero : new Vector3(entity.Position.X, entity.Position.Y, entity.Position.Z), (entity.Rotation == null) ? Quaternion.Identity : new Quaternion(entity.Rotation.X, entity.Rotation.Y, entity.Rotation.Z, entity.Rotation.W), (entity.Velocity == null) ? Vector3.Zero : new Vector3(entity.Velocity.X, entity.Velocity.Y, entity.Velocity.Z), (entity.AngularVelocity == null) ? Vector3.Zero : new Vector3(entity.AngularVelocity.X, entity.AngularVelocity.Y, entity.AngularVelocity.Z), entity.Actions ?? (IEnumerable<EGameAction>)Array.Empty<EGameAction>());
         }
     }
 }

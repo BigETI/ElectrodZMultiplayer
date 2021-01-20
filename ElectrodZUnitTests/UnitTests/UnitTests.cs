@@ -89,7 +89,7 @@ namespace ElectrodZUnitTests
                 };
                 client.OnPeerMessageReceived += (peer, message) => Console.WriteLine($"[CLIENT] Peer GUID \"{ peer.GUID }\" sent a message of length \"{ message.Length }\".");
                 client.OnLobbyJoinAcknowledged += (lobby) => lobbies[current_index] = lobby;
-                client.OnAuthenticationAcknowledged += (IUser user) =>
+                client.OnAuthentificationAcknowledged += (user) =>
                 {
                     Assert.IsNotNull(user);
                     users[current_index] = user;

@@ -35,6 +35,12 @@ namespace ElectrodZMultiplayer.Server
         void SetLobbyColorInternally(Color lobbyColor);
 
         /// <summary>
+        /// Invoked the client ticked event
+        /// </summary>
+        /// <param name="entityDeltas">Entity deltas</param>
+        void InvokeClientTickedEvent(IEnumerable<IEntityDelta> entityDeltas);
+
+        /// <summary>
         /// Sends a message
         /// </summary>
         /// <typeparam name="T">Message type</typeparam>
@@ -63,6 +69,12 @@ namespace ElectrodZMultiplayer.Server
         /// </summary>
         /// <param name="lobby">Lobby</param>
         void SendJoinLobbyAcknowledgedMessage(IServerLobby lobby);
+
+        /// <summary>
+        /// Sends a server tick message
+        /// </summary>
+        /// <param name="time">Time elapsed in seconds since game started</param>
+        void SendServerTickMessage(double time);
 
         /// <summary>
         /// Sends an error message

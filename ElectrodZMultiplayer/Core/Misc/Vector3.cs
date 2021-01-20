@@ -68,5 +68,45 @@ namespace ElectrodZMultiplayer
         /// <param name="right">Right</param>
         /// <returns>Subtracted vector</returns>
         public static Vector3 operator -(Vector3 left, Vector3 right) => new Vector3(left.X - right.X, left.Y - right.Y, left.Z - right.Z);
+
+        /// <summary>
+        /// Compares two vectors
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>"true" if both vectors are equivalent, otherwise "false"</returns>
+        public static bool operator ==(Vector3 left, Vector3 right) => (left.X == right.X) && (left.Y == right.Y) && (left.Z == right.Z);
+
+        /// <summary>
+        /// Compares two vectors
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>"true" if both vectors are not equivalent, otherwise "false"</returns>
+        public static bool operator !=(Vector3 left, Vector3 right) => (left.X != right.X) || (left.Y != right.Y) || (left.Z != right.Z);
+
+        /// <summary>
+        /// Checks if the specified object is equal to this object
+        /// </summary>
+        /// <param name="obj">Object</param>
+        /// <returns>"true" if both objects are equal, otherwise "false"</returns>
+        public override bool Equals(object obj) =>
+            (obj is Vector3 vector) &&
+            (X == vector.X) &&
+            (Y == vector.Y) &&
+            (Z == vector.Z);
+
+        /// <summary>
+        /// Gets the hash code for this object
+        /// </summary>
+        /// <returns>Hash code</returns>
+        public override int GetHashCode()
+        {
+            int hashCode = 767639859;
+            hashCode = hashCode * -1521134295 + X.GetHashCode();
+            hashCode = hashCode * -1521134295 + Y.GetHashCode();
+            hashCode = hashCode * -1521134295 + Z.GetHashCode();
+            return hashCode;
+        }
     }
 }

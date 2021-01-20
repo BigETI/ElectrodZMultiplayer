@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 
 /// <summary>
@@ -30,6 +31,26 @@ namespace ElectrodZMultiplayer.Client
         /// Lobby color
         /// </summary>
         public Color LobbyColor { get; private set; }
+
+        /// <summary>
+        /// This event will be invoked when the username changes.
+        /// </summary>
+        public event UsernameUpdatedDelegate OnUsernameUpdated;
+
+        /// <summary>
+        /// This event will be invoked when the user lobby color changes.
+        /// </summary>
+        public event UserLobbyColorUpdatedDelegate OnUserLobbyColorUpdated;
+
+        /// <summary>
+        /// This event will be invoked when a client tick has been performed.
+        /// </summary>
+        public event ClientTickedDelegate OnClientTicked;
+
+        /// <summary>
+        /// This event will be invoked when a server tick has been performed.
+        /// </summary>
+        public event ServerTickedDelegate OnServerTicked;
 
         /// <summary>
         /// Constructor
@@ -69,12 +90,30 @@ namespace ElectrodZMultiplayer.Client
                 throw new ArgumentException($"Username must be between { Defaults.minimalUsernameLength } and { Defaults.maximalUsernameLength } characters long.", nameof(name));
             }
             Name = new_name;
+            OnUsernameUpdated?.Invoke();
         }
 
         /// <summary>
         /// Sets a new lobby color internally
         /// </summary>
         /// <param name="lobbyColor">Lobby color</param>
-        public void SetLobbyColorInternally(Color lobbyColor) => LobbyColor = lobbyColor;
+        public void SetLobbyColorInternally(Color lobbyColor)
+        {
+            LobbyColor = lobbyColor;
+            OnUserLobbyColorUpdated?.Invoke();
+        }
+
+        /// <summary>
+        /// Invokes the client ticked event
+        /// </summary>
+        /// <param name="entityDeltas">Entity deltas</param>
+        public void InvokeClientTickedEvent(IEnumerable<IEntityDelta> entityDeltas) => OnClientTicked?.Invoke(entityDeltas);
+
+        /// <summary>
+        /// Invokes the server ticked event
+        /// </summary>
+        /// <param name="time">Time in seconds elapsed since game start</param>
+        /// <param name="entityDeltas">Entity deltas</param>
+        public void InvokeServerTickedEvent(double time, IEnumerable<IEntityDelta> entityDeltas) => OnServerTicked?.Invoke(time, entityDeltas);
     }
 }

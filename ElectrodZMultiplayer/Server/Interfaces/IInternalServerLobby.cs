@@ -29,7 +29,7 @@ namespace ElectrodZMultiplayer.Server
         bool AddUser(IInternalServerUser user);
 
         /// <summary>
-        /// Performs a tick
+        /// Performs a game tick
         /// </summary>
         /// <param name="deltaTime">Delta time</param>
         void Tick(TimeSpan deltaTime);
@@ -133,12 +133,6 @@ namespace ElectrodZMultiplayer.Server
         void SendUsernameChangedMessage(IUser user);
 
         /// <summary>
-        /// Sends an user game color changed message
-        /// </summary>
-        /// <param name="user">User</param>
-        void SendUserGameColorChangedMessage(IUser user);
-
-        /// <summary>
         /// Sends an user lobby color changed message
         /// </summary>
         /// <param name="user">User</param>
@@ -148,19 +142,19 @@ namespace ElectrodZMultiplayer.Server
         /// Sends a game start requested message
         /// </summary>
         /// <param name="time">Time to start in seconds</param>
-        void SendGameStartRequestedMessage(float time);
+        void SendGameStartRequestedMessage(double time);
 
         /// <summary>
         /// Sends a restart game requested message
         /// </summary>
         /// <param name="time">Time to restart in seconds</param>
-        void SendGameRestartRequestedMessage(float time);
+        void SendGameRestartRequestedMessage(double time);
 
         /// <summary>
         /// Sends a game stop requested message
         /// </summary>
         /// <param name="time">Time to stop game in seconds</param>
-        void SendGameStopRequestedMessage(float time);
+        void SendGameStopRequestedMessage(double time);
 
         /// <summary>
         /// Sends a start game message
@@ -176,12 +170,5 @@ namespace ElectrodZMultiplayer.Server
         /// Sends a stop game message
         /// </summary>
         void SendStopGameMessage();
-
-        /// <summary>
-        /// Sends a server tick message
-        /// </summary>
-        /// <param name="time">Time</param>
-        /// <param name="entities">Entities</param>
-        void SendServerTickMessage(float time, IEnumerable<IEntity> entities);
     }
 }

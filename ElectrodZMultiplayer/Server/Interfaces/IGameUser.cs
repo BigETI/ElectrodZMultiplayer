@@ -6,7 +6,7 @@ namespace ElectrodZMultiplayer.Server
     /// <summary>
     /// An interface that represents a game user
     /// </summary>
-    public interface IGameUser : IServerUser
+    public interface IGameUser : IServerUser, IGameEntity
     {
         /// <summary>
         /// Server user

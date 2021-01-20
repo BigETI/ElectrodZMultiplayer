@@ -14,6 +14,11 @@ namespace ElectrodZMultiplayer.Server
     internal class ServerUser : Entity, IInternalServerUser
     {
         /// <summary>
+        /// Last entity deltas
+        /// </summary>
+        private IList<IEntityDelta> lastEntityDeltas = new List<IEntityDelta>();
+
+        /// <summary>
         /// Peer
         /// </summary>
         public IPeer Peer { get; private set; }
@@ -32,6 +37,11 @@ namespace ElectrodZMultiplayer.Server
         /// Token
         /// </summary>
         public string Token { get; }
+
+        /// <summary>
+        /// Entity streamer
+        /// </summary>
+        public IEntityStreamer EntityStreamer { get; } = new EntityStreamer();
 
         /// <summary>
         /// Lobby
@@ -54,6 +64,26 @@ namespace ElectrodZMultiplayer.Server
         public long Score { get; private set; }
 
         /// <summary>
+        /// This event will be invoked when the username changes.
+        /// </summary>
+        public event UsernameUpdatedDelegate OnUsernameUpdated;
+
+        /// <summary>
+        /// This event will be invoked when the user lobby color changes.
+        /// </summary>
+        public event UserLobbyColorUpdatedDelegate OnUserLobbyColorUpdated;
+
+        /// <summary>
+        /// This event will be invoked when a client tick has been performed.
+        /// </summary>
+        public event ClientTickedDelegate OnClientTicked;
+
+        /// <summary>
+        /// This event will be invoked when a server tick has been performed.
+        /// </summary>
+        public event ServerTickedDelegate OnServerTicked;
+
+        /// <summary>
         /// Constructs an server user
         /// </summary>
         /// <param name="peer">Peer</param>
@@ -70,19 +100,21 @@ namespace ElectrodZMultiplayer.Server
         /// Updates username
         /// </summary>
         /// <param name="name">Username</param>
-        public void UpdateName(string name)
+        public void UpdateUsername(string name)
         {
             SetNameInternally(name);
+            OnUsernameUpdated?.Invoke();
             ServerLobby.SendUsernameChangedMessage(this);
         }
 
         /// <summary>
-        /// Updates lobby color
+        /// Updates user lobby color
         /// </summary>
         /// <param name="color">Lobby color</param>
-        public void UpdateLobbyColor(Color lobbyColor)
+        public void UpdateUserLobbyColor(Color lobbyColor)
         {
             SetLobbyColorInternally(lobbyColor);
+            OnUserLobbyColorUpdated?.Invoke();
             ServerLobby.SendUserLobbyColorChangedMessage(this);
         }
 
@@ -129,6 +161,12 @@ namespace ElectrodZMultiplayer.Server
         public void SetLobbyColorInternally(Color lobbyColor) => LobbyColor = lobbyColor;
 
         /// <summary>
+        /// Invoked the client ticked event
+        /// </summary>
+        /// <param name="entityDeltas">Entity deltas</param>
+        public void InvokeClientTickedEvent(IEnumerable<IEntityDelta> entityDeltas) => OnClientTicked?.Invoke(entityDeltas);
+
+        /// <summary>
         /// Sends a message
         /// </summary>
         /// <typeparam name="T">Message type</typeparam>
@@ -141,12 +179,6 @@ namespace ElectrodZMultiplayer.Server
         public void SendAuthenticationAcknowledgedMessage() => SendMessage(new AuthenticationAcknowledgedMessageData(GUID, Token));
 
         /// <summary>
-        /// Sends a join lobby acknowledged message
-        /// </summary>
-        /// <param name="lobby">Lobby</param>
-        public void SendJoinLobbyAcknowledgedMessage(IServerLobby lobby) => SendMessage(new JoinLobbyAcknowledgedMessageData(lobby));
-
-        /// <summary>
         /// Sends a list lobby results message
         /// </summary>
         /// <param name="lobbies">Lobbies</param>
@@ -157,6 +189,22 @@ namespace ElectrodZMultiplayer.Server
         /// </summary>
         /// <param name="gameModes">Available game modes</param>
         public void SendListAvailableGameModeResultsMessage(IEnumerable<string> gameModes) => SendMessage(new ListAvailableGameModeResultsMessageData(gameModes));
+
+        /// <summary>
+        /// Sends a join lobby acknowledged message
+        /// </summary>
+        /// <param name="lobby">Lobby</param>
+        public void SendJoinLobbyAcknowledgedMessage(IServerLobby lobby) => SendMessage(new JoinLobbyAcknowledgedMessageData(lobby));
+
+        /// <summary>
+        /// Sends a server tick message
+        /// </summary>
+        /// <param name="time">Time elapsed in seconds since game started</param>
+        public void SendServerTickMessage(double time)
+        {
+            OnServerTicked?.Invoke(time, EntityStreamer.GetEntityDeltas(Lobby.Users.Values, Lobby.Entities.Values, ref lastEntityDeltas));
+            SendMessage(new ServerTickMessageData(time, lastEntityDeltas));
+        }
 
         /// <summary>
         /// Sends an error message

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 /// <summary>
 /// ElectrodZ multiplayer server namespace
@@ -10,6 +11,16 @@ namespace ElectrodZMultiplayer.Server
     /// </summary>
     public interface IGameMode
     {
+        /// <summary>
+        /// Users with results
+        /// </summary>
+        IReadOnlyDictionary<string, UserWithResults> UserResults { get; }
+
+        /// <summary>
+        /// Results
+        /// </summary>
+        IReadOnlyDictionary<string, object> Results { get; }
+
         /// <summary>
         /// Game mode has been initialized
         /// </summary>
