@@ -402,6 +402,18 @@ namespace ElectrodZMultiplayer.Server
                     }
                     serverUser.InvokeClientTickedEvent(entityDeltas);
                 }), MessageParseFailedEvent);
+            OnPeerDisconnected += (peer) =>
+            {
+                string key = peer.GUID.ToString();
+                if (users.ContainsKey(key))
+                {
+                    IUser user = users[key];
+                    if (user.Lobby is IServerLobby server_lobby)
+                    {
+                        server_lobby.RemoveUser(user, "User has been disconnected.");
+                    }
+                }
+            };
             tickStopwatch.Start();
         }
 

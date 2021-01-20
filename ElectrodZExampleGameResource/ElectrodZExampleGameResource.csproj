@@ -8,8 +8,4 @@
     <ProjectReference Include="..\ElectrodZMultiplayer\ElectrodZMultiplayer.csproj" />
   </ItemGroup>
 
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="mkdir &quot;$(SolutionDir)ElectrodZServer/bin/$(ConfigurationName)/net5.0/GameResources/&quot;&#xD;&#xA;copy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)ElectrodZServer/bin/$(ConfigurationName)/net5.0/GameResources/$(TargetFileName)&quot;" />
-  </Target>
-
 </Project>
