@@ -46,7 +46,7 @@ namespace ElectrodZMultiplayer.Server
         /// <summary>
         /// Lobby
         /// </summary>
-        public ILobby Lobby { get; private set; }
+        public ILobby Lobby => ServerLobby;
 
         /// <summary>
         /// Username
