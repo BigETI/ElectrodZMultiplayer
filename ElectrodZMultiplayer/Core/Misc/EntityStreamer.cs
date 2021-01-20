@@ -107,7 +107,7 @@ namespace ElectrodZMultiplayer
             {
                 throw new ArgumentNullException(nameof(users));
             }
-            if (Protection.IsValid(users))
+            if (!Protection.IsValid(users))
             {
                 throw new ArgumentException("Users are not valid.", nameof(users));
             }
@@ -115,7 +115,7 @@ namespace ElectrodZMultiplayer
             {
                 throw new ArgumentNullException(nameof(entities));
             }
-            if (Protection.IsValid(entities))
+            if (!Protection.IsValid(entities))
             {
                 throw new ArgumentException("Entities are not valid.", nameof(entities));
             }
