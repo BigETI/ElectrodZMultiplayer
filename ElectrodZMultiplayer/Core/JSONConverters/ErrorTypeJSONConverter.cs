@@ -11,7 +11,7 @@ namespace ElectrodZMultiplayer.JSONConverters
         /// <summary>
         /// Constructs an error type JSON converter
         /// </summary>
-        public ErrorTypeJSONConverter() : base(EErrorType.Unknown)
+        public ErrorTypeJSONConverter() : base(EErrorType.Invalid)
         {
             // ...
         }

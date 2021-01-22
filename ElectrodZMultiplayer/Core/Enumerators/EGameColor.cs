@@ -13,9 +13,9 @@ namespace ElectrodZMultiplayer
     public enum EGameColor
     {
         /// <summary>
-        /// Unknown game color
+        /// Invalid game color
         /// </summary>
-        Unknown,
+        Invalid,
 
         /// <summary>
         /// Default game color

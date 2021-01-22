@@ -46,7 +46,7 @@ namespace ElectrodZMultiplayer.Data.Messages
         public override bool IsValid =>
             base.IsValid &&
             (GUID != Guid.Empty) &&
-            (GameColor != EGameColor.Unknown) &&
+            (GameColor != EGameColor.Invalid) &&
             (Name != null);
 
         /// <summary>

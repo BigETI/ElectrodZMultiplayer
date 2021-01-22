@@ -15,17 +15,17 @@ namespace ElectrodZMultiplayer
         /// <summary>
         /// Peer connection attempt messages
         /// </summary>
-        private readonly ConcurrentBag<LocalPeerConnectionAttemptMessage> localPeerConnectionAttemptMessages = new ConcurrentBag<LocalPeerConnectionAttemptMessage>();
+        private readonly ConcurrentQueue<LocalPeerConnectionAttemptMessage> localPeerConnectionAttemptMessages = new ConcurrentQueue<LocalPeerConnectionAttemptMessage>();
 
         /// <summary>
         /// Peer disconnection messages
         /// </summary>
-        private readonly ConcurrentBag<LocalPeerDisconnectionMessage> localPeerDisconnectionMessages = new ConcurrentBag<LocalPeerDisconnectionMessage>();
+        private readonly ConcurrentQueue<LocalPeerDisconnectionMessage> localPeerDisconnectionMessages = new ConcurrentQueue<LocalPeerDisconnectionMessage>();
 
         /// <summary>
         /// Peer receive messages
         /// </summary>
-        private readonly ConcurrentBag<LocalPeerReceiveMessage> localPeerReceiveMessages = new ConcurrentBag<LocalPeerReceiveMessage>();
+        private readonly ConcurrentQueue<LocalPeerReceiveMessage> localPeerReceiveMessages = new ConcurrentQueue<LocalPeerReceiveMessage>();
 
         /// <summary>
         /// Peer to peer lookup
@@ -66,7 +66,7 @@ namespace ElectrodZMultiplayer
         /// </summary>
         public override void ProcessEvents()
         {
-            while (localPeerConnectionAttemptMessages.TryTake(out LocalPeerConnectionAttemptMessage local_peer_connection_attempt_message))
+            while (localPeerConnectionAttemptMessages.TryDequeue(out LocalPeerConnectionAttemptMessage local_peer_connection_attempt_message))
             {
                 IPeer peer = local_peer_connection_attempt_message.Peer;
                 OnPeerConnectionAttempted?.Invoke(peer);
@@ -80,7 +80,7 @@ namespace ElectrodZMultiplayer
                     local_peer_connection_attempt_message.Peer.Disconnect(EDisconnectionReason.Banned);
                 }
             }
-            while (localPeerDisconnectionMessages.TryTake(out LocalPeerDisconnectionMessage local_peer_disconnection_message))
+            while (localPeerDisconnectionMessages.TryDequeue(out LocalPeerDisconnectionMessage local_peer_disconnection_message))
             {
                 IPeer peer = local_peer_disconnection_message.Peer;
                 string key = peer.GUID.ToString();
@@ -98,7 +98,7 @@ namespace ElectrodZMultiplayer
                     }
                 }
             }
-            while (localPeerReceiveMessages.TryTake(out LocalPeerReceiveMessage local_peer_receive_message))
+            while (localPeerReceiveMessages.TryDequeue(out LocalPeerReceiveMessage local_peer_receive_message))
             {
                 OnPeerMessageReceived?.Invoke(local_peer_receive_message.Peer, Compression.Decompress(local_peer_receive_message.Message, local_peer_receive_message.Index, local_peer_receive_message.Length));
             }
@@ -146,7 +146,7 @@ namespace ElectrodZMultiplayer
             string key = peer.GUID.ToString();
             if (peerPeerLookup.ContainsKey(key))
             {
-                localPeerReceiveMessages.Add(new LocalPeerReceiveMessage(peerPeerLookup[key], message, index, length));
+                localPeerReceiveMessages.Enqueue(new LocalPeerReceiveMessage(peerPeerLookup[key], message, index, length));
             }
         }
 
@@ -190,7 +190,7 @@ namespace ElectrodZMultiplayer
             }
             IInternalLocalPeer new_peer = new LocalPeer(Guid.NewGuid(), this, peer.InternalOwningConnector);
             peerPeerLookup.Add(peer.GUID.ToString(), new_peer);
-            localPeerConnectionAttemptMessages.Add(new LocalPeerConnectionAttemptMessage(new_peer));
+            localPeerConnectionAttemptMessages.Enqueue(new LocalPeerConnectionAttemptMessage(new_peer));
             peer.InternalOwningConnector.AcknowledgeConnectionAttempt(peer, new_peer);
         }
 
@@ -221,7 +221,7 @@ namespace ElectrodZMultiplayer
             if (!peerPeerLookup.ContainsKey(key))
             {
                 peerPeerLookup.Add(key, peer);
-                localPeerConnectionAttemptMessages.Add(new LocalPeerConnectionAttemptMessage(peer));
+                localPeerConnectionAttemptMessages.Enqueue(new LocalPeerConnectionAttemptMessage(peer));
             }
         }
 
@@ -239,7 +239,7 @@ namespace ElectrodZMultiplayer
             {
                 throw new ArgumentException("Owning local connector of local peer must be the same instance as the callee.", nameof(peer));
             }
-            localPeerDisconnectionMessages.Add(new LocalPeerDisconnectionMessage(peer));
+            localPeerDisconnectionMessages.Enqueue(new LocalPeerDisconnectionMessage(peer));
             peer.InternalTargetConnector.NotifyPeerDisconnection(peer);
         }
 
@@ -260,7 +260,7 @@ namespace ElectrodZMultiplayer
             string key = peer.GUID.ToString();
             if (peerPeerLookup.ContainsKey(key))
             {
-                localPeerDisconnectionMessages.Add(new LocalPeerDisconnectionMessage(peerPeerLookup[key]));
+                localPeerDisconnectionMessages.Enqueue(new LocalPeerDisconnectionMessage(peerPeerLookup[key]));
             }
         }
     }

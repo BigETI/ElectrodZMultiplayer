@@ -17,7 +17,7 @@ namespace ElectrodZMultiplayer.Data.Messages
         /// Error type
         /// </summary>
         [JsonProperty("errorType")]
-        public EErrorType ErrorType { get; set; } = EErrorType.Unknown;
+        public EErrorType ErrorType { get; set; } = EErrorType.Invalid;
 
         /// <summary>
         /// Error message
@@ -30,7 +30,7 @@ namespace ElectrodZMultiplayer.Data.Messages
         /// </summary>
         public override bool IsValid =>
             base.IsValid &&
-            (ErrorType != EErrorType.Unknown) &&
+            (ErrorType != EErrorType.Invalid) &&
             (Message != null);
 
         /// <summary>
@@ -48,9 +48,9 @@ namespace ElectrodZMultiplayer.Data.Messages
         /// <param name="message">Error message</param>
         public ErrorMessageData(EErrorType errorType, string message) : base(Naming.GetMessageTypeNameFromMessageDataType<ErrorMessageData>())
         {
-            if (errorType == EErrorType.Unknown)
+            if (errorType == EErrorType.Invalid)
             {
-                throw new ArgumentException(nameof(errorType));
+                throw new ArgumentException("Error type can't be invalid.", nameof(errorType));
             }
             ErrorType = errorType;
             Message = message ?? throw new ArgumentNullException(nameof(message));

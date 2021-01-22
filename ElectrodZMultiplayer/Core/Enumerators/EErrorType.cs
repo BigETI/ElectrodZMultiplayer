@@ -13,9 +13,9 @@ namespace ElectrodZMultiplayer
     public enum EErrorType
     {
         /// <summary>
-        /// Unknown error
+        /// Invalid error
         /// </summary>
-        Unknown,
+        Invalid,
 
         /// <summary>
         /// Unknown message

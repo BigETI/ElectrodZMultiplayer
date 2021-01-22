@@ -13,9 +13,9 @@ namespace ElectrodZMultiplayer
     public enum EGameAction
     {
         /// <summary>
-        /// Unknown game action
+        /// Invalid game action
         /// </summary>
-        Unknown,
+        Invalid,
 
         /// <summary>
         /// Change world

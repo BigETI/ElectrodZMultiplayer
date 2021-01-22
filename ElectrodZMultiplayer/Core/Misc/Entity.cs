@@ -63,7 +63,7 @@ namespace ElectrodZMultiplayer
         /// <returns>"true" if valid, otherwise "false"</returns>
         public bool IsValid =>
             (GUID != Guid.Empty) &&
-            (GameColor != EGameColor.Unknown);
+            (GameColor != EGameColor.Invalid);
 
         /// <summary>
         /// Constructs an entity object
@@ -211,17 +211,17 @@ namespace ElectrodZMultiplayer
             {
                 throw new ArgumentNullException(nameof(entityType));
             }
-            if (gameColor == EGameColor.Unknown)
+            if (gameColor == EGameColor.Invalid)
             {
-                throw new ArgumentException("Game color can't be unknown.", nameof(gameColor));
+                throw new ArgumentException("Game color can't be invalid.", nameof(gameColor));
             }
             if (actions == null)
             {
                 throw new ArgumentNullException(nameof(actions));
             }
-            if (Protection.IsContained(actions, (action) => action == EGameAction.Unknown))
+            if (Protection.IsContained(actions, (action) => action == EGameAction.Invalid))
             {
-                throw new ArgumentException($"\"{ nameof(actions) }\" contains unknown game actions.", nameof(guid));
+                throw new ArgumentException($"\"{ nameof(actions) }\" contains invalid game actions.", nameof(guid));
             }
             GUID = guid;
             EntityType = entityType;
@@ -264,9 +264,9 @@ namespace ElectrodZMultiplayer
         /// <param name="gameColor">New game color</param>
         public void SetGameColorInternally(EGameColor gameColor)
         {
-            if (gameColor == EGameColor.Unknown)
+            if (gameColor == EGameColor.Invalid)
             {
-                throw new ArgumentException("Game color can't be unknown.", nameof(gameColor));
+                throw new ArgumentException("Game color can't be invalid.", nameof(gameColor));
             }
             GameColor = gameColor;
         }
@@ -306,7 +306,7 @@ namespace ElectrodZMultiplayer
             {
                 throw new ArgumentNullException(nameof(actions));
             }
-            if (Protection.IsContained(actions, (action) => action == EGameAction.Unknown))
+            if (Protection.IsContained(actions, (action) => action == EGameAction.Invalid))
             {
                 throw new ArgumentException("Game actions contain invalid invalid actions.");
             }

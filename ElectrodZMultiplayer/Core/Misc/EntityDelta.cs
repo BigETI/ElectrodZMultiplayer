@@ -53,8 +53,8 @@ namespace ElectrodZMultiplayer
 
         public bool IsValid =>
             (GUID != Guid.Empty) &&
-            ((GameColor == null) || GameColor.Value != EGameColor.Unknown) &&
-            ((Actions == null) || !Protection.IsContained(Actions, (action) => action == EGameAction.Unknown));
+            ((GameColor == null) || GameColor.Value != EGameColor.Invalid) &&
+            ((Actions == null) || !Protection.IsContained(Actions, (action) => action == EGameAction.Invalid));
 
         /// <summary>
         /// COnstructs an entity delta

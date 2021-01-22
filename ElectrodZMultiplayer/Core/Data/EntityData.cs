@@ -69,11 +69,11 @@ namespace ElectrodZMultiplayer.Data
         public bool IsValid =>
             (GUID != Guid.Empty) &&
             ((EntityType == null) || !string.IsNullOrWhiteSpace(EntityType)) &&
-            ((GameColor == null) || (GameColor != EGameColor.Unknown)) &&
+            ((GameColor == null) || (GameColor != EGameColor.Invalid)) &&
             ((Position == null) || (Position != null)) &&
             ((Rotation == null) || (Rotation != null)) &&
             ((AngularVelocity == null) || (AngularVelocity != null)) &&
-            ((Actions == null) || !Actions.Contains(EGameAction.Unknown));
+            ((Actions == null) || !Actions.Contains(EGameAction.Invalid));
 
         /// <summary>
         /// Constructs entity data for deserializers
@@ -104,13 +104,13 @@ namespace ElectrodZMultiplayer.Data
             {
                 throw new ArgumentException("Entity type can't be empty.", nameof(entityType));
             }
-            if ((color != null) && (color == EGameColor.Unknown))
+            if ((color != null) && (color == EGameColor.Invalid))
             {
-                throw new ArgumentException("Game color can't be unknown.", nameof(color));
+                throw new ArgumentException("Game color can't be invalid.", nameof(color));
             }
-            if ((actions != null) && Protection.IsContained(actions, (action) => action == EGameAction.Unknown))
+            if ((actions != null) && Protection.IsContained(actions, (action) => action == EGameAction.Invalid))
             {
-                throw new ArgumentException($"\"{ nameof(actions) }\" contains unknown game actions");
+                throw new ArgumentException($"\"{ nameof(actions) }\" contains invalid game actions");
             }
             GUID = guid;
             EntityType = entityType;

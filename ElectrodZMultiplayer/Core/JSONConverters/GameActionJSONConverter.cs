@@ -11,7 +11,7 @@ namespace ElectrodZMultiplayer.JSONConverters
         /// <summary>
         /// Constructs a game action JSON converter
         /// </summary>
-        public GameActionJSONConverter() : base(EGameAction.Unknown)
+        public GameActionJSONConverter() : base(EGameAction.Invalid)
         {
             // ...
         }

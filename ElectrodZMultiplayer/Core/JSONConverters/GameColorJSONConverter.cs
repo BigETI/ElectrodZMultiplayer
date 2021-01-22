@@ -11,7 +11,7 @@ namespace ElectrodZMultiplayer.JSONConverters
         /// <summary>
         /// Constructs a game color JSON converter
         /// </summary>
-        public GameColorJSONConverter() : base(EGameColor.Unknown)
+        public GameColorJSONConverter() : base(EGameColor.Invalid)
         {
             // ...
         }
