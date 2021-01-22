@@ -16,8 +16,8 @@ namespace ElectrodZMultiplayer
         Peer Peer { get; }
 
         /// <summary>
-        /// Host
+        /// Connector
         /// </summary>
-        Host Host { get; }
+        IENetConnector Connector { get; }
     }
 }

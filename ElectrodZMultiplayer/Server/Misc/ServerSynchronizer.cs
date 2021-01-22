@@ -193,6 +193,7 @@ namespace ElectrodZMultiplayer.Server
                         {
                             if (server_lobby.UserCount < server_lobby.MaximalUserCount)
                             {
+                                serverUser.ServerLobby = server_lobby;
                                 serverUser.SetNameInternally(message.Username);
                                 server_lobby.AddUser(serverUser);
                                 serverUser.SendJoinLobbyAcknowledgedMessage(server_lobby);
@@ -235,12 +236,7 @@ namespace ElectrodZMultiplayer.Server
                         serverUser.SendErrorMessage(EErrorType.InvalidMessageParameters, $"Game mode \"{ message.GameMode }\" is not available.");
                     }
                 }), MessageParseFailedEvent);
-            AddMessageParser<QuitLobbyMessageData>((peer, message, json) =>
-                AssertPeerIsInLobby(peer, (serverUser, serverLobby) =>
-                {
-                    serverLobby.RemoveUser(serverUser, "User has left the lobby.");
-                    serverUser.ServerLobby = null;
-                }), MessageParseFailedEvent);
+            AddMessageParser<QuitLobbyMessageData>((peer, message, json) => AssertPeerIsInLobby(peer, (serverUser, serverLobby) => serverLobby.RemoveUser(serverUser, "User has left the lobby.")), MessageParseFailedEvent);
             AddMessageParser<ChangeUsernameMessageData>((peer, message, json) => AssertPeerIsInLobby(peer, (serverUser, serverLobby) => serverUser.UpdateUsername(message.NewUsername.Trim())), MessageParseFailedEvent);
             AddMessageParser<ChangeUserLobbyColorMessageData>((peer, message, json) => AssertPeerIsInLobby(peer, (serverUser, serverLobby) => serverUser.UpdateUserLobbyColor(message.NewUserLobbyColor)), MessageParseFailedEvent);
             AddMessageParser<ChangeLobbyRulesMessageData>((peer, message, json) =>

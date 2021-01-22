@@ -12,14 +12,19 @@ namespace ElectrodZMultiplayer
     internal class ENetPeer : APeer, IENetPeer
     {
         /// <summary>
+        /// Connector
+        /// </summary>
+        private IInternalENetConnector connector;
+
+        /// <summary>
         /// Peer
         /// </summary>
         public Peer Peer { get; }
 
         /// <summary>
-        /// Host
+        /// Connector
         /// </summary>
-        public Host Host { get; }
+        public IENetConnector Connector => connector;
 
         /// <summary>
         /// Is valid
@@ -27,31 +32,26 @@ namespace ElectrodZMultiplayer
         public override bool IsValid =>
             base.IsValid &&
             Peer.IsSet &&
-            (Host != null) &&
-            Host.IsSet;
+            (connector != null);
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="guid">Peer GUID</param>
         /// <param name="peer">Peer</param>
-        /// <param name="host">Host</param>
-        public ENetPeer(Guid guid, Peer peer, Host host) : base(guid, peer.IP)
+        /// <param name="connector">Connector</param>
+        public ENetPeer(Guid guid, Peer peer, IInternalENetConnector connector) : base(guid, peer.IP)
         {
             if (!peer.IsSet)
             {
                 throw new ArgumentException("Peer is not set.", nameof(peer));
             }
-            if (host == null)
+            if (connector == null)
             {
-                throw new ArgumentNullException(nameof(host));
-            }
-            if (!host.IsSet)
-            {
-                throw new ArgumentException("Host is not set.", nameof(host));
+                throw new ArgumentNullException(nameof(connector));
             }
             Peer = peer;
-            Host = host;
+            this.connector = connector;
         }
 
         /// <summary>
@@ -88,10 +88,7 @@ namespace ElectrodZMultiplayer
             }
             if (length > 0U)
             {
-                Packet packet = default;
-                packet.Create(message, (int)index, (int)length, PacketFlags.Reliable);
-                Peer.Send(0, ref packet);
-                Host.Flush();
+                connector.SendMessageToPeerInternally(Peer, message, index, length);
             }
         }
 

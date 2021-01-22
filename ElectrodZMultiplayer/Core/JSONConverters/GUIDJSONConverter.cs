@@ -7,7 +7,7 @@ using System;
 namespace ElectrodZMultiplayer.JSONConverters
 {
     /// <summary>
-    /// A class used for convert GUIDs to JSON and vice versa
+    /// A class used for converting GUIDs to JSON and vice versa
     /// </summary>
     internal class GUIDJSONConverter : JsonConverter<Guid>
     {

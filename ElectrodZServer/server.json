@@ -1,6 +1,6 @@
 {
   "networkPort": 6789,
-  "tickRate": 60,
+  "tickRate": 200,
   "timeoutTime": 15,
   "outputLogPath": "./output.txt",
   "errorLogPath": "./error.txt"

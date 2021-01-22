@@ -16,7 +16,7 @@ namespace ElectrodZMultiplayer
         public Peer Peer { get; }
 
         /// <summary>
-        /// Constructor
+        /// Constructs a ENet peer disconnection message
         /// </summary>
         /// <param name="peer">Peer</param>
         public ENetPeerDisconnectionMessage(Peer peer) => Peer = peer;

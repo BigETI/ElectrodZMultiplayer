@@ -120,7 +120,7 @@ namespace ElectrodZMultiplayer
                 throw new ArgumentException("Entities are not valid.", nameof(entities));
             }
             entityDeltas.Clear();
-            removeEntities.IntersectWith(this.entities.Keys);
+            removeEntities.UnionWith(this.entities.Keys);
             foreach (IUser user in users)
             {
                 entityDeltas.Add(GetEntityDelta(user));

@@ -8,7 +8,7 @@ using System.Drawing;
 namespace ElectrodZMultiplayer.JSONConverters
 {
     /// <summary>
-    /// A class used for convert colors to JSON and vice versa
+    /// A class used for converting colors to JSON and vice versa
     /// </summary>
     internal class ColorJSONConverter : JsonConverter<Color>
     {

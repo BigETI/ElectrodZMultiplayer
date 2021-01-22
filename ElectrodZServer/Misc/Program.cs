@@ -607,7 +607,6 @@ namespace ElectrodZServer
                                     connector.OnPeerConnectionAttempted += PeerConnectionAttemptedEvent;
                                     connector.OnPeerConnected += PeerConnectedEvent;
                                     connector.OnPeerDisconnected += PeerDisconnectedEvent;
-                                    connector.OnPeerMessageReceived += PeerMessageReceivedEvent;
                                 }
                                 server.Bans.AppendFromFile(bansJSONFilePath);
                                 try
@@ -748,12 +747,5 @@ namespace ElectrodZServer
         /// </summary>
         /// <param name="peer">Peer</param>
         private static void PeerDisconnectedEvent(IPeer peer) => WriteOutputLogLine($"Peer with GUID \"{ peer.GUID }\" and secret \"{ peer.Secret }\" has disconnected.");
-
-        /// <summary>
-        /// Peer message received event
-        /// </summary>
-        /// <param name="peer">Peer</param>
-        /// <param name="message">Message</param>
-        private static void PeerMessageReceivedEvent(IPeer peer, IReadOnlyList<byte> message) => WriteOutputLogLine($"Received message from peer with GUID \"{ peer.GUID }\" and secret \"{ peer.Secret }\". Message length: { message.Count }.");
     }
 }

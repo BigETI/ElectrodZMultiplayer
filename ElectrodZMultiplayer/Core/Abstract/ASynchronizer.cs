@@ -99,7 +99,7 @@ namespace ElectrodZMultiplayer
             }
             else
             {
-                SendErrorMessageToPeer(peer, EErrorType.InvalidMessageParameters, $"\"Message is invalid. Expected message type: \"{ expectedMessageType }\"; Current message type: { message.MessageType }{ Environment.NewLine }{ Environment.NewLine }JSON:{ Environment.NewLine }{ json }", isFatal);
+                SendErrorMessageToPeer(peer, EErrorType.InvalidMessageParameters, $"Message is invalid. Expected message type: \"{ expectedMessageType }\"; Current message type: { message.MessageType }{ Environment.NewLine }{ Environment.NewLine }JSON:{ Environment.NewLine }{ json }", isFatal);
             }
         }
 

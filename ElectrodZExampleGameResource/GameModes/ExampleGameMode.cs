@@ -86,6 +86,9 @@ namespace ElectrodZExampleGameResource.GameModes
         /// Game has been ticked
         /// </summary>
         /// <param name="deltaTime">Delta time</param>
-        public void OnGameTicked(TimeSpan deltaTime) => Console.WriteLine($"Game has ticked with \"{ deltaTime.TotalMilliseconds }\" delta time in ms.");
+        public void OnGameTicked(TimeSpan deltaTime)
+        {
+            //Console.WriteLine($"Game has ticked with \"{ deltaTime.TotalMilliseconds }\" delta time in ms.");
+        }
     }
 }

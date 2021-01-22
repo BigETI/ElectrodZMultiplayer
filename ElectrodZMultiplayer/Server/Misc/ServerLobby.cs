@@ -531,8 +531,13 @@ namespace ElectrodZMultiplayer.Server
             }
             if (users.ContainsKey(key))
             {
-                OnUserLeft?.Invoke(user, reason);
-                SendUserLeftMessage(user, reason);
+                IUser real_user = users[key];
+                if (real_user is IInternalServerUser server_user)
+                {
+                    server_user.ServerLobby = null;
+                }
+                OnUserLeft?.Invoke(real_user, reason);
+                SendUserLeftMessage(real_user, reason);
                 ret = users.Remove(key);
             }
             return ret;

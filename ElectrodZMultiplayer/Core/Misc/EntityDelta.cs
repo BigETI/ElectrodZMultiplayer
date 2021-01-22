@@ -120,7 +120,7 @@ namespace ElectrodZMultiplayer
                 }
                 else
                 {
-                    actions.IntersectWith(patchEntityDelta.Actions);
+                    actions.UnionWith(patchEntityDelta.Actions);
                 }
             }
             return new EntityDelta
