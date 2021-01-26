@@ -167,7 +167,7 @@ namespace ElectrodZServer
                 {
                     if (commands_part.StartsWith(prefix) && (commands_part.Length > prefix.Length))
                     {
-                        string key = commands_part.Substring(prefix.Length).Trim().ToLower();
+                        string key = commands_part[prefix.Length..].Trim().ToLower();
                         if (commandLookup.ContainsKey(key))
                         {
                             ICommand command = commandLookup[key];

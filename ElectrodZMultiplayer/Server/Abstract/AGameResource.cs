@@ -15,7 +15,7 @@ namespace ElectrodZMultiplayer.Server
         /// <summary>
         /// Available game mode types
         /// </summary>
-        private Dictionary<string, Type> availableGameModeTypes = new Dictionary<string, Type>();
+        private readonly Dictionary<string, Type> availableGameModeTypes = new Dictionary<string, Type>();
 
         /// <summary>
         /// Server

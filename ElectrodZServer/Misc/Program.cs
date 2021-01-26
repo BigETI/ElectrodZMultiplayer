@@ -573,7 +573,7 @@ namespace ElectrodZServer
                     }
                     else
                     {
-                        command_line_arguments_string_builder.Append(" ");
+                        command_line_arguments_string_builder.Append(' ');
                     }
                     command_line_arguments_string_builder.Append(arg);
                 }
