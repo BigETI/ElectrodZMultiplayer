@@ -23,19 +23,29 @@ namespace ElectrodZMultiplayer
         public event MessageParsedDelegate<T> OnMessageParsed;
 
         /// <summary>
+        /// On message validation failed
+        /// </summary>
+        public event MessageValidationFailedDelegate<T> OnMessageValidationFailed;
+
+        /// <summary>
         /// On message parse failed
         /// </summary>
-        public event MessageParseFailedDelegate<T> OnMessageParseFailed;
+        public event MessageParseFailedDelegate OnMessageParseFailed;
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="onMessageParsed">On message parsed</param>
+        /// <param name="onMessageValidationFailed">On message validation failed</param>
         /// <param name="onMessageParseFailed">On message parse failed</param>
-        public MessageParser(MessageParsedDelegate<T> onMessageParsed, MessageParseFailedDelegate<T> onMessageParseFailed)
+        public MessageParser(MessageParsedDelegate<T> onMessageParsed, MessageValidationFailedDelegate<T> onMessageValidationFailed, MessageParseFailedDelegate onMessageParseFailed)
         {
             MessageType = Naming.GetMessageTypeNameFromMessageDataType<T>();
             OnMessageParsed += onMessageParsed ?? throw new ArgumentNullException(nameof(onMessageParsed));
+            if (onMessageValidationFailed != null)
+            {
+                OnMessageValidationFailed += onMessageValidationFailed;
+            }
             if (onMessageParseFailed != null)
             {
                 OnMessageParseFailed += onMessageParseFailed;
@@ -62,13 +72,17 @@ namespace ElectrodZMultiplayer
                 throw new ArgumentNullException(nameof(json));
             }
             T message = JsonConvert.DeserializeObject<T>(json);
-            if ((message == null) || !message.IsValid || (message.MessageType != MessageType))
+            if ((message == null) || (message.MessageType != MessageType))
             {
-                OnMessageParseFailed?.Invoke(peer, MessageType, message, json);
+                OnMessageParseFailed?.Invoke(peer, MessageType, json);
+            }
+            if (message.IsValid)
+            {
+                OnMessageParsed?.Invoke(peer, message, json);
             }
             else
             {
-                OnMessageParsed?.Invoke(peer, message, json);
+                OnMessageValidationFailed?.Invoke(peer, message, json);
             }
         }
     }

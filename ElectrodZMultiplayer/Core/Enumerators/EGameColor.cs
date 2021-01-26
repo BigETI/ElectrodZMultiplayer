@@ -1,17 +1,21 @@
-﻿/// <summary>
+﻿using ElectrodZMultiplayer.JSONConverters;
+using Newtonsoft.Json;
+
+/// <summary>
 /// ElectrodZ multiplayer namespace
 /// </summary>
 namespace ElectrodZMultiplayer
 {
     /// <summary>
-    /// GAme color enumerator
+    /// Game color enumerator
     /// </summary>
+    [JsonConverter(typeof(GameColorJSONConverter))]
     public enum EGameColor
     {
         /// <summary>
-        /// Unknown game color
+        /// Invalid game color
         /// </summary>
-        Unknown,
+        Invalid,
 
         /// <summary>
         /// Default game color

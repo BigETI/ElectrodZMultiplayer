@@ -47,6 +47,86 @@ namespace ElectrodZMultiplayer
         event ErrorMessageReceivedDelegate OnErrorMessageReceived;
 
         /// <summary>
+        /// This event will be invoked when an authentification was acknowledged.
+        /// </summary>
+        event AuthentificationAcknowledgedDelegate OnAuthentificationAcknowledged;
+
+        /// <summary>
+        /// This event will be invoked when an authentification has failed.
+        /// </summary>
+        event AuthentificationFailedDelegate OnAuthentificationFailed;
+
+        /// <summary>
+        /// This event will be invoked when lobbies have been listed.
+        /// </summary>
+        event LobbiesListedDelegate OnLobbiesListed;
+
+        /// <summary>
+        /// This event will be invoked when listing lobbies has failed.
+        /// </summary>
+        event ListLobbiesFailedDelegate OnListLobbiesFailed;
+
+        /// <summary>
+        /// This event will be invoked when available game modes have been listed.
+        /// </summary>
+        event AvailableGameModesListedDelegate OnAvailableGameModesListed;
+
+        /// <summary>
+        /// This event will be invoked when listing available game modes has failed.
+        /// </summary>
+        event ListAvailableGameModesFailedDelegate OnListAvailableGameModesFailed;
+
+        /// <summary>
+        /// This event will be invoked when joining a lobby has failed.
+        /// </summary>
+        event JoinLobbyFailedDelegate OnJoinLobbyFailed;
+
+        /// <summary>
+        /// This event will be invoked when creating a lobby has failed.
+        /// </summary>
+        event CreateLobbyFailedDelegate OnCreateLobbyFailed;
+
+        /// <summary>
+        /// This event will be invoked when changing username has failed.
+        /// </summary>
+        event ChangeUsernameFailedDelegate OnChangeUsernameFailed;
+
+        /// <summary>
+        /// This event will be invoked when changing user lobby color has failed.
+        /// </summary>
+        event ChangeUserLobbyColorFailedDelegate OnChangeUserLobbyColorFailed;
+
+        /// <summary>
+        /// This event will be invoked when changing lobby rules have failed.
+        /// </summary>
+        event ChangeLobbyRulesFailedDelegate OnChangeLobbyRulesFailed;
+
+        /// <summary>
+        /// This event will be invoked when kicking a user has failed.
+        /// </summary>
+        event KickUserFailedDelegate OnKickUserFailed;
+
+        /// <summary>
+        /// This event will be invoked when starting a game has failed.
+        /// </summary>
+        event StartGameFailedDelegate OnStartGameFailed;
+
+        /// <summary>
+        /// This event will be invoked when restarting a game has failed.
+        /// </summary>
+        event RestartGameFailedDelegate OnRestartGameFailed;
+
+        /// <summary>
+        /// This event will be invoked when stopping a game has failed.
+        /// </summary>
+        event StopGameFailedDelegate OnStopGameFailed;
+
+        /// <summary>
+        /// This event will be invoked when a client tick has failed.
+        /// </summary>
+        event ClientTickFailedDelegate OnClientTickFailed;
+
+        /// <summary>
         /// Add connector
         /// </summary>
         /// <param name="connector">Connector</param>
@@ -76,7 +156,7 @@ namespace ElectrodZMultiplayer
         bool TryGetConnectorOfType<T>(out T connector) where T : IConnector;
 
         /// <summary>
-        /// Send message to peer
+        /// Sends a message to peer
         /// </summary>
         /// <typeparam name="T">Message type</typeparam>
         /// <param name="peer">Peer</param>
@@ -84,13 +164,29 @@ namespace ElectrodZMultiplayer
         void SendMessageToPeer<T>(IPeer peer, T message) where T : IBaseMessageData;
 
         /// <summary>
-        /// Add message parser
+        /// Adds a message parser
         /// </summary>
         /// <typeparam name="T">Message type</typeparam>
         /// <param name="onMessageParsed">On message parsed</param>
+        /// <param name="onMessageValidationFailed">On message validation failed</param>
         /// <param name="onMessageParseFailed">On message parse failed</param>
         /// <returns>Message parser</returns>
-        IMessageParser<T> AddMessageParser<T>(MessageParsedDelegate<T> onMessageParsed, MessageParseFailedDelegate<T> onMessageParseFailed = null) where T : IBaseMessageData;
+        IMessageParser<T> AddMessageParser<T>(MessageParsedDelegate<T> onMessageParsed, MessageValidationFailedDelegate<T> onMessageValidationFailed = null, MessageParseFailedDelegate onMessageParseFailed = null) where T : IBaseMessageData;
+
+        /// <summary>
+        /// Gets message parsers for the specified type
+        /// </summary>
+        /// <typeparam name="T">Message type</typeparam>
+        /// <returns>Message parsers if successful, otherwise "null"</returns>
+        IEnumerable<IMessageParser<T>> GetMessageParsersForType<T>() where T : IBaseMessageData;
+
+        /// <summary>
+        /// Tries to get message parsers for the specified type
+        /// </summary>
+        /// <typeparam name="T">Message type</typeparam>
+        /// <param name="messageParsers">Message parsers</param>
+        /// <returns>"true" if message parsers are available, otherwise "false"</returns>
+        bool TryGetMessageParsersForType<T>(out IEnumerable<IMessageParser<T>> messageParsers) where T : IBaseMessageData;
 
         /// <summary>
         /// Removes the specified message parser
@@ -106,6 +202,30 @@ namespace ElectrodZMultiplayer
         /// <param name="peer">Peer</param>
         /// <param name="json">JSON</param>
         void ParseMessage(IPeer peer, string json);
+
+        /// <summary>
+        /// Sends an invalid message parameters error message to peer
+        /// </summary>
+        /// <typeparam name="T">Message type</typeparam>
+        /// <param name="peer">Peer</param>
+        /// <param name="errorMessage">Error message</param>
+        void SendInvalidMessageParametersErrorMessageToPeer<T>(IPeer peer, string errorMessage) where T : IBaseMessageData;
+
+        /// <summary>
+        /// Sends an invalid message context error message to peer
+        /// </summary>
+        /// <typeparam name="T">Message type</typeparam>
+        /// <param name="peer">Peer</param>
+        /// <param name="errorMessage">Error message</param>
+        void SendInvalidMessageContextErrorMessageToPeer<T>(IPeer peer, string errorMessage) where T : IBaseMessageData;
+
+        /// <summary>
+        /// Sends an unknown error message to peer
+        /// </summary>
+        /// <typeparam name="T">Message type</typeparam>
+        /// <param name="peer">Peer</param>
+        /// <param name="errorMessage">Error message</param>
+        void SendUnknownErrorMessageToPeer<T>(IPeer peer, string errorMessage) where T : IBaseMessageData;
 
         /// <summary>
         /// Closes connections to all peers

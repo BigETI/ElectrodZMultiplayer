@@ -4,6 +4,8 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
 
     <IsPackable>false</IsPackable>
+
+    <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ElectrodZExampleGameResource\ElectrodZExampleGameResource.csproj" />
     <ProjectReference Include="..\ElectrodZMultiplayer\ElectrodZMultiplayer.csproj" />
   </ItemGroup>
 

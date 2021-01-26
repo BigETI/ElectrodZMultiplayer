@@ -10,7 +10,7 @@ namespace ElectrodZMultiplayer.Data.Messages
     /// A class that describes a join lobby request message
     /// </summary>
     [JsonObject(MemberSerialization.OptIn)]
-    internal class JoinLobbyMessageData : BaseMessageData
+    public class JoinLobbyMessageData : BaseMessageData
     {
         /// <summary>
         /// Lobby code

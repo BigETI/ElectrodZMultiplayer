@@ -1,4 +1,7 @@
-﻿/// <summary>
+﻿using ElectrodZMultiplayer.JSONConverters;
+using Newtonsoft.Json;
+
+/// <summary>
 /// ElectrodZ multiplayer namespace
 /// </summary>
 namespace ElectrodZMultiplayer
@@ -6,12 +9,13 @@ namespace ElectrodZMultiplayer
     /// <summary>
     /// Error type enumerator
     /// </summary>
+    [JsonConverter(typeof(ErrorTypeJSONConverter))]
     public enum EErrorType
     {
         /// <summary>
-        /// Unknown error
+        /// Invalid error
         /// </summary>
-        Unknown,
+        Invalid,
 
         /// <summary>
         /// Unknown message
@@ -39,18 +43,28 @@ namespace ElectrodZMultiplayer
         InvalidMessageContext,
 
         /// <summary>
-        /// Requested entity has not been found
+        /// Received error type is invalid
         /// </summary>
-        NotFound,
+        InvalidErrorType,
 
         /// <summary>
-        /// Requested entity is full
+        /// Received message type is invalid
         /// </summary>
-        Full,
+        InvalidMessageType,
 
         /// <summary>
-        /// Internal error
+        /// Received message is invalid
         /// </summary>
-        InternalError
+        InvalidMessage,
+
+        /// <summary>
+        /// Received message is null
+        /// </summary>
+        MessageIsNull,
+
+        /// <summary>
+        /// Unknown reason
+        /// </summary>
+        Unknown
     }
 }

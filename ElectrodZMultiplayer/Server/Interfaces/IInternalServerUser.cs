@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using ElectrodZMultiplayer.Data.Messages;
+using System.Collections.Generic;
 using System.Drawing;
 
 /// <summary>
@@ -35,6 +36,12 @@ namespace ElectrodZMultiplayer.Server
         void SetLobbyColorInternally(Color lobbyColor);
 
         /// <summary>
+        /// Invoked the client ticked event
+        /// </summary>
+        /// <param name="entityDeltas">Entity deltas</param>
+        void InvokeClientTickedEvent(IEnumerable<IEntityDelta> entityDeltas);
+
+        /// <summary>
         /// Sends a message
         /// </summary>
         /// <typeparam name="T">Message type</typeparam>
@@ -42,9 +49,9 @@ namespace ElectrodZMultiplayer.Server
         void SendMessage<T>(T message) where T : IBaseMessageData;
 
         /// <summary>
-        /// Sends an authentication acknowledged message
+        /// Sends an authentification acknowledged message
         /// </summary>
-        void SendAuthenticationAcknowledgedMessage();
+        void SendAuthentificationAcknowledgedMessage();
 
         /// <summary>
         /// Sends a list lobby results message
@@ -53,24 +60,38 @@ namespace ElectrodZMultiplayer.Server
         void SendListLobbyResultsMessage(IEnumerable<ILobbyView> lobbies);
 
         /// <summary>
+        /// Sends a list available game mode results message
+        /// </summary>
+        /// <param name="gameModes">Available game modes</param>
+        void SendListAvailableGameModeResultsMessage(IEnumerable<string> gameModes);
+
+        /// <summary>
         /// Sends a join lobby acknowledged message
         /// </summary>
         /// <param name="lobby">Lobby</param>
         void SendJoinLobbyAcknowledgedMessage(IServerLobby lobby);
 
         /// <summary>
-        /// Sends an error message
+        /// Sends a server tick message
         /// </summary>
-        /// <param name="errorType">Error type</param>
-        /// <param name="message">Error message</param>
-        void SendErrorMessage(EErrorType errorType, string message);
+        /// <param name="time">Time elapsed in seconds since game started</param>
+        void SendServerTickMessage(double time);
 
         /// <summary>
         /// Sends an error message
         /// </summary>
+        /// <typeparam name="T">Message type</typeparam>
+        /// <param name="errorType">Error type</param>
+        /// <param name="message">Error message</param>
+        void SendErrorMessage<T>(EErrorType errorType, string message) where T : IBaseMessageData;
+
+        /// <summary>
+        /// Sends an error message
+        /// </summary>
+        /// <typeparam name="T">Message type</typeparam>
         /// <param name="errorType">Error type</param>
         /// <param name="message">Error message</param>
         /// <param name="isFatal">Is error fatal</param>
-        void SendErrorMessage(EErrorType errorType, string message, bool isFatal);
+        void SendErrorMessage<T>(EErrorType errorType, string message, bool isFatal) where T : IBaseMessageData;
     }
 }

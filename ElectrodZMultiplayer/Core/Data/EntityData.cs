@@ -12,7 +12,7 @@ namespace ElectrodZMultiplayer.Data
     /// A class that describes entity data
     /// </summary>
     [JsonObject(MemberSerialization.OptIn)]
-    internal class EntityData : IValidable
+    public class EntityData : IValidable
     {
         /// <summary>
         /// Entity GUID
@@ -31,8 +31,7 @@ namespace ElectrodZMultiplayer.Data
         /// Entity game color (optional)
         /// </summary>
         [JsonProperty("color")]
-        [JsonConverter(typeof(GameColorJSONConverter))]
-        public EGameColor? Color { get; set; }
+        public EGameColor? GameColor { get; set; }
 
         /// <summary>
         /// Current position (optional)
@@ -62,7 +61,6 @@ namespace ElectrodZMultiplayer.Data
         /// Current game actions (optional)
         /// </summary>
         [JsonProperty("actions")]
-        [JsonConverter(typeof(GameActionJSONConverter))]
         public List<EGameAction> Actions { get; set; }
 
         /// <summary>
@@ -71,11 +69,11 @@ namespace ElectrodZMultiplayer.Data
         public bool IsValid =>
             (GUID != Guid.Empty) &&
             ((EntityType == null) || !string.IsNullOrWhiteSpace(EntityType)) &&
-            ((Color == null) || (Color != EGameColor.Unknown)) &&
+            ((GameColor == null) || (GameColor != EGameColor.Invalid)) &&
             ((Position == null) || (Position != null)) &&
             ((Rotation == null) || (Rotation != null)) &&
             ((AngularVelocity == null) || (AngularVelocity != null)) &&
-            ((Actions == null) || !Actions.Contains(EGameAction.Unknown));
+            ((Actions == null) || !Actions.Contains(EGameAction.Invalid));
 
         /// <summary>
         /// Constructs entity data for deserializers
@@ -96,9 +94,9 @@ namespace ElectrodZMultiplayer.Data
         /// <param name="velocity">Current velocity (optional)</param>
         /// <param name="angularVelocity">Current angular velocity (optional)</param>
         /// <param name="actions">Current game actions (optional)</param>
-        public EntityData(Guid guid, string entityType, EGameColor? color, Vector3<float>? position, Quaternion<float>? rotation, Vector3<float>? velocity, Vector3<float>? angularVelocity, IEnumerable<EGameAction> actions)
+        public EntityData(Guid guid, string entityType, EGameColor? color, Vector3? position, Quaternion? rotation, Vector3? velocity, Vector3? angularVelocity, IEnumerable<EGameAction> actions)
         {
-            if (guid != Guid.Empty)
+            if (guid == Guid.Empty)
             {
                 throw new ArgumentException("Entity GUID can't be empty.", nameof(guid));
             }
@@ -106,23 +104,46 @@ namespace ElectrodZMultiplayer.Data
             {
                 throw new ArgumentException("Entity type can't be empty.", nameof(entityType));
             }
-            if ((color != null) && (color == EGameColor.Unknown))
+            if ((color != null) && (color == EGameColor.Invalid))
             {
-                throw new ArgumentException("Game color can't be unknown.", nameof(color));
+                throw new ArgumentException("Game color can't be invalid.", nameof(color));
             }
-            if ((actions != null) && Protection.IsContained(actions, (action) => action == EGameAction.Unknown))
+            if ((actions != null) && Protection.IsContained(actions, (action) => action == EGameAction.Invalid))
             {
-                throw new ArgumentException($"\"{ nameof(actions) }\" contains unknown game actions");
+                throw new ArgumentException($"\"{ nameof(actions) }\" contains invalid game actions");
             }
             GUID = guid;
             EntityType = entityType;
-            Color = color;
+            GameColor = color;
             Position = (position == null) ? null : (Vector3FloatData)position;
             Rotation = (rotation == null) ? null : (QuaternionFloatData)rotation;
             Velocity = (velocity == null) ? null : (Vector3FloatData)velocity;
             AngularVelocity = (angularVelocity == null) ? null : (Vector3FloatData)angularVelocity;
-            Color = color;
+            GameColor = color;
             Actions = (actions == null) ? null : new List<EGameAction>(actions ?? throw new ArgumentNullException(nameof(actions)));
+        }
+
+        /// <summary>
+        /// Explicitly casts entity data to entity delta
+        /// </summary>
+        /// <param name="entity">Entity data</param>
+        public static explicit operator EntityDelta(EntityData entity)
+        {
+            if (entity == null)
+            {
+                throw new ArgumentNullException(nameof(entity));
+            }
+            return new EntityDelta
+            (
+                entity.GUID,
+                entity.EntityType,
+                entity.GameColor,
+                new Vector3(entity.Position.X, entity.Position.Y, entity.Position.Z),
+                new Quaternion(entity.Rotation.X, entity.Rotation.Y, entity.Rotation.Z, entity.Rotation.W),
+                new Vector3(entity.Velocity.X, entity.Velocity.Y, entity.Velocity.Z),
+                new Vector3(entity.AngularVelocity.X, entity.AngularVelocity.Y, entity.AngularVelocity.Z),
+                entity.Actions
+            );
         }
     }
 }

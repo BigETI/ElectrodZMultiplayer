@@ -6,7 +6,7 @@
 namespace ElectrodZMultiplayer
 {
     /// <summary>
-    /// AN abstract class that descibes any peer
+    /// An abstract class that describes any peer
     /// </summary>
     internal abstract class APeer : IPeer
     {

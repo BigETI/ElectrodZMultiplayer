@@ -60,13 +60,117 @@ namespace ElectrodZMultiplayer
         public event ErrorMessageReceivedDelegate OnErrorMessageReceived;
 
         /// <summary>
+        /// This event will be invoked when an authentification was acknowledged.
+        /// </summary>
+        public abstract event AuthentificationAcknowledgedDelegate OnAuthentificationAcknowledged;
+
+        /// <summary>
+        /// This event will be invoked when an authentification has failed.
+        /// </summary>
+        public abstract event AuthentificationFailedDelegate OnAuthentificationFailed;
+
+        /// <summary>
+        /// This event will be invoked when lobbies have been listed.
+        /// </summary>
+        public abstract event LobbiesListedDelegate OnLobbiesListed;
+
+        /// <summary>
+        /// This event will be invoked when listing lobbies has failed.
+        /// </summary>
+        public abstract event ListLobbiesFailedDelegate OnListLobbiesFailed;
+
+        /// <summary>
+        /// This event will be invoked when available game modes have been listed.
+        /// </summary>
+        public abstract event AvailableGameModesListedDelegate OnAvailableGameModesListed;
+
+        /// <summary>
+        /// This event will be invoked when listing available game modes has failed.
+        /// </summary>
+        public abstract event ListAvailableGameModesFailedDelegate OnListAvailableGameModesFailed;
+
+        /// <summary>
+        /// This event will be invoked when joining a lobby has failed.
+        /// </summary>
+        public abstract event JoinLobbyFailedDelegate OnJoinLobbyFailed;
+
+        /// <summary>
+        /// This event will be invoked when creating a lobby has failed.
+        /// </summary>
+        public abstract event CreateLobbyFailedDelegate OnCreateLobbyFailed;
+
+        /// <summary>
+        /// This event will be invoked when changing username has failed.
+        /// </summary>
+        public abstract event ChangeUsernameFailedDelegate OnChangeUsernameFailed;
+
+        /// <summary>
+        /// This event will be invoked when changing user lobby color has failed.
+        /// </summary>
+        public abstract event ChangeUserLobbyColorFailedDelegate OnChangeUserLobbyColorFailed;
+
+        /// <summary>
+        /// This event will be invoked when changing lobby rules have failed.
+        /// </summary>
+        public abstract event ChangeLobbyRulesFailedDelegate OnChangeLobbyRulesFailed;
+
+        /// <summary>
+        /// This event will be invoked when kicking a user has failed.
+        /// </summary>
+        public abstract event KickUserFailedDelegate OnKickUserFailed;
+
+        /// <summary>
+        /// This event will be invoked when starting a game has failed.
+        /// </summary>
+        public abstract event StartGameFailedDelegate OnStartGameFailed;
+
+        /// <summary>
+        /// This event will be invoked when restarting a game has failed.
+        /// </summary>
+        public abstract event RestartGameFailedDelegate OnRestartGameFailed;
+
+        /// <summary>
+        /// This event will be invoked when stopping a game has failed.
+        /// </summary>
+        public abstract event StopGameFailedDelegate OnStopGameFailed;
+
+        /// <summary>
+        /// This event will be invoked when a client tick has failed.
+        /// </summary>
+        public abstract event ClientTickFailedDelegate OnClientTickFailed;
+
+        /// <summary>
         /// Constructs a generalised synchronizer object
         /// </summary>
-        public ASynchronizer() => AddMessageParser<ErrorMessageData>((_, message, json) =>
-        {
-            OnErrorMessageReceived?.Invoke(message.ErrorType, message.Message);
-            Console.Error.WriteLine($"[{ message.ErrorType }] { message.Message }");
-        }, MessageParseFailedEvent);
+        public ASynchronizer() =>
+            AddMessageParser<ErrorMessageData>
+            (
+                (_, message, json) =>
+                {
+                    OnErrorMessageReceived?.Invoke(message.ErrorType, message.Message);
+                    Console.Error.WriteLine($"[{ message.ErrorType }] { message.Message }");
+                },
+                (peer, message, _) =>
+                {
+                    if (message.ErrorType == EErrorType.Invalid)
+                    {
+                        SendErrorMessageToPeer<ErrorMessageData>(peer, EErrorType.InvalidErrorType, "An error message with an invalid error type has been sent.");
+                    }
+                    else if (string.IsNullOrWhiteSpace(message.MessageType))
+                    {
+                        SendErrorMessageToPeer<ErrorMessageData>(peer, EErrorType.InvalidMessageType, "An error message with an invalid message type has been sent.");
+                    }
+                    else if (message.Message == null)
+                    {
+                        SendErrorMessageToPeer<ErrorMessageData>(peer, EErrorType.MessageIsNull, "An error message with message being null has been sent.");
+                    }
+                    else
+                    {
+                        SendUnknownErrorMessageToPeer<ErrorMessageData>(peer, "Message validation has failed.");
+                    }
+                },
+                MessageParseFailedEvent<ErrorMessageData>
+            );
 
         /// <summary>
         /// Listens to any message parse failed event
@@ -76,17 +180,7 @@ namespace ElectrodZMultiplayer
         /// <param name="message">Message</param>
         /// <param name="json">JSON</param>
         /// <param name="isFatal">Is error fatal</param>
-        protected void MessageParseFailedEvent<T>(IPeer peer, string expectedMessageType, T message, string json, bool isFatal) where T : IBaseMessageData
-        {
-            if (message == null)
-            {
-                SendErrorMessageToPeer(peer, EErrorType.MalformedMessage, $"Received message is null of expected message type \"{ expectedMessageType }\".{ Environment.NewLine }{ Environment.NewLine }JSON:{ Environment.NewLine }{ json }", isFatal);
-            }
-            else
-            {
-                SendErrorMessageToPeer(peer, EErrorType.InvalidMessageParameters, $"\"Message is invalid. Expected message type: \"{ expectedMessageType }\"; Current message type: { message.MessageType }{ Environment.NewLine }{ Environment.NewLine }JSON:{ Environment.NewLine }{ json }", isFatal);
-            }
-        }
+        protected void MessageParseFailedEvent<T>(IPeer peer, string expectedMessageType, string json, bool isFatal) where T : IBaseMessageData => SendErrorMessageToPeer<T>(peer, EErrorType.InvalidMessageParameters, $"Message is invalid. Expected message type: \"{ expectedMessageType }\"{ Environment.NewLine }{ Environment.NewLine }JSON:{ Environment.NewLine }{ json }", isFatal);
 
         /// <summary>
         /// Listens to any message parse failed event
@@ -95,16 +189,69 @@ namespace ElectrodZMultiplayer
         /// <param name="expectedMessageType">Expected message tyoe</param>
         /// <param name="message">Message</param>
         /// <param name="json">JSON</param>
-        protected void MessageParseFailedEvent<T>(IPeer peer, string expectedMessageType, T message, string json) where T : IBaseMessageData => MessageParseFailedEvent(peer, expectedMessageType, message, json, false);
+        protected void MessageParseFailedEvent<T>(IPeer peer, string expectedMessageType, string json) where T : IBaseMessageData => MessageParseFailedEvent<T>(peer, expectedMessageType, json, false);
 
         /// <summary>
-        /// Listens to any message parse failed event
+        /// Listens to any message parse failed event that is fatal
         /// </summary>
         /// <param name="peer">peer</param>
         /// <param name="expectedMessageType">Expected message type</param>
         /// <param name="message">Message</param>
         /// <param name="json">JSON</param>
-        protected void FatalMessageParseFailedEvent<T>(IPeer peer, string expectedMessageType, T message, string json) where T : IBaseMessageData => MessageParseFailedEvent(peer, expectedMessageType, message, json, true);
+        protected void FatalMessageParseFailedEvent<T>(IPeer peer, string expectedMessageType, string json) where T : IBaseMessageData => MessageParseFailedEvent<T>(peer, expectedMessageType, json, true);
+
+        /// <summary>
+        /// Listens to any message validation event
+        /// </summary>
+        /// <typeparam name="T">Message type</typeparam>
+        /// <param name="peer">Peer</param>
+        /// <param name="message">Received message</param>
+        /// <param name="json">Message JSON</param>
+        /// <param name="isFatal">Is validation fail fatal</param>
+        protected void MessageValidationFailedEvent<T>(IPeer peer, T message, string json, bool isFatal) where T : IBaseMessageData => SendErrorMessageToPeer<T>(peer, EErrorType.InvalidMessageParameters, $"Message is invalid. Message type: \"{ message.GetType().FullName }\"{ Environment.NewLine }{ Environment.NewLine }JSON:{ Environment.NewLine }{ json }", isFatal);
+
+        /// <summary>
+        /// Listens to any message validation event
+        /// </summary>
+        /// <typeparam name="T">Message type</typeparam>
+        /// <param name="peer">Peer</param>
+        /// <param name="message">Received message</param>
+        /// <param name="json">Message JSON</param>
+        protected void MessageValidationFailedEvent<T>(IPeer peer, T message, string json) where T : IBaseMessageData => MessageValidationFailedEvent(peer, message, json, false);
+
+        /// <summary>
+        /// Listens to any message validation event that is fatal
+        /// </summary>
+        /// <typeparam name="T">Message type</typeparam>
+        /// <param name="peer">Peer</param>
+        /// <param name="message">Received message</param>
+        /// <param name="json">Message JSON</param>
+        protected void FatalMessageValidationFailedEvent<T>(IPeer peer, T message, string json) where T : IBaseMessageData => MessageValidationFailedEvent<T>(peer, message, json, true);
+
+        /// <summary>
+        /// Adds an automatic message parser
+        /// </summary>
+        /// <typeparam name="T">Message type</typeparam>
+        /// <param name="onMessageParsed">On message parsed</param>
+        /// <param name="isFatal">Is validation fail or error fatal</param>
+        /// <returns>Message parser</returns>
+        protected IMessageParser<T> AddAutomaticMessageParser<T>(MessageParsedDelegate<T> onMessageParsed, bool isFatal) where T : IBaseMessageData => AddMessageParser<T>(onMessageParsed, isFatal ? (MessageValidationFailedDelegate<T>)FatalMessageValidationFailedEvent : MessageValidationFailedEvent, isFatal ? (MessageParseFailedDelegate)FatalMessageParseFailedEvent<T> : MessageParseFailedEvent<T>);
+
+        /// <summary>
+        /// Adds an automatic message parser
+        /// </summary>
+        /// <typeparam name="T">Message type</typeparam>
+        /// <param name="onMessageParsed">On message parsed</param>
+        /// <returns>Message parser</returns>
+        protected IMessageParser<T> AddAutomaticMessageParser<T>(MessageParsedDelegate<T> onMessageParsed) where T : IBaseMessageData => AddAutomaticMessageParser(onMessageParsed, false);
+
+        /// <summary>
+        /// Adds an automatic message parser that is fatal on validation fail or error
+        /// </summary>
+        /// <typeparam name="T">Message type</typeparam>
+        /// <param name="onMessageParsed">On message parsed</param>
+        /// <returns>Message parser</returns>
+        protected IMessageParser<T> AddAutomaticMessageParserWithFatality<T>(MessageParsedDelegate<T> onMessageParsed) where T : IBaseMessageData => AddAutomaticMessageParser(onMessageParsed, false);
 
         /// <summary>
         /// Add connector
@@ -204,15 +351,16 @@ namespace ElectrodZMultiplayer
         }
 
         /// <summary>
-        /// Add message parser
+        /// Adds a message parser
         /// </summary>
         /// <typeparam name="T">Message type</typeparam>
         /// <param name="onMessageParsed">On message parsed</param>
+        /// <param name="onMessageValidationFailed">On message validation failed</param>
         /// <param name="onMessageParseFailed">On message parse failed</param>
         /// <returns>Message parser</returns>
-        public IMessageParser<T> AddMessageParser<T>(MessageParsedDelegate<T> onMessageParsed, MessageParseFailedDelegate<T> onMessageParseFailed = null) where T : IBaseMessageData
+        public IMessageParser<T> AddMessageParser<T>(MessageParsedDelegate<T> onMessageParsed, MessageValidationFailedDelegate<T> onMessageValidationFailed = null, MessageParseFailedDelegate onMessageParseFailed = null) where T : IBaseMessageData
         {
-            IMessageParser<T> ret = new MessageParser<T>(onMessageParsed, onMessageParseFailed);
+            IMessageParser<T> ret = new MessageParser<T>(onMessageParsed, onMessageValidationFailed, onMessageParseFailed);
             List<IBaseMessageParser> message_parsers;
             if (messageParsers.ContainsKey(ret.MessageType))
             {
@@ -224,6 +372,42 @@ namespace ElectrodZMultiplayer
                 messageParsers.Add(ret.MessageType, message_parsers);
             }
             message_parsers.Add(ret);
+            return ret;
+        }
+
+        /// <summary>
+        /// Gets message parsers for the specified type
+        /// </summary>
+        /// <typeparam name="T">Message type</typeparam>
+        /// <returns>Message parsers if successful, otherwise "null"</returns>
+        public IEnumerable<IMessageParser<T>> GetMessageParsersForType<T>() where T : IBaseMessageData => TryGetMessageParsersForType<T>(out IEnumerable<IMessageParser<T>> ret) ? ret : null;
+
+        /// <summary>
+        /// Tries to get message parsers for the specified type
+        /// </summary>
+        /// <typeparam name="T">Message type</typeparam>
+        /// <param name="messageParsers">Message parsers</param>
+        /// <returns>"true" if message parsers are available, otherwise "false"</returns>
+        public bool TryGetMessageParsersForType<T>(out IEnumerable<IMessageParser<T>> messageParsers) where T : IBaseMessageData
+        {
+            string key = Naming.GetMessageTypeNameFromMessageDataType<T>();
+            bool ret = this.messageParsers.ContainsKey(key);
+            if (ret)
+            {
+                List<IMessageParser<T>> message_parsers = new List<IMessageParser<T>>();
+                foreach (IBaseMessageParser base_message_parser in this.messageParsers[key])
+                {
+                    if (base_message_parser is IMessageParser<T> message_parser)
+                    {
+                        message_parsers.Add(message_parser);
+                    }
+                }
+                messageParsers = message_parsers;
+            }
+            else
+            {
+                messageParsers = null;
+            }
             return ret;
         }
 
@@ -272,7 +456,7 @@ namespace ElectrodZMultiplayer
                 throw new ArgumentNullException(nameof(json));
             }
             BaseMessageData base_network_message_data = JsonConvert.DeserializeObject<BaseMessageData>(json);
-            if (base_network_message_data != null)
+            if ((base_network_message_data != null) && base_network_message_data.IsValid)
             {
                 if (messageParsers.ContainsKey(base_network_message_data.MessageType))
                 {
@@ -291,19 +475,21 @@ namespace ElectrodZMultiplayer
         /// <summary>
         /// Sends an error message to peer
         /// </summary>
+        /// <typeparam name="T">Message type</typeparam>
         /// <param name="peer">Peer</param>
         /// <param name="errorType">Error type</param>
         /// <param name="errorMessage">Error message</param>
-        public void SendErrorMessageToPeer(IPeer peer, EErrorType errorType, string errorMessage) => SendErrorMessageToPeer(peer, errorType, errorMessage, false);
+        public void SendErrorMessageToPeer<T>(IPeer peer, EErrorType errorType, string errorMessage) where T : IBaseMessageData => SendErrorMessageToPeer<T>(peer, errorType, errorMessage, false);
 
         /// <summary>
         /// Sends an error message to peer
         /// </summary>
+        /// <typeparam name="T">Message type</typeparam>
         /// <param name="peer">Peer</param>
         /// <param name="errorType">Error tyoe</param>
         /// <param name="errorMessage">Error message</param>
         /// <param name="isFatal">Is error fatal</param>
-        public void SendErrorMessageToPeer(IPeer peer, EErrorType errorType, string errorMessage, bool isFatal)
+        public void SendErrorMessageToPeer<T>(IPeer peer, EErrorType errorType, string errorMessage, bool isFatal) where T : IBaseMessageData
         {
             if (peer == null)
             {
@@ -318,12 +504,36 @@ namespace ElectrodZMultiplayer
                 throw new ArgumentNullException(nameof(errorMessage));
             }
             Console.Error.WriteLine($"[{ errorType }] { errorMessage }");
-            SendMessageToPeer(peer, new ErrorMessageData(errorType, errorMessage));
+            SendMessageToPeer(peer, new ErrorMessageData(errorType, Naming.GetMessageTypeNameFromMessageDataType<T>(), errorMessage));
             if (isFatal)
             {
                 peer.Disconnect(EDisconnectionReason.Error);
             }
         }
+
+        /// <summary>
+        /// Sends an invalid message parameters error message to peer
+        /// </summary>
+        /// <typeparam name="T">Message type</typeparam>
+        /// <param name="peer">Peer</param>
+        /// <param name="errorMessage">Error message</param>
+        public void SendInvalidMessageParametersErrorMessageToPeer<T>(IPeer peer, string errorMessage) where T : IBaseMessageData => SendErrorMessageToPeer<T>(peer, EErrorType.InvalidMessageParameters, errorMessage);
+
+        /// <summary>
+        /// Sends an invalid message context error message to peer
+        /// </summary>
+        /// <typeparam name="T">Message type</typeparam>
+        /// <param name="peer">Peer</param>
+        /// <param name="errorMessage">Error message</param>
+        public void SendInvalidMessageContextErrorMessageToPeer<T>(IPeer peer, string errorMessage) where T : IBaseMessageData => SendErrorMessageToPeer<T>(peer, EErrorType.InvalidMessageContext, errorMessage);
+
+        /// <summary>
+        /// Sends an unknown error message to peer
+        /// </summary>
+        /// <typeparam name="T">Message type</typeparam>
+        /// <param name="peer">Peer</param>
+        /// <param name="errorMessage">Error message</param>
+        public void SendUnknownErrorMessageToPeer<T>(IPeer peer, string errorMessage) where T : IBaseMessageData => SendErrorMessageToPeer<T>(peer, EErrorType.Unknown, errorMessage);
 
         /// <summary>
         /// Closes connections to all peers

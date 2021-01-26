@@ -1,4 +1,6 @@
-﻿/// <summary>
+﻿using System.Collections.Generic;
+
+/// <summary>
 /// ElectrodZ multiplayer namespace
 /// </summary>
 namespace ElectrodZMultiplayer
@@ -6,7 +8,7 @@ namespace ElectrodZMultiplayer
     /// <summary>
     /// Used to signal a server tick
     /// </summary>
-    /// <param name="lobby">Lobby</param>
-    /// <param name="time">Elapsed time</param>
-    public delegate void ServerTickedDelegate(ILobby lobby, float time);
+    /// <param name="time">Elapsed time in seconds since game start</param>
+    /// <param name="entityDeltas">Entity deltas</param>>
+    public delegate void ServerTickedDelegate(double time, IEnumerable<IEntityDelta> entityDeltas);
 }

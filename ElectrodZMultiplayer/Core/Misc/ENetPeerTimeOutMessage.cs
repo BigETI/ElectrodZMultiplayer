@@ -16,7 +16,7 @@ namespace ElectrodZMultiplayer
         public Peer Peer { get; }
 
         /// <summary>
-        /// Constructor
+        /// Constructs a ENet peer time out message
         /// </summary>
         /// <param name="peer">Peer</param>
         public ENetPeerTimeOutMessage(Peer peer) => Peer = peer;

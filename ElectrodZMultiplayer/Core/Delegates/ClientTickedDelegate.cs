@@ -1,4 +1,6 @@
-﻿/// <summary>
+﻿using System.Collections.Generic;
+
+/// <summary>
 /// ElectrodZ multiplayer namespace
 /// </summary>
 namespace ElectrodZMultiplayer
@@ -6,6 +8,6 @@ namespace ElectrodZMultiplayer
     /// <summary>
     /// Used to signal a client tick
     /// </summary>
-    /// <param name="user">User</param>
-    public delegate void ClientTickedDelegate(IUser user);
+    /// <param name="entityDeltas">Entity deltas</param>
+    public delegate void ClientTickedDelegate(IEnumerable<IEntityDelta> entityDeltas);
 }

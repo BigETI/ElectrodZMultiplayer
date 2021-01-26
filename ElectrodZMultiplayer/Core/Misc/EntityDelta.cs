@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 /// <summary>
 /// ElectrodZ multiplayer namespace
@@ -30,22 +29,22 @@ namespace ElectrodZMultiplayer
         /// <summary>
         /// Current position (optional)
         /// </summary>
-        public Vector3<float>? Position { get; }
+        public Vector3? Position { get; }
 
         /// <summary>
         /// Current rotation (optional)
         /// </summary>
-        public Quaternion<float>? Rotation { get; }
+        public Quaternion? Rotation { get; }
 
         /// <summary>
         /// Current velocity (optional)
         /// </summary>
-        public Vector3<float>? Velocity { get; }
+        public Vector3? Velocity { get; }
 
         /// <summary>
         /// Current angular velocity (optional)
         /// </summary>
-        public Vector3<float>? AngularVelocity { get; }
+        public Vector3? AngularVelocity { get; }
 
         /// <summary>
         /// Current game actions (optional)
@@ -54,8 +53,8 @@ namespace ElectrodZMultiplayer
 
         public bool IsValid =>
             (GUID != Guid.Empty) &&
-            ((GameColor == null) || GameColor.Value != EGameColor.Unknown) &&
-            ((Actions == null) || !Protection.IsContained(Actions, (action) => action == EGameAction.Unknown));
+            ((GameColor == null) || GameColor.Value != EGameColor.Invalid) &&
+            ((Actions == null) || !Protection.IsContained(Actions, (action) => action == EGameAction.Invalid));
 
         /// <summary>
         /// COnstructs an entity delta
@@ -68,8 +67,12 @@ namespace ElectrodZMultiplayer
         /// <param name="velocity">Velocity</param>
         /// <param name="angularVelocity">Angular velocity</param>
         /// <param name="actions">Actions</param>
-        public EntityDelta(Guid guid, string entityType = null, EGameColor? gameColor = null, Vector3<float>? position = null, Quaternion<float>? rotation = null, Vector3<float>? velocity = null, Vector3<float>? angularVelocity = null, IEnumerable<EGameAction> actions = null)
+        public EntityDelta(Guid guid, string entityType = null, EGameColor? gameColor = null, Vector3? position = null, Quaternion? rotation = null, Vector3? velocity = null, Vector3? angularVelocity = null, IEnumerable<EGameAction> actions = null)
         {
+            if (guid == Guid.Empty)
+            {
+                throw new ArgumentException("Entity GUID can't be empty.", nameof(guid));
+            }
             GUID = guid;
             EntityType = entityType;
             GameColor = gameColor;
@@ -78,6 +81,59 @@ namespace ElectrodZMultiplayer
             Velocity = velocity;
             AngularVelocity = angularVelocity;
             Actions = actions;
+        }
+
+        /// <summary>
+        /// Combines two entity deltas to create a new entity delta
+        /// </summary>
+        /// <param name="baseEntityDelta">Base entity delta</param>
+        /// <param name="patchEntityDelta">Patch entity delta</param>
+        /// <returns>Combined entity delta</returns>
+        public static EntityDelta Combine(IEntityDelta baseEntityDelta, IEntityDelta patchEntityDelta)
+        {
+            if (baseEntityDelta == null)
+            {
+                throw new ArgumentNullException(nameof(baseEntityDelta));
+            }
+            if (!baseEntityDelta.IsValid)
+            {
+                throw new ArgumentException("Base entity delta is not valid.", nameof(baseEntityDelta));
+            }
+            if (patchEntityDelta == null)
+            {
+                throw new ArgumentNullException(nameof(patchEntityDelta));
+            }
+            if (!patchEntityDelta.IsValid)
+            {
+                throw new ArgumentException("Patch entity delta is not valid.", nameof(patchEntityDelta));
+            }
+            if (baseEntityDelta.GUID != patchEntityDelta.GUID)
+            {
+                throw new ArgumentException($"Base entity delta GUID \"{ baseEntityDelta.GUID }\" does not match patch entity delta GUID \"{ patchEntityDelta.GUID }\".", nameof(patchEntityDelta));
+            }
+            HashSet<EGameAction> actions = (baseEntityDelta.Actions == null) ? null : new HashSet<EGameAction>(baseEntityDelta.Actions);
+            if (patchEntityDelta.Actions != null)
+            {
+                if (actions == null)
+                {
+                    actions = new HashSet<EGameAction>(patchEntityDelta.Actions);
+                }
+                else
+                {
+                    actions.UnionWith(patchEntityDelta.Actions);
+                }
+            }
+            return new EntityDelta
+            (
+                baseEntityDelta.GUID,
+                patchEntityDelta.EntityType ?? baseEntityDelta.EntityType,
+                patchEntityDelta.GameColor ?? baseEntityDelta.GameColor,
+                patchEntityDelta.Position ?? baseEntityDelta.Position,
+                patchEntityDelta.Rotation ?? baseEntityDelta.Rotation,
+                patchEntityDelta.Velocity ?? baseEntityDelta.Velocity,
+                patchEntityDelta.AngularVelocity ?? baseEntityDelta.AngularVelocity,
+                actions
+            );
         }
     }
 }

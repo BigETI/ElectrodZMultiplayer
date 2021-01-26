@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 
@@ -65,7 +66,7 @@ namespace ElectrodZServer
         private static IServerSynchronizer server;
 
         /// <summary>
-        /// Help command line command executed event
+        /// "help" command line command executed event
         /// </summary>
         /// <param name="arguments">Arguments</param>
         private static void HelpCommandLineCommandExecutedEvent(IReadOnlyList<string> arguments)
@@ -75,7 +76,7 @@ namespace ElectrodZServer
         }
 
         /// <summary>
-        /// Port command line command executed event
+        /// "port" command line command executed event
         /// </summary>
         /// <param name="arguments">Arguments</param>
         private static void PortCommandLineCommandExecutedEvent(IReadOnlyList<string> arguments)
@@ -104,7 +105,7 @@ namespace ElectrodZServer
         }
 
         /// <summary>
-        /// Tick rate command line command executed event
+        /// "tickrate" command line command executed event
         /// </summary>
         /// <param name="arguments">Arguments</param>
         private static void TickRateCommandLineCommandExecutedEvent(IReadOnlyList<string> arguments)
@@ -133,13 +134,57 @@ namespace ElectrodZServer
         }
 
         /// <summary>
-        /// Help console command executed event
+        /// "help" console command executed event
         /// </summary>
         /// <param name="arguments">Arguments</param>
         private static void HelpConsoleCommmandExecutedEvent(IReadOnlyList<string> arguments) => PrintHelpTopic(consoleCommands, string.Empty, (arguments.Count > 0) ? arguments[0] : string.Empty);
 
         /// <summary>
-        /// Lobbies console command executed event
+        /// "connectors" console command executed event
+        /// </summary>
+        /// <param name="arguments"></param>
+        private static void ConnectorsConsoleCommmandExecutedEvent(IReadOnlyList<string> arguments)
+        {
+            bool has_no_connectors = true;
+            foreach (IConnector connector in server.Connectors)
+            {
+                if (has_no_connectors)
+                {
+                    has_no_connectors = false;
+                    WriteOutputLogLine("Connectors: ");
+                }
+                WriteOutputLogLine($"\t{ connector.GetType().FullName }");
+            }
+            if (has_no_connectors)
+            {
+                WriteOutputLogLine("There are no connectors.");
+            }
+        }
+
+        /// <summary>
+        /// "gameresources" console command executed event
+        /// </summary>
+        /// <param name="arguments">Arguments</param>
+        private static void GameResourcesConsoleCommmandExecutedEvent(IReadOnlyList<string> arguments)
+        {
+            bool has_no_game_resources = true;
+            foreach (string game_resource in server.GameResources.Keys)
+            {
+                if (has_no_game_resources)
+                {
+                    has_no_game_resources = false;
+                    WriteOutputLogLine("Loaded game resources: ");
+                }
+                WriteOutputLogLine($"\t{ game_resource }");
+            }
+            if (has_no_game_resources)
+            {
+                WriteOutputLogLine("There are no game resources loaded.");
+            }
+        }
+
+        /// <summary>
+        /// "lobbies" console command executed event
         /// </summary>
         /// <param name="arguments">Arguments</param>
         private static void LobbiesConsoleCommmandExecutedEvent(IReadOnlyList<string> arguments)
@@ -159,7 +204,7 @@ namespace ElectrodZServer
         }
 
         /// <summary>
-        /// Users console command executed event
+        /// "users" console command executed event
         /// </summary>
         /// <param name="arguments">Arguments</param>
         private static void UsersConsoleCommmandExecutedEvent(IReadOnlyList<string> arguments)
@@ -212,7 +257,7 @@ namespace ElectrodZServer
         }
 
         /// <summary>
-        /// Kick console command executed event
+        /// "kick" console command executed event
         /// </summary>
         /// <param name="arguments">Arguments</param>
         private static void KickConsoleCommmandExecutedEvent(IReadOnlyList<string> arguments)
@@ -238,7 +283,7 @@ namespace ElectrodZServer
         }
 
         /// <summary>
-        /// Ban console command executed event
+        /// "ban" console command executed event
         /// </summary>
         /// <param name="arguments">Arguments</param>
         private static void BanConsoleCommmandExecutedEvent(IReadOnlyList<string> arguments)
@@ -283,7 +328,7 @@ namespace ElectrodZServer
         }
 
         /// <summary>
-        /// Ban secret console command executed event
+        /// "bansecret" console command executed event
         /// </summary>
         /// <param name="arguments">Arguments</param>
         private static void BanSecretConsoleCommmandExecutedEvent(IReadOnlyList<string> arguments)
@@ -308,7 +353,7 @@ namespace ElectrodZServer
         }
 
         /// <summary>
-        /// Unban peer secret console command executed event
+        /// "unbansecret" console command executed event
         /// </summary>
         /// <param name="arguments">Arguments</param>
         private static void UnbanSecretConsoleCommmandExecutedEvent(IReadOnlyList<string> arguments)
@@ -326,7 +371,7 @@ namespace ElectrodZServer
         }
 
         /// <summary>
-        /// Reload bans console command executed
+        /// "reloadbans" console command executed
         /// </summary>
         /// <param name="arguments">Arguments</param>
         private static void ReloadBansConsoleCommmandExecutedEvent(IReadOnlyList<string> arguments)
@@ -337,7 +382,7 @@ namespace ElectrodZServer
         }
 
         /// <summary>
-        /// Close lobby command executed event
+        /// "closelobby" command executed event
         /// </summary>
         /// <param name="arguments">Arguments</param>
         private static void CloseLobbyConsoleCommmandExecutedEvent(IReadOnlyList<string> arguments)
@@ -358,7 +403,7 @@ namespace ElectrodZServer
         }
 
         /// <summary>
-        /// Exit console command executed event
+        /// "exit" console command executed event
         /// </summary>
         /// <param name="arguments">Arguments</param>
         private static void ExitConsoleCommmandExecutedEvent(IReadOnlyList<string> arguments)
@@ -438,12 +483,14 @@ namespace ElectrodZServer
                 commandLineCommands.AddAlias("p", "-port");
                 commandLineCommands.AddAlias("t", "-tick-rate");
                 consoleCommands.AddCommand("help", "Show help topic", "This command shows help topics.", HelpConsoleCommmandExecutedEvent, CommandArgument.Optional("helpTopic"));
+                consoleCommands.AddCommand("connectors", "List connectors", "This command lists all connectors.", ConnectorsConsoleCommmandExecutedEvent);
+                consoleCommands.AddCommand("gameresources", "List game resources", "This command lists all game resources.", GameResourcesConsoleCommmandExecutedEvent);
                 consoleCommands.AddCommand("lobbies", "List lobbies", "This command lists all lobbies.", LobbiesConsoleCommmandExecutedEvent);
                 consoleCommands.AddCommand("users", "List users", "This command lists all users.", UsersConsoleCommmandExecutedEvent, CommandArgument.Optional("lobbyGUID"));
                 consoleCommands.AddCommand("kick", "Kick user", "This command kicks the specified user.", KickConsoleCommmandExecutedEvent, "userGUID");
                 consoleCommands.AddCommand("ban", "Ban user", "This command bans the specified user.", BanConsoleCommmandExecutedEvent, "userGUID");
-                consoleCommands.AddCommand("banip", "Ban IP address", "This command bans the specified user.", BanSecretConsoleCommmandExecutedEvent, "secret");
-                consoleCommands.AddCommand("unbanip", "Unban IP address", "This command unbans the specified IP address.", UnbanSecretConsoleCommmandExecutedEvent, "secret");
+                consoleCommands.AddCommand("bansecret", "Ban IP address", "This command bans the specified peer secret.", BanSecretConsoleCommmandExecutedEvent, "secret");
+                consoleCommands.AddCommand("unbansecret", "Unban IP address", "This command unbans the specified peer secret.", UnbanSecretConsoleCommmandExecutedEvent, "secret");
                 consoleCommands.AddCommand("reloadbans", $"Reload bans from \"{ bansJSONFilePath }\"", $"This command reloads the bans from \"{ bansJSONFilePath }\".", ReloadBansConsoleCommmandExecutedEvent);
                 consoleCommands.AddCommand("closelobby", "Close lobby", "This command closes the specified lobby.", CloseLobbyConsoleCommmandExecutedEvent, "lobbyCode");
                 consoleCommands.AddCommand("exit", "Exit process", "This command exists the current process.", ExitConsoleCommmandExecutedEvent);
@@ -452,12 +499,16 @@ namespace ElectrodZServer
                 consoleCommands.AddAlias("cmd", "cmds");
                 consoleCommands.AddAlias("h", "help");
                 consoleCommands.AddAlias("?", "help");
+                consoleCommands.AddAlias("c", "connectors");
+                consoleCommands.AddAlias("resources", "gameresources");
+                consoleCommands.AddAlias("gr", "gameresources");
+                consoleCommands.AddAlias("r", "resources");
                 consoleCommands.AddAlias("l", "lobbies");
                 consoleCommands.AddAlias("u", "users");
                 consoleCommands.AddAlias("k", "kick");
                 consoleCommands.AddAlias("b", "ban");
-                consoleCommands.AddAlias("bip", "banip");
-                consoleCommands.AddAlias("ubip", "unbanip");
+                consoleCommands.AddAlias("bsecret", "bansecret");
+                consoleCommands.AddAlias("ubsecret", "unbansecret");
                 consoleCommands.AddAlias("cl", "closelobby");
                 consoleCommands.AddAlias("quit", "exit");
                 consoleCommands.AddAlias("q", "quit");
@@ -522,7 +573,7 @@ namespace ElectrodZServer
                     }
                     else
                     {
-                        command_line_arguments_string_builder.Append(" ");
+                        command_line_arguments_string_builder.Append(' ');
                     }
                     command_line_arguments_string_builder.Append(arg);
                 }
@@ -549,6 +600,7 @@ namespace ElectrodZServer
                             {
                                 TimeSpan tick_time_span = TimeSpan.FromMilliseconds(1000 / serverConfigurationData.TickRate);
                                 Stopwatch stopwatch = new Stopwatch();
+                                uint lag_count = 0U;
                                 ConsoleKeyInfo console_key_information;
                                 StringBuilder input_string_builder = new StringBuilder();
                                 foreach (IConnector connector in server.Connectors)
@@ -556,9 +608,61 @@ namespace ElectrodZServer
                                     connector.OnPeerConnectionAttempted += PeerConnectionAttemptedEvent;
                                     connector.OnPeerConnected += PeerConnectedEvent;
                                     connector.OnPeerDisconnected += PeerDisconnectedEvent;
-                                    connector.OnPeerMessageReceived += PeerMessageReceivedEvent;
                                 }
                                 server.Bans.AppendFromFile(bansJSONFilePath);
+                                try
+                                {
+                                    foreach (string game_resources_file_path in Directory.GetFiles("./GameResources/", "*.dll"))
+                                    {
+                                        WriteOutputLogLine($"Loading game resources file  \"{ game_resources_file_path }\"...");
+                                        try
+                                        {
+                                            Assembly assembly = Assembly.LoadFrom(game_resources_file_path);
+                                            if (assembly == null)
+                                            {
+                                                WriteErrorLogLine($"Failed to load game resource assembly from \"{ game_resources_file_path }\"");
+                                            }
+                                            else
+                                            {
+                                                foreach (Type type in assembly.GetTypes())
+                                                {
+                                                    if (type.IsClass && !type.IsAbstract && typeof(IGameResource).IsAssignableFrom(type))
+                                                    {
+                                                        bool has_default_constructor = true;
+                                                        foreach (ConstructorInfo constructor in type.GetConstructors(BindingFlags.Public))
+                                                        {
+                                                            has_default_constructor = false;
+                                                            if (constructor.GetParameters().Length <= 0)
+                                                            {
+                                                                has_default_constructor = true;
+                                                                break;
+                                                            }
+                                                        }
+                                                        if (has_default_constructor)
+                                                        {
+                                                            if (server.AddGameResource(type))
+                                                            {
+                                                                WriteOutputLogLine($"Loaded game resource \"{ type.FullName }\" from \"{ game_resources_file_path }\".");
+                                                            }
+                                                            else
+                                                            {
+                                                                WriteErrorLogLine($"Failed to load game resource \"{ type.FullName }\" from \"{ game_resources_file_path }\".");
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        catch (Exception e)
+                                        {
+                                            WriteErrorLogLine(e);
+                                        }
+                                    }
+                                }
+                                catch (Exception e)
+                                {
+                                    WriteErrorLogLine(e);
+                                }
                                 WriteOutputLogLine($"Starting server at port { serverConfigurationData.NetworkPort }...");
                                 while (keepServerRunning)
                                 {
@@ -588,11 +692,17 @@ namespace ElectrodZServer
                                     stopwatch.Stop();
                                     if (tick_time_span > stopwatch.Elapsed)
                                     {
+                                        lag_count = (lag_count > 0U) ? (lag_count - 1U) : 0U;
                                         Thread.Sleep(tick_time_span - stopwatch.Elapsed);
                                     }
                                     else
                                     {
-                                        WriteErrorLogLine($"Server can't keep up. Try lowering the tick rate in \"{ serverJSONFilePath }\" or run the server with a lower tick rate.");
+                                        ++lag_count;
+                                        if (lag_count >= serverConfigurationData.TickRate)
+                                        {
+                                            lag_count = 0U;
+                                            WriteErrorLogLine($"Server can't keep up. Try lowering the tick rate in \"{ serverJSONFilePath }\" or run the server with a lower tick rate.");
+                                        }
                                     }
                                 }
                                 server.Bans.WriteToFile(bansJSONFilePath);
@@ -644,12 +754,5 @@ namespace ElectrodZServer
         /// </summary>
         /// <param name="peer">Peer</param>
         private static void PeerDisconnectedEvent(IPeer peer) => WriteOutputLogLine($"Peer with GUID \"{ peer.GUID }\" and secret \"{ peer.Secret }\" has disconnected.");
-
-        /// <summary>
-        /// Peer message received event
-        /// </summary>
-        /// <param name="peer">Peer</param>
-        /// <param name="message">Message</param>
-        private static void PeerMessageReceivedEvent(IPeer peer, IReadOnlyList<byte> message) => WriteOutputLogLine($"Received message from peer with GUID \"{ peer.GUID }\" and secret \"{ peer.Secret }\". Message length: { message.Count }.");
     }
 }

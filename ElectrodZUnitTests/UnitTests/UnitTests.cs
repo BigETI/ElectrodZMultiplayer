@@ -1,3 +1,5 @@
+using ElectrodZExampleGameResource.GameModes;
+using ElectrodZExampleGameResource.Resources;
 using ElectrodZMultiplayer;
 using ElectrodZMultiplayer.Client;
 using ElectrodZMultiplayer.Server;
@@ -52,6 +54,7 @@ namespace ElectrodZUnitTests
             uint perform_ticks = unit_tests_configuration.PerformTicks;
             using IServerSynchronizer server = Servers.Create(port, Defaults.timeoutTime);
             Assert.IsNotNull(server);
+            server.AddGameResource<ExampleGameResource>();
             server.OnPeerConnectionAttempted += (peer) => Console.WriteLine($"[SERVER] Peer GUID \"{ peer.GUID }\" with secret \"{ peer.Secret }\" attempted to connect.");
             server.OnPeerConnected += (peer) => Console.WriteLine($"[SERVER] Peer GUID \"{ peer.GUID }\" with secret \"{ peer.Secret }\" is connect.");
             server.OnPeerDisconnected += (peer) => Console.WriteLine($"[SERVER] Peer GUID \"{ peer.GUID }\" with secret \"{ peer.Secret }\" has been disconnect.");
@@ -86,7 +89,7 @@ namespace ElectrodZUnitTests
                 };
                 client.OnPeerMessageReceived += (peer, message) => Console.WriteLine($"[CLIENT] Peer GUID \"{ peer.GUID }\" sent a message of length \"{ message.Length }\".");
                 client.OnLobbyJoinAcknowledged += (lobby) => lobbies[current_index] = lobby;
-                client.OnAuthenticationAcknowledged += (IUser user) =>
+                client.OnAuthentificationAcknowledged += (user) =>
                 {
                     Assert.IsNotNull(user);
                     users[current_index] = user;
@@ -99,7 +102,7 @@ namespace ElectrodZUnitTests
                                 clients[client_index].JoinLobby(lobby.LobbyCode, $"Client_{ client_index }");
                             }
                         };
-                        client.CreateAndJoinLobby($"Client_{ current_index }", "Test lobby");
+                        client.CreateAndJoinLobby($"Client_{ current_index }", "Test lobby", typeof(ExampleGameMode).FullName);
                     }
                 };
                 client.OnErrorMessageReceived += (errorType, message) => Console.Error.WriteLine($"Error at client index { current_index }: [{ errorType }] { message }");
@@ -137,7 +140,7 @@ namespace ElectrodZUnitTests
             uint no_lobby_client_count = 0U;
             for (int index = 0; index < clients.Length; index++)
             {
-                Assert.IsNotNull(users[index], $"User at client index { index } was not authenticated.", index);
+                Assert.IsNotNull(users[index], $"User at client index { index } was not authentificated.", index);
                 if (lobbies[index] == null)
                 {
                     ++no_lobby_client_count;
@@ -151,7 +154,7 @@ namespace ElectrodZUnitTests
                 }
                 else
                 {
-                    Assert.Fail($"{ no_lobby_client_count } lobbies are not in a lobby.");
+                    Assert.Fail($"{ no_lobby_client_count } clients are not in a lobby.");
                 }
             }
             Assert.Pass();

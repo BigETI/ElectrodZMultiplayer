@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System.Collections.Generic;
+using System.Drawing;
 
 /// <summary>
 /// ElectrodZ multiplayer client namespace
@@ -26,5 +27,12 @@ namespace ElectrodZMultiplayer.Client
         /// </summary>
         /// <param name="lobbyColor">Lobby color</param>
         void SetLobbyColorInternally(Color lobbyColor);
+
+        /// <summary>
+        /// Invokes the server ticked event
+        /// </summary>
+        /// <param name="time">Time in seconds elapsed since game start</param>
+        /// <param name="entityDeltas">Entity deltas</param>
+        void InvokeServerTickedEvent(double time, IEnumerable<IEntityDelta> entityDeltas);
     }
 }

@@ -25,32 +25,32 @@ namespace ElectrodZMultiplayer
         /// <summary>
         /// Entity type
         /// </summary>
-        public string EntityType { get; private set; } = "UnknownEntityType";
+        public string EntityType { get; private set; }
 
         /// <summary>
         /// Game color
         /// </summary>
-        public EGameColor GameColor { get; private set; }
+        public EGameColor GameColor { get; private set; } = EGameColor.Default;
 
         /// <summary>
         /// Current position
         /// </summary>
-        public Vector3<float> Position { get; private set; }
+        public Vector3 Position { get; private set; }
 
         /// <summary>
         /// Current rotation
         /// </summary>
-        public Quaternion<float> Rotation { get; private set; }
+        public Quaternion Rotation { get; private set; }
 
         /// <summary>
         /// Current velocity
         /// </summary>
-        public Vector3<float> Velocity { get; private set; }
+        public Vector3 Velocity { get; private set; }
 
         /// <summary>
         /// Current angular velocity
         /// </summary>
-        public Vector3<float> AngularVelocity { get; private set; }
+        public Vector3 AngularVelocity { get; private set; }
 
         /// <summary>
         /// Current game actions
@@ -63,37 +63,14 @@ namespace ElectrodZMultiplayer
         /// <returns>"true" if valid, otherwise "false"</returns>
         public bool IsValid =>
             (GUID != Guid.Empty) &&
-            (GameColor != EGameColor.Unknown);
+            (GameColor != EGameColor.Invalid);
 
         /// <summary>
-        /// Constructs a game entity object
+        /// Constructs an entity object
         /// </summary>
         /// <param name="guid">Entity GUID</param>
         /// <param name="gameColor">Entity game color</param>
-        public Entity(Guid guid, EGameColor gameColor)
-        {
-            if (guid == Guid.Empty)
-            {
-                throw new ArgumentException("Entity GUID can't be empty.", nameof(guid));
-            }
-            if (gameColor == EGameColor.Unknown)
-            {
-                throw new ArgumentException("Entity game color is unknown.", nameof(gameColor));
-            }
-            GUID = guid;
-            GameColor = gameColor;
-        }
-
-        /// <summary>
-        /// Constructs a game entity object
-        /// </summary>
-        /// <param name="guid">Entity GUID</param>
-        /// <param name="position">Position</param>
-        /// <param name="rotation">Rotation</param>
-        /// <param name="velocity">Velocity</param>
-        /// <param name="angularVelocity">Angular velocity</param>
-        /// <param name="actions">Game actions</param>
-        public Entity(Guid guid, string entityType, Vector3<float> position, Quaternion<float> rotation, Vector3<float> velocity, Vector3<float> angularVelocity, IEnumerable<EGameAction> actions)
+        public Entity(Guid guid, string entityType)
         {
             if (guid == Guid.Empty)
             {
@@ -103,16 +80,152 @@ namespace ElectrodZMultiplayer
             {
                 throw new ArgumentNullException(nameof(entityType));
             }
+            GUID = guid;
+            EntityType = entityType;
+        }
+
+        /// <summary>
+        /// Gets the delta for the specified entities
+        /// </summary>
+        /// <param name="baseEntity">Base entity</param>
+        /// <param name="patchEntity">Patch entity</param>
+        /// <returns>Entity delta if there are differences between the specified entities, otherwise "null"</returns>
+        public static IEntityDelta GetDelta(IEntity baseEntity, IEntity patchEntity) => TryGetDelta(baseEntity, patchEntity, out IEntityDelta ret) ? ret : null;
+
+        /// <summary>
+        /// Tries to get entity delta from the specified entities
+        /// </summary>
+        /// <param name="baseEntity">Base entity</param>
+        /// <param name="patchEntity">Patch entity</param>
+        /// <param name="entityDelta">Entity data</param>
+        /// <returns>"true" if differences between base and patch entities exist, otherwise "false"</returns>
+        public static bool TryGetDelta(IEntity baseEntity, IEntity patchEntity, out IEntityDelta entityDelta)
+        {
+            if (baseEntity == null)
+            {
+                throw new ArgumentNullException(nameof(baseEntity));
+            }
+            if (!baseEntity.IsValid)
+            {
+                throw new ArgumentException("Base entity is not valid.", nameof(baseEntity));
+            }
+            if (patchEntity == null)
+            {
+                throw new ArgumentNullException(nameof(patchEntity));
+            }
+            if (!patchEntity.IsValid)
+            {
+                throw new ArgumentException("Patch entity is not valid.", nameof(patchEntity));
+            }
+            if (baseEntity.GUID != patchEntity.GUID)
+            {
+                throw new ArgumentException($"Base entity GUID \"{ baseEntity.GUID }\" does not match patch entity GUID \"{ patchEntity.GUID }\".", nameof(patchEntity));
+            }
+            bool ret = false;
+            string entity_type = null;
+            EGameColor? game_color = null;
+            Vector3? position = null;
+            Quaternion? rotation = null;
+            Vector3? velocity = null;
+            Vector3? angular_velocity = null;
+            IEnumerable<EGameAction> actions = null;
+            if (baseEntity != patchEntity)
+            {
+                if (baseEntity.EntityType != patchEntity.EntityType)
+                {
+                    ret = true;
+                    entity_type = patchEntity.EntityType;
+                }
+                if (baseEntity.EntityType != patchEntity.EntityType)
+                {
+                    ret = true;
+                    entity_type = patchEntity.EntityType;
+                }
+                if (baseEntity.GameColor != patchEntity.GameColor)
+                {
+                    ret = true;
+                    game_color = patchEntity.GameColor;
+                }
+                if (baseEntity.Position != patchEntity.Position)
+                {
+                    ret = true;
+                    position = patchEntity.Position;
+                }
+                if (baseEntity.Rotation != patchEntity.Rotation)
+                {
+                    ret = true;
+                    rotation = patchEntity.Rotation;
+                }
+                if (baseEntity.Velocity != patchEntity.Velocity)
+                {
+                    ret = true;
+                    velocity = patchEntity.Velocity;
+                }
+                if (baseEntity.AngularVelocity != patchEntity.AngularVelocity)
+                {
+                    ret = true;
+                    angular_velocity = patchEntity.AngularVelocity;
+                }
+                foreach (EGameAction action in baseEntity.Actions)
+                {
+                    if (!Protection.IsContained(patchEntity.Actions, (patch_entity_action) => patch_entity_action == action))
+                    {
+                        actions = patchEntity.Actions;
+                        break;
+                    }
+                }
+                if (actions == null)
+                {
+                    foreach (EGameAction action in patchEntity.Actions)
+                    {
+                        if (!Protection.IsContained(baseEntity.Actions, (base_entity_action) => base_entity_action == action))
+                        {
+                            actions = patchEntity.Actions;
+                            break;
+                        }
+                    }
+                }
+            }
+            entityDelta = ret ? (IEntityDelta)new EntityDelta(baseEntity.GUID, entity_type, game_color, position, rotation, velocity, angular_velocity, actions) : null;
+            return ret;
+        }
+
+        /// <summary>
+        /// Constructs an entity object
+        /// </summary>
+        /// <param name="guid">Entity GUID</param>
+        /// <param name="entityType">Entity type</param>
+        /// <param name="gameColor">Game color</param>
+        /// <param name="position">Position</param>
+        /// <param name="rotation">Rotation</param>
+        /// <param name="velocity">Velocity</param>
+        /// <param name="angularVelocity">Angular velocity</param>
+        /// <param name="actions">Game actions</param>
+        public Entity(Guid guid, string entityType, EGameColor gameColor, Vector3 position, Quaternion rotation, Vector3 velocity, Vector3 angularVelocity, IEnumerable<EGameAction> actions)
+        {
+            if (guid == Guid.Empty)
+            {
+                throw new ArgumentException("Entity GUID can't be empty.", nameof(guid));
+            }
+            if (string.IsNullOrWhiteSpace(entityType))
+            {
+                throw new ArgumentNullException(nameof(entityType));
+            }
+            if (gameColor == EGameColor.Invalid)
+            {
+                throw new ArgumentException("Game color can't be invalid.", nameof(gameColor));
+            }
             if (actions == null)
             {
                 throw new ArgumentNullException(nameof(actions));
             }
-            if (Protection.IsContained(actions, (action) => action == EGameAction.Unknown))
+            if (Protection.IsContained(actions, (action) => action == EGameAction.Invalid))
             {
-                throw new ArgumentException($"\"{ nameof(actions) }\" contains unknown game actions.", nameof(guid));
+                throw new ArgumentException($"\"{ nameof(actions) }\" contains invalid game actions.", nameof(guid));
             }
             GUID = guid;
             EntityType = entityType;
+            GameColor = gameColor;
             Position = position;
             Rotation = rotation;
             Velocity = velocity;
@@ -151,9 +264,9 @@ namespace ElectrodZMultiplayer
         /// <param name="gameColor">New game color</param>
         public void SetGameColorInternally(EGameColor gameColor)
         {
-            if (gameColor == EGameColor.Unknown)
+            if (gameColor == EGameColor.Invalid)
             {
-                throw new ArgumentException("Game color can't be unknown.", nameof(gameColor));
+                throw new ArgumentException("Game color can't be invalid.", nameof(gameColor));
             }
             GameColor = gameColor;
         }
@@ -162,60 +275,49 @@ namespace ElectrodZMultiplayer
         /// Sets a new position internally
         /// </summary>
         /// <param name="position">New position</param>
-        public void SetPositionInternally(Vector3<float> position) => Position = position;
+        public void SetPositionInternally(Vector3 position) => Position = position;
 
         /// <summary>
         /// Sets a new rotation internally
         /// </summary>
         /// <param name="rotation">New rotation</param>
-        public void SetRotationInternally(Quaternion<float> rotation) => Rotation = rotation;
+        public void SetRotationInternally(Quaternion rotation) => Rotation = rotation;
 
         /// <summary>
         /// Sets a new velocity internally
         /// </summary>
         /// <param name="velocity">New velocity</param>
-        public void SetVelocityInternally(Vector3<float> velocity) => Velocity = velocity;
+        public void SetVelocityInternally(Vector3 velocity) => Velocity = velocity;
 
         /// <summary>
         /// Sets a new angular velocity
         /// </summary>
         /// <param name="angularVelocity">New angular velocity</param>
-        public void SetAngularVelocityInternally(Vector3<float> angularVelocity) => AngularVelocity = angularVelocity;
+        public void SetAngularVelocityInternally(Vector3 angularVelocity) => AngularVelocity = angularVelocity;
 
         /// <summary>
-        /// Adds a new game action to the current game actions.
+        /// Sets the game actions internally
         /// </summary>
-        /// <param name="action">New game action</param>
-        /// <returns>"true" if new game action was successfully added, otherwise "false"</returns>
-        public bool AddGameActionInternally(EGameAction action)
+        /// <param name="actions">Game actions</param>
+        /// <returns>Number of actions added</returns>
+        public uint SetActionsInternally(IEnumerable<EGameAction> actions)
         {
-            bool ret = false;
-            if (action != EGameAction.Unknown)
+            if (actions == null)
             {
-                ret = actions.Add(action);
+                throw new ArgumentNullException(nameof(actions));
+            }
+            if (Protection.IsContained(actions, (action) => action == EGameAction.Invalid))
+            {
+                throw new ArgumentException("Game actions contain invalid invalid actions.");
+            }
+            uint ret = 0U;
+            this.actions.Clear();
+            foreach (EGameAction action in actions)
+            {
+                ret += this.actions.Add(action) ? 1U : 0U;
             }
             return ret;
         }
-
-        /// <summary>
-        /// Removes the specified game action from the current game actions
-        /// </summary>
-        /// <param name="action">Game action</param>
-        /// <returns>"true" if the specified game action was successfully removed, otherwise "false"</returns>
-        public bool RemoveActionInternally(EGameAction action)
-        {
-            bool ret = false;
-            if (action != EGameAction.Unknown)
-            {
-                ret = actions.Remove(action);
-            }
-            return ret;
-        }
-
-        /// <summary>
-        /// Clears all set game actions
-        /// </summary>
-        public void ClearGameActionsInternally() => actions.Clear();
 
         /// <summary>
         /// Casts the specified entity data to an entity object
@@ -231,7 +333,7 @@ namespace ElectrodZMultiplayer
             {
                 throw new ArgumentException("Entity is not valid.", nameof(entity));
             }
-            return new Entity(entity.GUID, entity.EntityType, new Vector3<float>(entity.Position.X, entity.Position.Y, entity.Position.Z), new Quaternion<float>(entity.Rotation.W, entity.Rotation.X, entity.Rotation.Y, entity.Rotation.Z), new Vector3<float>(entity.Velocity.X, entity.Velocity.Y, entity.Velocity.Z), new Vector3<float>(entity.AngularVelocity.X, entity.AngularVelocity.Y, entity.AngularVelocity.Z), entity.Actions);
+            return new Entity(entity.GUID, entity.EntityType, (entity.GameColor == null) ? EGameColor.Default : entity.GameColor.Value, (entity.Position == null) ? Vector3.Zero : new Vector3(entity.Position.X, entity.Position.Y, entity.Position.Z), (entity.Rotation == null) ? Quaternion.Identity : new Quaternion(entity.Rotation.X, entity.Rotation.Y, entity.Rotation.Z, entity.Rotation.W), (entity.Velocity == null) ? Vector3.Zero : new Vector3(entity.Velocity.X, entity.Velocity.Y, entity.Velocity.Z), (entity.AngularVelocity == null) ? Vector3.Zero : new Vector3(entity.AngularVelocity.X, entity.AngularVelocity.Y, entity.AngularVelocity.Z), entity.Actions ?? (IEnumerable<EGameAction>)Array.Empty<EGameAction>());
         }
     }
 }

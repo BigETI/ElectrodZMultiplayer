@@ -17,10 +17,10 @@ namespace ElectrodZMultiplayer.Data.Messages
         /// Elapsed time in seconds since game start
         /// </summary>
         [JsonProperty("time")]
-        public float Time { get; set; }
+        public double Time { get; set; }
 
         /// <summary>
-        /// Currently available entities
+        /// Entities to update
         /// </summary>
         [JsonProperty("entities")]
         public List<EntityData> Entities { get; set; }
@@ -30,7 +30,7 @@ namespace ElectrodZMultiplayer.Data.Messages
         /// </summary>
         public override bool IsValid =>
             base.IsValid &&
-            (Time >= 0.0f) &&
+            (Time >= 0.0) &&
             Protection.IsValid(Entities);
 
         /// <summary>
@@ -45,26 +45,26 @@ namespace ElectrodZMultiplayer.Data.Messages
         /// Constructs a server tick message
         /// </summary>
         /// <param name="time">Time</param>
-        /// <param name="entities">Entities</param>
-        public ServerTickMessageData(float time, IEnumerable<IEntity> entities) : base(Naming.GetMessageTypeNameFromMessageDataType<ServerTickMessageData>())
+        /// <param name="entityDeltas">Entities to update</param>
+        public ServerTickMessageData(double time, IEnumerable<IEntityDelta> entityDeltas) : base(Naming.GetMessageTypeNameFromMessageDataType<ServerTickMessageData>())
         {
-            if (time < 0.0f)
+            if (time < 0.0)
             {
                 throw new ArgumentException("Time must be positive.", nameof(time));
             }
-            if (entities == null)
+            if (entityDeltas == null)
             {
-                throw new ArgumentNullException(nameof(entities));
+                throw new ArgumentNullException(nameof(entityDeltas));
             }
-            if (!Protection.IsValid(entities))
+            if (!Protection.IsValid(entityDeltas))
             {
-                throw new ArgumentException($"Entities are not valid.", nameof(entities));
+                throw new ArgumentException($"Entities are not valid.", nameof(entityDeltas));
             }
             Time = time;
             Entities = new List<EntityData>();
-            foreach (IEntity entity in entities)
+            foreach (IEntityDelta entity_delta in entityDeltas)
             {
-                Entities.Add(new EntityData(entity.GUID, entity.EntityType, entity.GameColor, entity.Position, entity.Rotation, entity.Velocity, entity.AngularVelocity, entity.Actions));
+                Entities.Add(new EntityData(entity_delta.GUID, entity_delta.EntityType, entity_delta.GameColor, entity_delta.Position, entity_delta.Rotation, entity_delta.Velocity, entity_delta.AngularVelocity, entity_delta.Actions));
             }
         }
     }

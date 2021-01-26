@@ -14,6 +14,11 @@ namespace ElectrodZMultiplayer.Server
     internal class ServerUser : Entity, IInternalServerUser
     {
         /// <summary>
+        /// Last entity deltas
+        /// </summary>
+        private IList<IEntityDelta> lastEntityDeltas = new List<IEntityDelta>();
+
+        /// <summary>
         /// Peer
         /// </summary>
         public IPeer Peer { get; private set; }
@@ -34,9 +39,14 @@ namespace ElectrodZMultiplayer.Server
         public string Token { get; }
 
         /// <summary>
+        /// Entity streamer
+        /// </summary>
+        public IEntityStreamer EntityStreamer { get; } = new EntityStreamer();
+
+        /// <summary>
         /// Lobby
         /// </summary>
-        public ILobby Lobby { get; private set; }
+        public ILobby Lobby => ServerLobby;
 
         /// <summary>
         /// Username
@@ -54,12 +64,32 @@ namespace ElectrodZMultiplayer.Server
         public long Score { get; private set; }
 
         /// <summary>
+        /// This event will be invoked when the username changes.
+        /// </summary>
+        public event UsernameUpdatedDelegate OnUsernameUpdated;
+
+        /// <summary>
+        /// This event will be invoked when the user lobby color changes.
+        /// </summary>
+        public event UserLobbyColorUpdatedDelegate OnUserLobbyColorUpdated;
+
+        /// <summary>
+        /// This event will be invoked when a client tick has been performed.
+        /// </summary>
+        public event ClientTickedDelegate OnClientTicked;
+
+        /// <summary>
+        /// This event will be invoked when a server tick has been performed.
+        /// </summary>
+        public event ServerTickedDelegate OnServerTicked;
+
+        /// <summary>
         /// Constructs an server user
         /// </summary>
         /// <param name="peer">Peer</param>
         /// <param name="server">Server</param>
         /// <param name="token">Token</param>
-        public ServerUser(IPeer peer, IServerSynchronizer server, string token) : base((peer == null) ? Guid.Empty : peer.GUID, EGameColor.Default)
+        public ServerUser(IPeer peer, IServerSynchronizer server, string token) : base((peer == null) ? Guid.Empty : peer.GUID, Defaults.playerEntityType)
         {
             Peer = peer ?? throw new ArgumentNullException(nameof(peer));
             Server = server ?? throw new ArgumentNullException(nameof(server));
@@ -70,19 +100,21 @@ namespace ElectrodZMultiplayer.Server
         /// Updates username
         /// </summary>
         /// <param name="name">Username</param>
-        public void UpdateName(string name)
+        public void UpdateUsername(string name)
         {
             SetNameInternally(name);
+            OnUsernameUpdated?.Invoke();
             ServerLobby.SendUsernameChangedMessage(this);
         }
 
         /// <summary>
-        /// Updates lobby color
+        /// Updates user lobby color
         /// </summary>
         /// <param name="color">Lobby color</param>
-        public void UpdateLobbyColor(Color lobbyColor)
+        public void UpdateUserLobbyColor(Color lobbyColor)
         {
             SetLobbyColorInternally(lobbyColor);
+            OnUserLobbyColorUpdated?.Invoke();
             ServerLobby.SendUserLobbyColorChangedMessage(this);
         }
 
@@ -129,6 +161,12 @@ namespace ElectrodZMultiplayer.Server
         public void SetLobbyColorInternally(Color lobbyColor) => LobbyColor = lobbyColor;
 
         /// <summary>
+        /// Invoked the client ticked event
+        /// </summary>
+        /// <param name="entityDeltas">Entity deltas</param>
+        public void InvokeClientTickedEvent(IEnumerable<IEntityDelta> entityDeltas) => OnClientTicked?.Invoke(entityDeltas);
+
+        /// <summary>
         /// Sends a message
         /// </summary>
         /// <typeparam name="T">Message type</typeparam>
@@ -136,15 +174,9 @@ namespace ElectrodZMultiplayer.Server
         public void SendMessage<T>(T message) where T : IBaseMessageData => Server.SendMessageToPeer(Peer, message);
 
         /// <summary>
-        /// Sends an authentication acknowledged message
+        /// Sends an authentification acknowledged message
         /// </summary>
-        public void SendAuthenticationAcknowledgedMessage() => SendMessage(new AuthenticationAcknowledgedMessageData(GUID, Token));
-
-        /// <summary>
-        /// Sends a join lobby acknowledged message
-        /// </summary>
-        /// <param name="lobby">Lobby</param>
-        public void SendJoinLobbyAcknowledgedMessage(IServerLobby lobby) => SendMessage(new JoinLobbyAcknowledgedMessageData(lobby));
+        public void SendAuthentificationAcknowledgedMessage() => SendMessage(new AuthentificationAcknowledgedMessageData(GUID, Token));
 
         /// <summary>
         /// Sends a list lobby results message
@@ -153,21 +185,45 @@ namespace ElectrodZMultiplayer.Server
         public void SendListLobbyResultsMessage(IEnumerable<ILobbyView> lobbies) => SendMessage(new ListLobbyResultsMessageData(lobbies));
 
         /// <summary>
-        /// Sends an error message
+        /// Sends a list available game mode results message
         /// </summary>
-        /// <param name="errorType">Error type</param>
-        /// <param name="message">Error message</param>
-        public void SendErrorMessage(EErrorType errorType, string message) => SendErrorMessage(errorType, message, false);
+        /// <param name="gameModes">Available game modes</param>
+        public void SendListAvailableGameModeResultsMessage(IEnumerable<string> gameModes) => SendMessage(new ListAvailableGameModeResultsMessageData(gameModes));
+
+        /// <summary>
+        /// Sends a join lobby acknowledged message
+        /// </summary>
+        /// <param name="lobby">Lobby</param>
+        public void SendJoinLobbyAcknowledgedMessage(IServerLobby lobby) => SendMessage(new JoinLobbyAcknowledgedMessageData(lobby));
+
+        /// <summary>
+        /// Sends a server tick message
+        /// </summary>
+        /// <param name="time">Time elapsed in seconds since game started</param>
+        public void SendServerTickMessage(double time)
+        {
+            OnServerTicked?.Invoke(time, EntityStreamer.GetEntityDeltas(Lobby.Users.Values, Lobby.Entities.Values, ref lastEntityDeltas));
+            SendMessage(new ServerTickMessageData(time, lastEntityDeltas));
+        }
 
         /// <summary>
         /// Sends an error message
         /// </summary>
+        /// <typeparam name="T">Message type</typeparam>
+        /// <param name="errorType">Error type</param>
+        /// <param name="message">Error message</param>
+        public void SendErrorMessage<T>(EErrorType errorType, string message) where T : IBaseMessageData => SendErrorMessage<T>(errorType, message, false);
+
+        /// <summary>
+        /// Sends an error message
+        /// </summary>
+        /// <typeparam name="T">Message type</typeparam>
         /// <param name="errorType">Error type</param>
         /// <param name="message">Error message</param>
         /// <param name="isFatal">Is error fatal</param>
-        public void SendErrorMessage(EErrorType errorType, string message, bool isFatal)
+        public void SendErrorMessage<T>(EErrorType errorType, string message, bool isFatal) where T : IBaseMessageData
         {
-            SendMessage(new ErrorMessageData(errorType, message));
+            SendMessage(new ErrorMessageData(errorType, Naming.GetMessageTypeNameFromMessageDataType<T>(), message));
             if (isFatal)
             {
                 Peer.Disconnect(EDisconnectionReason.Error);
@@ -196,5 +252,42 @@ namespace ElectrodZMultiplayer.Server
             }
             Disconnect(EDisconnectionReason.Banned);
         }
+
+        /// <summary>
+        /// Sets the new game color
+        /// </summary>
+        /// <param name="newGameColor">New game color</param>
+        public void SetGameColor(EGameColor newGameColor) => SetGameColorInternally(newGameColor);
+
+        /// <summary>
+        /// Sets the new position
+        /// </summary>
+        /// <param name="newPosition"></param>
+        public void SetPosition(Vector3 newPosition) => SetPositionInternally(newPosition);
+
+        /// <summary>
+        /// Sets the new rotation
+        /// </summary>
+        /// <param name="newRotation"></param>
+        public void SetRotation(Quaternion newRotation) => SetRotationInternally(newRotation);
+
+        /// <summary>
+        /// Sets the new velocity
+        /// </summary>
+        /// <param name="newVelocity"></param>
+        public void SetVelocity(Vector3 newVelocity) => SetVelocityInternally(newVelocity);
+
+        /// <summary>
+        /// Sets the angular velocity
+        /// </summary>
+        /// <param name="newAngularVelocity"></param>
+        public void SetAngularVelocity(Vector3 newAngularVelocity) => SetAngularVelocityInternally(newAngularVelocity);
+
+        /// <summary>
+        /// Sets the new game actions
+        /// </summary>
+        /// <param name="newActions">New game actions</param>
+        /// <returns>Number of game actions set</returns>
+        public uint SetActions(IEnumerable<EGameAction> newActions) => SetActionsInternally(newActions);
     }
 }

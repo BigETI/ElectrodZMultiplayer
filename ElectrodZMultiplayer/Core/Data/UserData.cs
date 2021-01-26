@@ -25,7 +25,6 @@ namespace ElectrodZMultiplayer.Data
         /// Current user game color
         /// </summary>
         [JsonProperty("gameColor")]
-        [JsonConverter(typeof(GameColorJSONConverter))]
         public EGameColor GameColor { get; set; }
 
         /// <summary>
@@ -46,7 +45,7 @@ namespace ElectrodZMultiplayer.Data
         /// </summary>
         public bool IsValid =>
             (GUID != Guid.Empty) &&
-            (GameColor != EGameColor.Unknown) &&
+            (GameColor != EGameColor.Invalid) &&
             (Name != null) &&
             (Name.Trim().Length >= Defaults.minimalUsernameLength) &&
             (Name.Trim().Length <= Defaults.maximalUsernameLength);
@@ -70,11 +69,11 @@ namespace ElectrodZMultiplayer.Data
         {
             if (guid == Guid.Empty)
             {
-                throw new ArgumentException("User GUID is empty.", nameof(guid));
+                throw new ArgumentException("User GUID can't be empty.", nameof(guid));
             }
-            if (gameColor == EGameColor.Unknown)
+            if (gameColor == EGameColor.Invalid)
             {
-                throw new ArgumentException("User game color is unknown.", nameof(gameColor));
+                throw new ArgumentException("User game color can't be invalid.", nameof(gameColor));
             }
             if (name == null)
             {

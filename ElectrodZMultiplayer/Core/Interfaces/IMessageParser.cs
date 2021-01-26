@@ -15,8 +15,13 @@ namespace ElectrodZMultiplayer
         event MessageParsedDelegate<T> OnMessageParsed;
 
         /// <summary>
+        /// On message validation failed
+        /// </summary>
+        event MessageValidationFailedDelegate<T> OnMessageValidationFailed;
+
+        /// <summary>
         /// Om message parse failed
         /// </summary>
-        event MessageParseFailedDelegate<T> OnMessageParseFailed;
+        event MessageParseFailedDelegate OnMessageParseFailed;
     }
 }

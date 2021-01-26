@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿using System;
 
 /// <summary>
 /// ElectrodZ multiplayer server namespace
@@ -11,14 +11,27 @@ namespace ElectrodZMultiplayer.Server
     internal interface IInternalServerLobby : IServerLobby
     {
         /// <summary>
-        /// Internal users
+        /// Remaining game start time in seconds
         /// </summary>
-        Dictionary<string, IUser> InternalUsers { get; }
+        double RemainingGameStartTime { get; set; }
 
         /// <summary>
-        /// Internal entities
+        /// Remaining game stop time in seconds
         /// </summary>
-        Dictionary<string, IEntity> InternalEntities { get; }
+        double RemainingGameStopTime { get; set; }
+
+        /// <summary>
+        /// Adds the specified user
+        /// </summary>
+        /// <param name="user">User</param>
+        /// <returns>"true" if the specified user has been successfully added, otherwise "false"</returns>
+        bool AddUser(IInternalServerUser user);
+
+        /// <summary>
+        /// Performs a game tick
+        /// </summary>
+        /// <param name="deltaTime">Delta time</param>
+        void Tick(TimeSpan deltaTime);
 
         /// <summary>
         /// Sets a new lobby name
@@ -52,10 +65,10 @@ namespace ElectrodZMultiplayer.Server
         void SetStartingGameAutomaticallyStateInternally(bool isStartingGameAutomatically);
 
         /// <summary>
-        /// Sets a new gamemode
+        /// Sets a new game mode type
         /// </summary>
-        /// <param name="gameMode"></param>
-        void SetGameModeInternally(string gameMode);
+        /// <param name="gameModeType">Game mode type</param>
+        void SetGameModeTypeInternally((IGameResource, Type) gameModeType);
 
         /// <summary>
         /// Adds a new game mode rule
@@ -75,6 +88,17 @@ namespace ElectrodZMultiplayer.Server
         /// Clears all game mode rules
         /// </summary>
         void ClearGameModeRulesInternally();
+
+        /// <summary>
+        /// Starts a new game mode instance 
+        /// </summary>
+        void StartNewGameModeInstance();
+
+        /// <summary>
+        /// Stops the currently running game mode instance
+        /// </summary>
+        /// <returns>"true" if a running game mode instance has been stopped, otherwise "false"</returns>
+        bool StopGameModeInstance();
 
         /// <summary>
         /// Sends a message to all
@@ -99,19 +123,14 @@ namespace ElectrodZMultiplayer.Server
         /// </summary>
         /// <param name="user">User</param>
         /// <param name="reason">Reason</param>
-        void SendUserLeftMessage(IUser user, string reason);
+        /// <param name="message">Message</param>
+        void SendUserLeftMessage(IUser user, EDisconnectionReason reason, string message);
 
         /// <summary>
         /// Sends an username changed message
         /// </summary>
         /// <param name="user">User</param>
         void SendUsernameChangedMessage(IUser user);
-
-        /// <summary>
-        /// Sends an user game color changed message
-        /// </summary>
-        /// <param name="user">User</param>
-        void SendUserGameColorChangedMessage(IUser user);
 
         /// <summary>
         /// Sends an user lobby color changed message
@@ -123,40 +142,18 @@ namespace ElectrodZMultiplayer.Server
         /// Sends a game start requested message
         /// </summary>
         /// <param name="time">Time to start in seconds</param>
-        void SendGameStartRequestedMessage(float time);
+        void SendGameStartRequestedMessage(double time);
 
         /// <summary>
         /// Sends a restart game requested message
         /// </summary>
         /// <param name="time">Time to restart in seconds</param>
-        void SendGameRestartRequestedMessage(float time);
+        void SendGameRestartRequestedMessage(double time);
 
         /// <summary>
         /// Sends a game stop requested message
         /// </summary>
         /// <param name="time">Time to stop game in seconds</param>
-        void SendGameStopRequestedMessage(float time);
-
-        /// <summary>
-        /// Sends a start game message
-        /// </summary>
-        void SendStartGameMessage();
-
-        /// <summary>
-        /// Sends a restart game message
-        /// </summary>
-        void SendRestartGameMessage();
-
-        /// <summary>
-        /// Sends a stop game message
-        /// </summary>
-        void SendStopGameMessage();
-
-        /// <summary>
-        /// Sends a server tick message
-        /// </summary>
-        /// <param name="time">Time</param>
-        /// <param name="entities">Entities</param>
-        void SendServerTickMessage(float time, IEnumerable<IEntity> entities);
+        void SendGameStopRequestedMessage(double time);
     }
 }

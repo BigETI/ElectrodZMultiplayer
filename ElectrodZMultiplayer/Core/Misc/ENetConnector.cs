@@ -13,27 +13,37 @@ namespace ElectrodZMultiplayer
     /// <summary>
     /// ENet connector class
     /// </summary>
-    internal class ENetConnector : AConnector, IENetConnector
+    internal class ENetConnector : AConnector, IInternalENetConnector
     {
         /// <summary>
         /// Peer connection attempt messages
         /// </summary>
-        private readonly ConcurrentBag<ENetPeerConnectionAttemptMessage> peerConnectionAttemptMessages = new ConcurrentBag<ENetPeerConnectionAttemptMessage>();
+        private readonly ConcurrentQueue<ENetPeerConnectionAttemptMessage> peerConnectionAttemptMessages = new ConcurrentQueue<ENetPeerConnectionAttemptMessage>();
 
         /// <summary>
         /// Peer disconnection messages
         /// </summary>
-        private readonly ConcurrentBag<ENetPeerDisconnectionMessage> peerDisconnectionMessages = new ConcurrentBag<ENetPeerDisconnectionMessage>();
+        private readonly ConcurrentQueue<ENetPeerDisconnectionMessage> peerDisconnectionMessages = new ConcurrentQueue<ENetPeerDisconnectionMessage>();
 
         /// <summary>
         /// Peer time out messages
         /// </summary>
-        private readonly ConcurrentBag<ENetPeerTimeOutMessage> peerTimeOutMessages = new ConcurrentBag<ENetPeerTimeOutMessage>();
+        private readonly ConcurrentQueue<ENetPeerTimeOutMessage> peerTimeOutMessages = new ConcurrentQueue<ENetPeerTimeOutMessage>();
 
         /// <summary>
         /// Peer receive messages
         /// </summary>
-        private readonly ConcurrentBag<ENetPeerReceiveMessage> peerReceiveMessages = new ConcurrentBag<ENetPeerReceiveMessage>();
+        private readonly ConcurrentQueue<ENetPeerReceiveMessage> peerReceiveMessages = new ConcurrentQueue<ENetPeerReceiveMessage>();
+
+        /// <summary>
+        /// Peer send messages
+        /// </summary>
+        private readonly ConcurrentQueue<ENetPeerSendMessage> peerSendMessages = new ConcurrentQueue<ENetPeerSendMessage>();
+
+        /// <summary>
+        /// Dispose packets
+        /// </summary>
+        private readonly List<Packet> disposePackets = new List<Packet>();
 
         /// <summary>
         /// Peer ID to peer lookup
@@ -104,29 +114,62 @@ namespace ElectrodZMultiplayer
             TimeoutTime = timeoutTime;
             connectorThread = new Thread(() =>
             {
+                HashSet<uint> available_peer_ids = new HashSet<uint>();
                 while (isConnectorThreadRunning)
                 {
+                    bool has_network_event = true;
                     if (Host.CheckEvents(out Event network_event) <= 0)
                     {
                         if (Host.Service((int)TimeoutTime, out network_event) <= 0)
                         {
-                            continue;
+                            has_network_event = false;
                         }
                     }
-                    switch (network_event.Type)
+                    if (has_network_event)
                     {
-                        case EventType.Connect:
-                            peerConnectionAttemptMessages.Add(new ENetPeerConnectionAttemptMessage(network_event.Peer));
-                            break;
-                        case EventType.Disconnect:
-                            peerDisconnectionMessages.Add(new ENetPeerDisconnectionMessage(network_event.Peer));
-                            break;
-                        case EventType.Receive:
-                            peerReceiveMessages.Add(new ENetPeerReceiveMessage(network_event.Peer, network_event.ChannelID, network_event.Packet));
-                            break;
-                        case EventType.Timeout:
-                            peerTimeOutMessages.Add(new ENetPeerTimeOutMessage(network_event.Peer));
-                            break;
+                        switch (network_event.Type)
+                        {
+                            case EventType.Connect:
+                                available_peer_ids.Add(network_event.Peer.ID);
+                                peerConnectionAttemptMessages.Enqueue(new ENetPeerConnectionAttemptMessage(network_event.Peer));
+                                break;
+                            case EventType.Disconnect:
+                                available_peer_ids.Remove(network_event.Peer.ID);
+                                peerDisconnectionMessages.Enqueue(new ENetPeerDisconnectionMessage(network_event.Peer));
+                                break;
+                            case EventType.Receive:
+                                Packet packet = network_event.Packet;
+                                if (buffer.Length < packet.Length)
+                                {
+                                    buffer = new byte[packet.Length / buffer.Length * (((packet.Length % buffer.Length) == 0) ? 1 : 2) * buffer.Length];
+                                }
+                                Marshal.Copy(packet.Data, buffer, 0, packet.Length);
+                                peerReceiveMessages.Enqueue(new ENetPeerReceiveMessage(network_event.Peer, network_event.ChannelID, Compression.Decompress(buffer, 0U, (uint)packet.Length)));
+                                break;
+                            case EventType.Timeout:
+                                available_peer_ids.Remove(network_event.Peer.ID);
+                                peerTimeOutMessages.Enqueue(new ENetPeerTimeOutMessage(network_event.Peer));
+                                break;
+                        }
+                    }
+                    while (peerSendMessages.TryDequeue(out ENetPeerSendMessage send_message))
+                    {
+                        if (available_peer_ids.Contains(send_message.Peer.ID))
+                        {
+                            Packet packet = default;
+                            packet.Create(send_message.Message, (int)send_message.Index, (int)send_message.Length, PacketFlags.Reliable);
+                            send_message.Peer.Send(0, ref packet);
+                            disposePackets.Add(packet);
+                        }
+                    }
+                    if (disposePackets.Count > 0)
+                    {
+                        Host.Flush();
+                        foreach (Packet packet in disposePackets)
+                        {
+                            packet.Dispose();
+                        }
+                        disposePackets.Clear();
                     }
                 }
             });
@@ -149,20 +192,35 @@ namespace ElectrodZMultiplayer
         }
 
         /// <summary>
+        /// Sends a message to peer internally
+        /// </summary>
+        /// <param name="peer">Peer</param>
+        /// <param name="message">Message</param>
+        /// <param name="index">Index</param>
+        /// <param name="length">Length</param>
+        public void SendMessageToPeerInternally(Peer peer, byte[] message, uint index, uint length)
+        {
+            if (peerIDToPeerLookup.ContainsKey(peer.ID))
+            {
+                peerSendMessages.Enqueue(new ENetPeerSendMessage(peer, message, index, length));
+            }
+        }
+
+        /// <summary>
         /// Connects to a network
         /// </summary>
         /// <param name="address">Network address</param>
         /// <returns>Peer</returns>
-        public IPeer ConnectToNetwork(Address address) => new ENetPeer(Guid.NewGuid(), Host.Connect(address), Host);
+        public IPeer ConnectToNetwork(Address address) => new ENetPeer(Guid.NewGuid(), Host.Connect(address), this);
 
         /// <summary>
         /// Processes all events appeared since last call
         /// </summary>
         public override void ProcessEvents()
         {
-            while (peerConnectionAttemptMessages.TryTake(out ENetPeerConnectionAttemptMessage connection_attempt_message))
+            while (peerConnectionAttemptMessages.TryDequeue(out ENetPeerConnectionAttemptMessage connection_attempt_message))
             {
-                ENetPeer peer = new ENetPeer(Guid.NewGuid(), connection_attempt_message.Peer, Host);
+                ENetPeer peer = new ENetPeer(Guid.NewGuid(), connection_attempt_message.Peer, this);
                 OnPeerConnectionAttempted?.Invoke(peer);
                 if (IsConnectionAllowed(peer))
                 {
@@ -175,26 +233,20 @@ namespace ElectrodZMultiplayer
                     connection_attempt_message.Peer.Disconnect((uint)EDisconnectionReason.Banned);
                 }
             }
-            while (peerDisconnectionMessages.TryTake(out ENetPeerDisconnectionMessage disconnection_message))
+            while (peerDisconnectionMessages.TryDequeue(out ENetPeerDisconnectionMessage disconnection_message))
             {
                 RemovePeer(disconnection_message.Peer);
             }
-            while (peerTimeOutMessages.TryTake(out ENetPeerTimeOutMessage time_out_message))
+            while (peerTimeOutMessages.TryDequeue(out ENetPeerTimeOutMessage time_out_message))
             {
                 RemovePeer(time_out_message.Peer);
             }
-            while (peerReceiveMessages.TryTake(out ENetPeerReceiveMessage receive_message))
+            while (peerReceiveMessages.TryDequeue(out ENetPeerReceiveMessage receive_message))
             {
                 if (peerIDToPeerLookup.ContainsKey(receive_message.Peer.ID))
                 {
-                    if (buffer.Length < receive_message.Packet.Length)
-                    {
-                        buffer = new byte[receive_message.Packet.Length / buffer.Length * (((receive_message.Packet.Length % buffer.Length) == 0) ? 1 : 2) * buffer.Length];
-                    }
-                    Marshal.Copy(receive_message.Packet.Data, buffer, 0, receive_message.Packet.Length);
-                    OnPeerMessageReceived?.Invoke(peerIDToPeerLookup[receive_message.Peer.ID], Compression.Decompress(buffer, 0U, (uint)receive_message.Packet.Length));
+                    OnPeerMessageReceived?.Invoke(peerIDToPeerLookup[receive_message.Peer.ID], receive_message.Message);
                 }
-                receive_message.Packet.Dispose();
             }
         }
 

@@ -9,7 +9,7 @@ using System.Collections.Generic;
 namespace ElectrodZMultiplayer.Data.Messages
 {
     /// <summary>
-    /// A class that describes an acknowledgment about joining a lobby as a message
+    /// A class that describes a join lobby acknowledged message
     /// </summary>
     [JsonObject(MemberSerialization.OptIn)]
     internal class JoinLobbyAcknowledgedMessageData : BaseMessageData
@@ -45,7 +45,7 @@ namespace ElectrodZMultiplayer.Data.Messages
             Protection.AreUnique(Users, (left, right) => left.GUID != right.GUID);
 
         /// <summary>
-        /// Constructs an acknowledgment to join a lobby as a message for deserializers
+        /// Constructs a join lobby acknowledged message for deserializers
         /// </summary>
         public JoinLobbyAcknowledgedMessageData() : base()
         {
@@ -53,7 +53,7 @@ namespace ElectrodZMultiplayer.Data.Messages
         }
 
         /// <summary>
-        /// Constructs an acknowledgment to join a lobby as a message for deserializers
+        /// Constructs a join lobby acknowledged message
         /// </summary>
         /// <param name="lobby">Lobby being acknowledged</param>
         public JoinLobbyAcknowledgedMessageData(ILobby lobby) : base(Naming.GetMessageTypeNameFromMessageDataType<JoinLobbyAcknowledgedMessageData>())

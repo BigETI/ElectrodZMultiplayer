@@ -8,7 +8,7 @@ namespace ElectrodZMultiplayer.Server
     /// <summary>
     /// An interface that describes a server user
     /// </summary>
-    public interface IServerUser : IUser
+    public interface IServerUser : IServerEntity, IUser
     {
         /// <summary>
         /// Peer
@@ -29,13 +29,13 @@ namespace ElectrodZMultiplayer.Server
         /// Updates username
         /// </summary>
         /// <param name="name">Username</param>
-        void UpdateName(string name);
+        void UpdateUsername(string name);
 
         /// <summary>
-        /// Updates lobby color
+        /// Updates user lobby color
         /// </summary>
         /// <param name="color">Lobby color</param>
-        void UpdateLobbyColor(Color lobbyColor);
+        void UpdateUserLobbyColor(Color lobbyColor);
 
         /// <summary>
         /// Disconnects user

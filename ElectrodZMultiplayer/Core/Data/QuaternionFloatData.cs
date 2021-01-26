@@ -9,14 +9,8 @@ namespace ElectrodZMultiplayer.Data
     /// A class that describes quaternion data
     /// </summary>
     [JsonObject(MemberSerialization.OptIn)]
-    internal class QuaternionFloatData
+    public class QuaternionFloatData
     {
-        /// <summary>
-        /// W component of the quaternion
-        /// </summary>
-        [JsonProperty("w")]
-        public float W { get; set; }
-
         /// <summary>
         /// X component of the quaternion
         /// </summary>
@@ -36,6 +30,12 @@ namespace ElectrodZMultiplayer.Data
         public float Z { get; set; }
 
         /// <summary>
+        /// W component of the quaternion
+        /// </summary>
+        [JsonProperty("w")]
+        public float W { get; set; }
+
+        /// <summary>
         /// Constructs quaternion data for deserializers
         /// </summary>
         public QuaternionFloatData()
@@ -46,22 +46,22 @@ namespace ElectrodZMultiplayer.Data
         /// <summary>
         /// Constructs quaternion data
         /// </summary>
-        /// <param name="w">W component of the quaternion</param>
         /// <param name="x">X component of the quaternion</param>
         /// <param name="y">Y component of the quaternion</param>
         /// <param name="z">Z component of the quaternion</param>
-        public QuaternionFloatData(float w, float x, float y, float z)
+        /// <param name="w">W component of the quaternion</param>
+        public QuaternionFloatData(float x, float y, float z, float w)
         {
-            W = w;
             X = x;
             Y = y;
             Z = z;
+            W = w;
         }
 
         /// <summary>
         /// Explicitly casts a quaternion to quaternion data
         /// </summary>
         /// <param name="quaternion">Quaternion</param>
-        public static explicit operator QuaternionFloatData(Quaternion<float> quaternion) => new QuaternionFloatData(quaternion.W, quaternion.X, quaternion.Y, quaternion.Z);
+        public static explicit operator QuaternionFloatData(Quaternion quaternion) => new QuaternionFloatData(quaternion.X, quaternion.Y, quaternion.Z, quaternion.W);
     }
 }

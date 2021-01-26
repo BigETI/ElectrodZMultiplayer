@@ -8,5 +8,6 @@ namespace ElectrodZMultiplayer
     /// </summary>
     /// <param name="user">Leaving user</param>
     /// <param name="reason">Reason to leave</param>
-    public delegate void UserLeftDelegate(IUser user, string reason);
+    /// <param name="message">Leave message</param>
+    public delegate void UserLeftDelegate(IUser user, EDisconnectionReason reason, string message);
 }

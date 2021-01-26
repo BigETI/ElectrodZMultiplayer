@@ -16,14 +16,14 @@ namespace ElectrodZMultiplayer.Data.Messages
         /// Time to stop game in seconds
         /// </summary>
         [JsonProperty("time")]
-        public float Time { get; set; }
+        public double Time { get; set; }
 
         /// <summary>
         /// Is valid
         /// </summary>
         public override bool IsValid =>
             base.IsValid &&
-            (Time >= 0.0f);
+            (Time >= 0.0);
 
         /// <summary>
         /// Constructs a game stop request message for deserializers
@@ -37,9 +37,9 @@ namespace ElectrodZMultiplayer.Data.Messages
         /// Constructs a game stop request message
         /// </summary>
         /// <param name="time">Time to stop game in seconds</param>
-        public GameStopRequestedMessageData(float time) : base(Naming.GetMessageTypeNameFromMessageDataType<GameStopRequestedMessageData>())
+        public GameStopRequestedMessageData(double time) : base(Naming.GetMessageTypeNameFromMessageDataType<GameStopRequestedMessageData>())
         {
-            if (time < 0.0f)
+            if (time < 0.0)
             {
                 throw new ArgumentException("Time must be positive.", nameof(time));
             }

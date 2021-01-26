@@ -41,19 +41,39 @@ namespace ElectrodZMultiplayer.Client
         public bool IsConnected => Peer != null;
 
         /// <summary>
-        /// Is user authenticated
+        /// Is user authentificated
         /// </summary>
-        public bool IsAuthenticated => user != null;
+        public bool IsAuthentificated => user != null;
 
         /// <summary>
-        /// On acknowledge authentication message received
+        /// This event will be invoked when an authentification was acknowledged.
         /// </summary>
-        public event AuthenticationAcknowledgedDelegate OnAuthenticationAcknowledged;
+        public override event AuthentificationAcknowledgedDelegate OnAuthentificationAcknowledged;
 
         /// <summary>
-        /// On lobbies listed
+        /// This event will be invoked when an authentification has failed.
         /// </summary>
-        public event LobbiesListedDelegate OnLobbiesListed;
+        public override event AuthentificationFailedDelegate OnAuthentificationFailed;
+
+        /// <summary>
+        /// This event will be invoked when lobbies have been listed.
+        /// </summary>
+        public override event LobbiesListedDelegate OnLobbiesListed;
+
+        /// <summary>
+        /// This event will be invoked when listing lobbies has failed.
+        /// </summary>
+        public override event ListLobbiesFailedDelegate OnListLobbiesFailed;
+
+        /// <summary>
+        /// This event will be invoked when available game modes have been listed.
+        /// </summary>
+        public override event AvailableGameModesListedDelegate OnAvailableGameModesListed;
+
+        /// <summary>
+        /// This event will be invoked when listing available game modes has failed.
+        /// </summary>
+        public override event ListAvailableGameModesFailedDelegate OnListAvailableGameModesFailed;
 
         /// <summary>
         /// On lobby join acknowledged
@@ -61,74 +81,54 @@ namespace ElectrodZMultiplayer.Client
         public event LobbyJoinAcknowledgedDelegate OnLobbyJoinAcknowledged;
 
         /// <summary>
-        /// On user joined
+        /// This event will be invoked when joining a lobby has failed.
         /// </summary>
-        public event UserJoinedDelegate OnUserJoined;
+        public override event JoinLobbyFailedDelegate OnJoinLobbyFailed;
 
         /// <summary>
-        /// On user left
+        /// This event will be invoked when creating a lobby has failed.
         /// </summary>
-        public event UserLeftDelegate OnUserLeft;
+        public override event CreateLobbyFailedDelegate OnCreateLobbyFailed;
 
         /// <summary>
-        /// On lobby rules changed
+        /// This event will be invoked when changing username has failed.
         /// </summary>
-        public event LobbyRulesChangedDelegate OnLobbyRulesChanged;
+        public override event ChangeUsernameFailedDelegate OnChangeUsernameFailed;
 
         /// <summary>
-        /// On username changed
+        /// This event will be invoked when changing user lobby color has failed.
         /// </summary>
-        public event UsernameChangedDelegate OnUsernameChanged;
+        public override event ChangeUserLobbyColorFailedDelegate OnChangeUserLobbyColorFailed;
 
         /// <summary>
-        /// On user game color changed
+        /// This event will be invoked when changing lobby rules have failed.
         /// </summary>
-        public event UserGameColorChangedDelegate OnUserGameColorChanged;
+        public override event ChangeLobbyRulesFailedDelegate OnChangeLobbyRulesFailed;
 
         /// <summary>
-        /// On user lobby color changed
+        /// This event will be invoked when kicking a user has failed.
         /// </summary>
-        public event UserGameColorChangedDelegate OnUserLobbyColorChanged;
+        public override event KickUserFailedDelegate OnKickUserFailed;
 
         /// <summary>
-        /// On game start requested
+        /// This event will be invoked when starting a game has failed.
         /// </summary>
-        public event GameStartRequestedDelegate OnGameStartRequested;
+        public override event StartGameFailedDelegate OnStartGameFailed;
 
         /// <summary>
-        /// On game restart requested
+        /// This event will be invoked when restarting a game has failed.
         /// </summary>
-        public event GameRestartRequestedDelegate OnGameRestartRequested;
+        public override event RestartGameFailedDelegate OnRestartGameFailed;
 
         /// <summary>
-        /// On game stop requested
+        /// This event will be invoked when stopping a game has failed.
         /// </summary>
-        public event GameStopRequestedDelegate OnGameStopRequested;
+        public override event StopGameFailedDelegate OnStopGameFailed;
 
         /// <summary>
-        /// On game started
+        /// This event will be invoked when a client tick has failed.
         /// </summary>
-        public event GameStartedDelegate OnGameStarted;
-
-        /// <summary>
-        /// On game restarted
-        /// </summary>
-        public event GameRestartedDelegate OnGameRestarted;
-
-        /// <summary>
-        /// On game stopped
-        /// </summary>
-        public event GameStoppedDelegate OnGameStopped;
-
-        /// <summary>
-        /// On server ticked
-        /// </summary>
-        public event ServerTickedDelegate OnServerTicked;
-
-        /// <summary>
-        /// On game ended
-        /// </summary>
-        public event GameEndedDelegate OnGameEnded;
+        public override event ClientTickFailedDelegate OnClientTickFailed;
 
         /// <summary>
         /// Constructor
@@ -138,320 +138,258 @@ namespace ElectrodZMultiplayer.Client
         public ClientSynchronizer(IPeer peer, string token) : base()
         {
             Peer = peer ?? throw new ArgumentNullException(nameof(peer));
-            AddMessageParser<AuthenticationAcknowledgedMessageData>((_, message, json) =>
-            {
-                if (IsAuthenticated)
+            AddAutomaticMessageParserWithFatality<AuthentificationAcknowledgedMessageData>
+            (
+                (_, message, __) =>
                 {
-                    SendErrorMessageToPeer(peer, EErrorType.InvalidMessageContext, "Authentification has been already acknowledged.", true);
-                }
-                else
-                {
-                    Token = message.Token;
-                    user = new ClientUser(message.GUID, EGameColor.Default);
-                    OnAuthenticationAcknowledged?.Invoke(User);
-                }
-            }, FatalMessageParseFailedEvent);
-            AddMessageParser<ListLobbyResultsMessageData>((_, message, json) =>
-            {
-                ILobbyView[] lobbies = new ILobbyView[message.Lobbies.Count];
-                Parallel.For(0, lobbies.Length, (index) => lobbies[index] = (LobbyView)message.Lobbies[index]);
-                OnLobbiesListed?.Invoke(lobbies);
-            }, MessageParseFailedEvent);
-            AddMessageParser<JoinLobbyAcknowledgedMessageData>((_, message, json) =>
-                AssertIsUserAuthenticated((clientUser) =>
-                {
-                    if (clientUser.Lobby == null)
+                    if (IsAuthentificated)
                     {
-                        Dictionary<string, IUser> users = new Dictionary<string, IUser>();
-                        List<IInternalClientUser> user_list = new List<IInternalClientUser>();
-                        foreach (UserData user in message.Users)
-                        {
-                            IInternalClientUser client_user;
-                            if (user.GUID == clientUser.GUID)
-                            {
-                                client_user = clientUser;
-                                this.user.SetNameInternally(user.Name);
-                                this.user.SetLobbyColorInternally(user.LobbyColor);
-                            }
-                            else
-                            {
-                                client_user = new ClientUser(user.GUID, user.GameColor, user.Name, user.LobbyColor);
-                            }
-                            users.Add(user.GUID.ToString(), client_user);
-                            user_list.Add(client_user);
-                        }
-                        IInternalClientLobby client_lobby = new ClientLobby(this, message.Rules.LobbyCode, message.Rules.Name, message.Rules.MinimalUserCount, message.Rules.MaximalUserCount, message.Rules.IsStartingGameAutomatically, message.Rules.GameMode, message.Rules.GameModeRules, users[message.OwnerGUID.ToString()], users);
-                        user.ClientLobby = client_lobby;
-                        foreach (IInternalClientUser client_user in user_list)
-                        {
-                            client_user.ClientLobby = client_lobby;
-                        }
-                        user_list.Clear();
-                        OnLobbyJoinAcknowledged?.Invoke(client_lobby);
+                        SendErrorMessageToPeer<AuthentificationAcknowledgedMessageData>(peer, EErrorType.InvalidMessageContext, "Authentification has been already acknowledged.", true);
                     }
                     else
                     {
-                        SendErrorMessageToPeer(peer, EErrorType.InvalidMessageContext, $"User is already in lobby \"{ clientUser.Lobby.Name }\" with lobby code \"{ clientUser.Lobby.LobbyCode }\".");
+                        Token = message.Token;
+                        user = new ClientUser(message.GUID);
+                        OnAuthentificationAcknowledged?.Invoke(User);
                     }
-                }), MessageParseFailedEvent);
-            AddMessageParser<LobbyRulesChangedMessageData>((_, message, json) =>
-                AssertIsUserInLobby((clientUser, clientLobby) =>
+                }
+            );
+            AddAutomaticMessageParser<AuthentificationFailedMessageData>((currentPeer, message, _) => OnAuthentificationFailed?.Invoke(currentPeer, message.Message, message.Reason));
+            AddAutomaticMessageParser<ListLobbyResultsMessageData>
+            (
+                (_, message, __) =>
                 {
-                    LobbyRulesData rules = message.Rules;
-                    clientLobby.SetLobbyCodeInternally(rules.LobbyCode);
-                    clientLobby.SetNameInternally(rules.Name);
-                    clientLobby.SetMinimalUserCountInternally(rules.MinimalUserCount);
-                    clientLobby.SetMaximalUserCountInternally(rules.MaximalUserCount);
-                    clientLobby.SetStartingGameAutomaticallyStateInternally(rules.IsStartingGameAutomatically);
-                    clientLobby.SetGameModeInternally(rules.GameMode);
-                    clientLobby.InternalGameModeRules.Clear();
-                    foreach (KeyValuePair<string, object> game_mode_rule in rules.GameModeRules)
+                    ILobbyView[] lobbies = new ILobbyView[message.Lobbies.Count];
+                    Parallel.For(0, lobbies.Length, (index) => lobbies[index] = (LobbyView)message.Lobbies[index]);
+                    OnLobbiesListed?.Invoke(lobbies);
+                }
+            );
+            AddAutomaticMessageParser<ListLobbiesFailedMessageData>((currentPeer, message, _) => OnListLobbiesFailed?.Invoke(currentPeer, message.Message, message.Reason));
+            AddAutomaticMessageParser<ListAvailableGameModeResultsMessageData>((_, message, __) => OnAvailableGameModesListed?.Invoke(message.GameModes));
+            AddAutomaticMessageParser<ListAvailableGameModesFailedMessageData>((currentPeer, message, _) => OnListAvailableGameModesFailed?.Invoke(currentPeer, message.Message, message.Reason));
+            AddAutomaticMessageParser<JoinLobbyAcknowledgedMessageData>
+            (
+                (_, message, __) => AssertIsUserAuthentificated<JoinLobbyAcknowledgedMessageData>
+                (
+                    (clientUser) =>
                     {
-                        clientLobby.InternalGameModeRules.Add(game_mode_rule.Key, game_mode_rule.Value);
+                        if (clientUser.Lobby == null)
+                        {
+                            Dictionary<string, IUser> users = new Dictionary<string, IUser>();
+                            List<IInternalClientUser> user_list = new List<IInternalClientUser>();
+                            foreach (UserData user in message.Users)
+                            {
+                                IInternalClientUser client_user;
+                                if (user.GUID == clientUser.GUID)
+                                {
+                                    client_user = clientUser;
+                                    this.user.SetNameInternally(user.Name);
+                                    this.user.SetLobbyColorInternally(user.LobbyColor);
+                                }
+                                else
+                                {
+                                    client_user = new ClientUser(user.GUID, user.GameColor, user.Name, user.LobbyColor);
+                                }
+                                users.Add(user.GUID.ToString(), client_user);
+                                user_list.Add(client_user);
+                            }
+                            IInternalClientLobby client_lobby = new ClientLobby(this, message.Rules.LobbyCode, message.Rules.Name, message.Rules.MinimalUserCount, message.Rules.MaximalUserCount, message.Rules.IsStartingGameAutomatically, message.Rules.GameMode, message.Rules.GameModeRules, users[message.OwnerGUID.ToString()], users);
+                            user.ClientLobby = client_lobby;
+                            foreach (IInternalClientUser client_user in user_list)
+                            {
+                                client_user.ClientLobby = client_lobby;
+                            }
+                            user_list.Clear();
+                            OnLobbyJoinAcknowledged?.Invoke(client_lobby);
+                        }
+                        else
+                        {
+                            SendInvalidMessageContextErrorMessageToPeer<JoinLobbyAcknowledgedMessageData>(peer, $"User is already in lobby \"{ clientUser.Lobby.Name }\" with lobby code \"{ clientUser.Lobby.LobbyCode }\".");
+                        }
                     }
-                    OnLobbyRulesChanged(clientLobby);
-                }), MessageParseFailedEvent);
-            AddMessageParser<UserJoinedMessageData>((_, message, json) =>
-                AssertIsUserInLobby((clientUser, clientLobby) =>
-                {
-                    Dictionary<string, IUser> users = clientLobby.InternalUsers;
-                    string key = message.GUID.ToString();
-                    if (users.ContainsKey(key))
+                )
+            );
+            AddAutomaticMessageParser<JoinLobbyFailedMessageData>((currentPeer, message, _) => OnJoinLobbyFailed?.Invoke(currentPeer, message.Message, message.Reason));
+            AddAutomaticMessageParser<CreateLobbyFailedMessageData>((currentPeer, message, _) => OnCreateLobbyFailed?.Invoke(currentPeer, message.Message, message.Reason));
+            AddAutomaticMessageParser<LobbyRulesChangedMessageData>
+            (
+                (_, message, __) => AssertIsUserInLobby<LobbyRulesChangedMessageData>
+                (
+                    (clientUser, clientLobby) =>
                     {
-                        SendErrorMessageToPeer(peer, EErrorType.InvalidMessageContext, $"User \"{ users[key].Name }\" with GUID \"{ key }\" is already in a lobby.");
+                        LobbyRulesData rules = message.Rules;
+                        clientLobby.UpdateGameModeRulesInternally
+                        (
+                            rules.LobbyCode,
+                            rules.Name,
+                            rules.GameMode,
+                            rules.MinimalUserCount,
+                            rules.MaximalUserCount,
+                            rules.IsStartingGameAutomatically,
+                            rules.GameModeRules
+                        );
                     }
-                    else
+                )
+            );
+            AddAutomaticMessageParser<UserJoinedMessageData>
+            (
+                (_, message, __) => AssertIsUserInLobby<UserJoinedMessageData>
+                (
+                    (clientUser, clientLobby) =>
                     {
                         IUser user = new ClientUser(message.GUID, message.GameColor, message.Name, message.LobbyColor);
-                        users.Add(key, user);
-                        OnUserJoined?.Invoke(user);
-                    }
-                }), MessageParseFailedEvent);
-            AddMessageParser<UserLeftMessageData>((_, message, json) =>
-                AssertTargetLobbyUser(message.GUID, (clientUser, clientLobby, targetUser) =>
-                {
-                    clientLobby.InternalUsers.Remove(targetUser.GUID.ToString());
-                    targetUser.ClientLobby = null;
-                    OnUserLeft?.Invoke(user, message.Reason);
-                }), MessageParseFailedEvent);
-            AddMessageParser<UsernameChangedMessageData>((_, message, json) =>
-                AssertTargetLobbyUser(message.GUID, (clientUser, clientLobby, targetUser) =>
-                {
-                    targetUser.SetNameInternally(message.NewUsername);
-                    OnUsernameChanged?.Invoke(targetUser);
-                }), MessageParseFailedEvent);
-            AddMessageParser<UserGameColorChangedMessageData>((_, message, json) =>
-                AssertTargetLobbyUser(message.GUID, (clientUser, clientLobby, targetUser) =>
-                {
-                    targetUser.SetGameColorInternally(message.NewGameColor);
-                    OnUserGameColorChanged?.Invoke(targetUser);
-                }), MessageParseFailedEvent);
-            AddMessageParser<UserLobbyColorChangedMessageData>((_, message, json) =>
-                AssertTargetLobbyUser(message.GUID, (clientUser, clientLobby, targetUser) =>
-                {
-                    targetUser.SetLobbyColorInternally(message.NewLobbyColor);
-                    OnUserLobbyColorChanged?.Invoke(targetUser);
-                }), MessageParseFailedEvent);
-            AddMessageParser<GameStartRequestedMessageData>((_, message, json) =>
-                AssertIsUserInLobby((clientUser, clientLobby) =>
-                {
-                    OnGameStartRequested?.Invoke(message.Time);
-                }), MessageParseFailedEvent);
-            AddMessageParser<GameRestartRequestedMessageData>((_, message, json) =>
-                AssertIsUserInLobby((clientUser, clientLobby) =>
-                {
-                    OnGameRestartRequested?.Invoke(message.Time);
-                }), MessageParseFailedEvent);
-            AddMessageParser<GameStopRequestedMessageData>((_, message, json) =>
-                AssertIsUserInLobby((clientUser, clientLobby) =>
-                {
-                    OnGameStopRequested?.Invoke(message.Time);
-                }), MessageParseFailedEvent);
-            AddMessageParser<StartGameMessageData>((_, message, json) =>
-                AssertIsUserInLobby((clientUser, clientLobby) =>
-                {
-                    OnGameStarted?.Invoke(message.Time);
-                }), MessageParseFailedEvent);
-            AddMessageParser<RestartGameMessageData>((_, message, json) =>
-                AssertIsUserInLobby((clientUser, clientLobby) =>
-                {
-                    OnGameRestarted?.Invoke(message.Time);
-                }), MessageParseFailedEvent);
-            AddMessageParser<StopGameMessageData>((_, message, json) =>
-                AssertIsUserInLobby((clientUser, clientLobby) =>
-                {
-                    OnGameStopped?.Invoke();
-                }), MessageParseFailedEvent);
-            AddMessageParser<ServerTickMessageData>((_, message, json) =>
-                AssertIsUserInLobby((clientUser, clientLobby) =>
-                {
-                    Dictionary<string, IUser> users = clientLobby.InternalUsers;
-                    Dictionary<string, IEntity> entities = clientLobby.InternalEntities;
-                    HashSet<string> remove_entity_keys = new HashSet<string>(clientLobby.InternalEntities.Keys);
-                    foreach (EntityData entity in message.Entities)
-                    {
-                        string key = entity.GUID.ToString();
-                        if (users.ContainsKey(key))
+                        if (!clientLobby.AddUserInternally(user))
                         {
-                            remove_entity_keys.Remove(key);
-                            if (users[key] is IInternalClientUser client_user)
-                            {
-                                if (entity.EntityType != null)
-                                {
-                                    client_user.SetEntityTypeInternally(entity.EntityType);
-                                }
-                                if (entity.Position != null)
-                                {
-                                    client_user.SetPositionInternally(new Vector3<float>(entity.Position.X, entity.Position.Y, entity.Position.Z));
-                                }
-                                if (entity.Rotation != null)
-                                {
-                                    client_user.SetRotationInternally(new Quaternion<float>(entity.Rotation.W, entity.Rotation.X, entity.Rotation.Y, entity.Rotation.Z));
-                                }
-                                if (entity.Velocity != null)
-                                {
-                                    client_user.SetVelocityInternally(new Vector3<float>(entity.Velocity.X, entity.Velocity.Y, entity.Velocity.Z));
-                                }
-                                if (entity.AngularVelocity != null)
-                                {
-                                    client_user.SetAngularVelocityInternally(new Vector3<float>(entity.AngularVelocity.X, entity.AngularVelocity.Y, entity.AngularVelocity.Z));
-                                }
-                                if (entity.Actions != null)
-                                {
-                                    client_user.ClearGameActionsInternally();
-                                    foreach (EGameAction action in entity.Actions)
-                                    {
-                                        client_user.AddGameActionInternally(action);
-                                    }
-                                }
-                            }
-                        }
-                        else if (entities.ContainsKey(key))
-                        {
-                            remove_entity_keys.Remove(key);
+                            SendInvalidMessageContextErrorMessageToPeer<UserJoinedMessageData>(peer, $"Failed to add user \"{ user.Name }\" with GUID \"{ user.GUID }\" to lobby \"{ clientLobby.Name }\" with lobby code \"{ clientLobby.LobbyCode }\".");
                         }
                     }
-                    foreach (string remove_entity_key in remove_entity_keys)
+                )
+            );
+            AddAutomaticMessageParser<UserLeftMessageData>
+            (
+                (_, message, __) => AssertTargetLobbyUser<UserLeftMessageData>
+                (
+                    message.GUID,
+                    (clientUser, clientLobby, targetUser) =>
                     {
-                        entities.Remove(remove_entity_key);
+                        if (!clientLobby.RemoveUserInternally(targetUser, message.Reason, message.Message))
+                        {
+                            SendInvalidMessageContextErrorMessageToPeer<UserLeftMessageData>(peer, $"Failed to remove user \"{ targetUser.Name }\" with GUID \"{ targetUser.GUID }\" from lobby \"{ clientLobby.Name }\" with lobby code \"{ clientLobby.LobbyCode }\".");
+                        }
+                        targetUser.ClientLobby = null;
                     }
-                    remove_entity_keys.Clear();
-                    OnServerTicked?.Invoke(clientLobby, message.Time);
-                }), MessageParseFailedEvent);
-            AddMessageParser<GameEndedMessageData>((_, message, json) =>
-            {
-                if (User == null)
-                {
-                    SendErrorMessageToPeer(peer, EErrorType.InvalidMessageContext, "User has not been authenticated yet.", true);
-                }
-                else
-                {
-                    IClientLobby client_lobby = user.ClientLobby;
-                    if (client_lobby == null)
-                    {
-                        SendErrorMessageToPeer(peer, EErrorType.InvalidMessageContext, "User is not in any lobby yet.");
-                    }
-                    else
+                )
+            );
+            AddAutomaticMessageParser<UsernameChangedMessageData>((_, message, __) => AssertTargetLobbyUser<UsernameChangedMessageData>(message.GUID, (clientUser, clientLobby, targetUser) => targetUser.SetNameInternally(message.NewUsername)));
+            AddAutomaticMessageParser<ChangeUsernameFailedMessageData>((currentPeer, message, _) => OnChangeUsernameFailed?.Invoke(currentPeer, message.Message, message.Reason));
+            AddAutomaticMessageParser<UserLobbyColorChangedMessageData>((_, message, __) => AssertTargetLobbyUser<UserLobbyColorChangedMessageData>(message.GUID, (clientUser, clientLobby, targetUser) => targetUser.SetLobbyColorInternally(message.NewLobbyColor)));
+            AddAutomaticMessageParser<ChangeUserLobbyColorFailedMessageData>((currentPeer, message, _) => OnChangeUserLobbyColorFailed?.Invoke(currentPeer, message.Message, message.Reason));
+            AddAutomaticMessageParser<ChangeLobbyRulesFailedMessageData>((currentPeer, message, _) => OnChangeLobbyRulesFailed?.Invoke(currentPeer, message.Message, message.Reason));
+            AddAutomaticMessageParser<KickUserFailedMessageData>((currentPeer, message, _) => OnKickUserFailed?.Invoke(currentPeer, message.Message, message.Reason));
+            AddAutomaticMessageParser<GameStartRequestedMessageData>((_, message, __) => AssertIsUserInLobby<GameStartRequestedMessageData>((clientUser, clientLobby) => clientLobby.InvokeGameStartRequestedEventInternally(message.Time)));
+            AddAutomaticMessageParser<GameStartedMessageData>((_, message, __) => AssertIsUserInLobby<GameStartedMessageData>((clientUser, clientLobby) => clientLobby.InvokeGameStartedEventInternally()));
+            AddAutomaticMessageParser<StartGameFailedMessageData>((currentPeer, message, _) => OnStartGameFailed?.Invoke(currentPeer, message.Message, message.Reason));
+            AddAutomaticMessageParser<GameRestartRequestedMessageData>((_, message, __) => AssertIsUserInLobby<GameRestartRequestedMessageData>((clientUser, clientLobby) => clientLobby.InvokeGameRestartRequestedEventInternally(message.Time)));
+            AddAutomaticMessageParser<GameRestartedMessageData>((_, message, js__on) => AssertIsUserInLobby<GameRestartedMessageData>((clientUser, clientLobby) => clientLobby.InvokeGameRestartedEventInternally()));
+            AddAutomaticMessageParser<RestartGameFailedMessageData>((currentPeer, message, _) => OnRestartGameFailed?.Invoke(currentPeer, message.Message, message.Reason));
+            AddAutomaticMessageParser<GameStopRequestedMessageData>((_, message, __) => AssertIsUserInLobby<GameStopRequestedMessageData>((clientUser, clientLobby) => clientLobby.InvokeGameStopRequestedEventInternally(message.Time)));
+            AddAutomaticMessageParser<GameStoppedMessageData>
+            (
+                (_, message, __) => AssertIsUserInLobby<GameStoppedMessageData>
+                (
+                    (clientUser, clientLobby) =>
                     {
                         Dictionary<string, UserWithResults> users = new Dictionary<string, UserWithResults>();
                         foreach (GameEndUserData user in message.Users)
                         {
                             string key = user.GUID.ToString();
-                            if (client_lobby.Users.ContainsKey(key))
+                            if (clientLobby.Users.ContainsKey(key))
                             {
-                                users.Add(key, new UserWithResults(client_lobby.Users[key], user.Results));
+                                users.Add(key, new UserWithResults(clientLobby.Users[key], user.Results));
                             }
                             else
                             {
-                                SendErrorMessageToPeer(peer, EErrorType.InvalidMessageContext, $"User with GUID \"{ key }\" is not in lobby \"{ client_lobby.Name }\" with lobby code \"{ client_lobby.LobbyCode }\".");
+                                SendErrorMessage<GameStoppedMessageData>(EErrorType.InvalidMessageContext, $"User with GUID \"{ key }\" is not in lobby \"{ clientLobby.Name }\" with lobby code \"{ clientLobby.LobbyCode }\".");
                             }
                         }
-                        OnGameEnded?.Invoke(users, message.Results);
+                        clientLobby.InvokeGameStoppedEventInternally(users, message.Results);
                     }
-                }
-            }, MessageParseFailedEvent);
-            OnPeerConnected += (_) => SendAuthenticationMessage(token);
+                )
+            );
+            AddAutomaticMessageParser<StopGameFailedMessageData>((currentPeer, message, _) => OnStopGameFailed?.Invoke(currentPeer, message.Message, message.Reason));
+            AddAutomaticMessageParser<ServerTickMessageData>((_, message, __) => AssertIsUserInLobby<ServerTickMessageData>((clientUser, clientLobby) => clientLobby.ProcessServerTickInternally(message.Time, message.Entities)));
+            AddAutomaticMessageParser<ClientTickFailedMessageData>((currentPeer, message, _) => OnClientTickFailed?.Invoke(currentPeer, message.Message, message.Reason));
+            OnPeerConnected += (_) => SendAuthenticateMessage(token);
         }
 
         /// <summary>
-        /// Asserts that user is authenticated
+        /// Asserts that user is authentificated
         /// </summary>
-        /// <param name="onUserIsAuthenticated">On user is authenticated</param>
-        private void AssertIsUserAuthenticated(UserIsAuthenticatedDelegate onUserIsAuthenticated)
+        /// <typeparam name="T">Message type</typeparam>
+        /// <param name="onUserIsAuthentificated">On user is authentificated</param>
+        private void AssertIsUserAuthentificated<T>(UserIsAuthentificatedDelegate onUserIsAuthentificated) where T : IBaseMessageData
         {
             if (User == null)
             {
-                SendErrorMessage(EErrorType.InvalidMessageContext, "User has not been authenticated yet.", true);
+                SendErrorMessage<T>(EErrorType.InvalidMessageContext, "User has not been authentificated yet.", true);
             }
             else if (User is IInternalClientUser client_user)
             {
-                onUserIsAuthenticated(client_user);
+                onUserIsAuthentificated(client_user);
             }
             else
             {
-                SendErrorMessage(EErrorType.InternalError, $"User \"{ User.Name }\" with GUID \"{ User.GUID }\" does not inherit from \"{ nameof(IInternalClientUser) }\".");
+                SendErrorMessage<T>(EErrorType.Unknown, $"User \"{ User.Name }\" with GUID \"{ User.GUID }\" does not inherit from \"{ nameof(IInternalClientUser) }\".");
             }
         }
 
         /// <summary>
         /// Asserts that user is in lobby
         /// </summary>
+        /// <typeparam name="T">Message type</typeparam>
         /// <param name="onUserIsInLobby">On user is in lobby</param>
-        private void AssertIsUserInLobby(UserIsInLobbyDelegate onUserIsInLobby) =>
-            AssertIsUserAuthenticated((clientUser) =>
-            {
-                if (clientUser.ClientLobby == null)
+        private void AssertIsUserInLobby<T>(UserIsInLobbyDelegate onUserIsInLobby) where T : IBaseMessageData =>
+            AssertIsUserAuthentificated<T>
+            (
+                (clientUser) =>
                 {
-                    SendErrorMessage(EErrorType.InvalidMessageContext, "User is not in any lobby yet.");
+                    if (clientUser.ClientLobby == null)
+                    {
+                        SendErrorMessage<T>(EErrorType.InvalidMessageContext, "User is not in any lobby yet.");
+                    }
+                    else
+                    {
+                        onUserIsInLobby(clientUser, clientUser.ClientLobby);
+                    }
                 }
-                else
-                {
-                    onUserIsInLobby(clientUser, clientUser.ClientLobby);
-                }
-            });
+            );
 
         /// <summary>
         /// Asserts that a user is being targeted in a lobby
         /// </summary>
+        /// <typeparam name="T">Message type</typeparam>
         /// <param name="targetUserGUID">Target user GUID</param>
         /// <param name="onUserIsInLobby">On user is in lobby</param>
-        private void AssertTargetLobbyUser(Guid targetUserGUID, TargetLobbyUserDelegate onTargetLobbyUser) =>
-            AssertIsUserInLobby((clientUser, clientLobby) =>
-            {
-                Dictionary<string, IUser> users = clientLobby.InternalUsers;
-                string key = targetUserGUID.ToString();
-                if (users.ContainsKey(key))
+        private void AssertTargetLobbyUser<T>(Guid targetUserGUID, TargetLobbyUserDelegate onTargetLobbyUser) where T : IBaseMessageData =>
+            AssertIsUserInLobby<T>
+            (
+                (clientUser, clientLobby) =>
                 {
-                    if (users[key] is IInternalClientUser client_user)
+                    IReadOnlyDictionary<string, IUser> users = clientLobby.Users;
+                    string key = targetUserGUID.ToString();
+                    if (users.ContainsKey(key))
                     {
-                        onTargetLobbyUser(clientUser, clientLobby, client_user);
+                        if (users[key] is IInternalClientUser client_user)
+                        {
+                            onTargetLobbyUser(clientUser, clientLobby, client_user);
+                        }
+                        else
+                        {
+                            SendErrorMessage<T>(EErrorType.Unknown, $"User \"{ users[key].Name }\" with GUID \"{ key }\" does not inherit from \"{ nameof(IInternalClientUser) }\".");
+                        }
                     }
                     else
                     {
-                        SendErrorMessage(EErrorType.InternalError, $"User \"{ users[key].Name }\" with GUID \"{ key }\" does not inherit from \"{ nameof(IInternalClientUser) }\".");
+                        SendErrorMessage<T>(EErrorType.InvalidMessageContext, $"User with GUID \"{ key }\" is not in lobby \"{ User.Lobby.Name }\" with lobby code \"{ User.Lobby.LobbyCode }\".");
                     }
                 }
-                else
-                {
-                    SendErrorMessage(EErrorType.InvalidMessageContext, $"User with GUID \"{ key }\" is not in lobby \"{ User.Lobby.Name }\" with lobby code \"{ User.Lobby.LobbyCode }\".");
-                }
-            });
+            );
 
         /// <summary>
         /// Sends a request to create and join a lobby
         /// </summary>
         /// <param name="username">Username</param>
         /// <param name="lobbyName">Lobby name</param>
+        /// <param name="gameMode">Game mode</param>
         /// <param name="minimalUserCount">Minimal user count</param>
         /// <param name="maximalUserCount">Maximal user count</param>
         /// <param name="isStartingGameAutomatically">Is starting game automatically</param>
-        /// <param name="gameMode">Game mode</param>
         /// <param name="gameModeRules">Game mode rules</param>
-        public void CreateAndJoinLobby(string username, string lobbyName, uint? minimalUserCount = null, uint? maximalUserCount = null, bool? isStartingGameAutomatically = null, string gameMode = null, IReadOnlyDictionary<string, object> gameModeRules = null)
+        public void CreateAndJoinLobby(string username, string lobbyName, string gameMode, uint? minimalUserCount = null, uint? maximalUserCount = null, bool? isStartingGameAutomatically = null, IReadOnlyDictionary<string, object> gameModeRules = null)
         {
             if (User.Lobby == null)
             {
-                SendCreateAndJoinLobbyMessage(username, lobbyName, minimalUserCount, maximalUserCount, isStartingGameAutomatically, gameMode, gameModeRules);
+                SendCreateAndJoinLobbyMessage(username, lobbyName, gameMode, minimalUserCount, maximalUserCount, isStartingGameAutomatically, gameModeRules);
             }
         }
 
@@ -487,15 +425,21 @@ namespace ElectrodZMultiplayer.Client
         public void SendMessage<T>(T message) where T : IBaseMessageData => SendMessageToPeer(Peer, message);
 
         /// <summary>
-        /// Sends a authentication message to peer
+        /// Sends an authenticate message to peer
         /// </summary>
-        public void SendAuthenticationMessage() => SendAuthenticationMessage(null);
+        public void SendAuthenticateMessage() => SendAuthenticateMessage(null);
 
         /// <summary>
-        /// Sends a authentication message to peer
+        /// Sends an authenticate message to peer
         /// </summary>
-        /// <param name="token">Existing authentication token</param>
-        public void SendAuthenticationMessage(string token) => SendMessage(new AuthenticateMessageData(token));
+        /// <param name="token">Existing authentification token</param>
+        public void SendAuthenticateMessage(string token) => SendMessage(new AuthenticateMessageData(token));
+
+        /// <summary>
+        /// Sends a list available game modes message
+        /// </summary>
+        /// <param name="name">Game mode name filter</param>
+        public void SendListAvailableGameModesMessage(string name = null) => SendMessage(new ListAvailableGameModesMessageData(name));
 
         /// <summary>
         /// Sends a list lobbies message to peer
@@ -533,13 +477,25 @@ namespace ElectrodZMultiplayer.Client
         /// </summary>
         /// <param name="username">Username</param>
         /// <param name="lobbyName">Lobby name</param>
+        /// <param name="gameMode">Game mode</param>
         /// <param name="minimalUserCount">Minimal user count</param>
         /// <param name="maximalUserCount">Maximal user count</param>
         /// <param name="isStartingGameAutomatically">Is starting game automatically</param>
-        /// <param name="gameMode">Game mode</param>
         /// <param name="gameModeRules">Game mode rules</param>
-        public void SendCreateAndJoinLobbyMessage(string username, string lobbyName, uint? minimalUserCount = null, uint? maximalUserCount = null, bool? isStartingGameAutomatically = null, string gameMode = null, IReadOnlyDictionary<string, object> gameModeRules = null)
+        public void SendCreateAndJoinLobbyMessage(string username, string lobbyName, string gameMode, uint? minimalUserCount = null, uint? maximalUserCount = null, bool? isStartingGameAutomatically = null, IReadOnlyDictionary<string, object> gameModeRules = null)
         {
+            if (string.IsNullOrWhiteSpace(username))
+            {
+                throw new ArgumentNullException(nameof(username));
+            }
+            if (string.IsNullOrWhiteSpace(lobbyName))
+            {
+                throw new ArgumentNullException(nameof(lobbyName));
+            }
+            if (string.IsNullOrWhiteSpace(gameMode))
+            {
+                throw new ArgumentNullException(nameof(gameMode));
+            }
             Dictionary<string, object> game_mode_rules = null;
             if (gameModeRules != null)
             {
@@ -549,7 +505,7 @@ namespace ElectrodZMultiplayer.Client
                     game_mode_rules.Add(game_mode_rule.Key, game_mode_rule.Value);
                 }
             }
-            SendMessage(new CreateAndJoinLobbyMessageData(username, lobbyName, minimalUserCount, maximalUserCount, isStartingGameAutomatically, gameMode, game_mode_rules));
+            SendMessage(new CreateAndJoinLobbyMessageData(username, lobbyName, gameMode, minimalUserCount, maximalUserCount, isStartingGameAutomatically, game_mode_rules));
         }
 
         /// <summary>
@@ -564,12 +520,6 @@ namespace ElectrodZMultiplayer.Client
         public void SendChangeUsernameMessage(string newUsername) => SendMessage(new ChangeUsernameMessageData(newUsername));
 
         /// <summary>
-        /// Send change game color message
-        /// </summary>
-        /// <param name="gameColor">Game color</param>
-        public void SendChangeGameColorMessage(EGameColor gameColor) => SendMessage(new ChangeUserGameColorMessageData(gameColor));
-
-        /// <summary>
         /// Send change lobby color message
         /// </summary>
         /// <param name="lobbyColor">Lobby color</param>
@@ -578,13 +528,13 @@ namespace ElectrodZMultiplayer.Client
         /// <summary>
         /// Sends a change lobby rules message to peer
         /// </summary>
-        /// <param name="name">Lobby name</param>
-        /// <param name="minimalUserCount">Minimal user count</param>
-        /// <param name="maximalUserCount">Maximal user count</param>
-        /// <param name="isStartingGameAutomatically">Is starting game automatically</param>
-        /// <param name="gameMode">Game mode</param>
-        /// <param name="gameModeRules">Game mode rules</param>
-        public void SendChangeLobbyRules(string name = null, uint? minimalUserCount = null, uint? maximalUserCount = null, bool? isStartingGameAutomatically = null, string gameMode = null, IReadOnlyDictionary<string, object> gameModeRules = null)
+        /// <param name="name">Lobby name (optional)</param>
+        /// <param name="gameMode">Game mode (optional)</param>
+        /// <param name="minimalUserCount">Minimal user count (optional)</param>
+        /// <param name="maximalUserCount">Maximal user count (optional)</param>
+        /// <param name="isStartingGameAutomatically">Is starting game automatically (optional)</param>
+        /// <param name="gameModeRules">Game mode rules (optional)</param>
+        public void SendChangeLobbyRules(string name = null, string gameMode = null, uint? minimalUserCount = null, uint? maximalUserCount = null, bool? isStartingGameAutomatically = null, IReadOnlyDictionary<string, object> gameModeRules = null)
         {
             Dictionary<string, object> game_mode_rules = null;
             if (gameModeRules != null)
@@ -595,7 +545,7 @@ namespace ElectrodZMultiplayer.Client
                     game_mode_rules.Add(game_mode_rule.Key, game_mode_rule.Value);
                 }
             }
-            SendMessage(new ChangeLobbyRulesMessageData(name, minimalUserCount, maximalUserCount, isStartingGameAutomatically, gameMode, game_mode_rules));
+            SendMessage(new ChangeLobbyRulesMessageData(name, gameMode, minimalUserCount, maximalUserCount, isStartingGameAutomatically, game_mode_rules));
         }
 
         /// <summary>
@@ -616,44 +566,41 @@ namespace ElectrodZMultiplayer.Client
         /// Sends a start game message to peer
         /// </summary>
         /// <param name="time">Time to start game in seconds</param>
-        public void SendStartGameMessage(float time) => SendMessage(new StartGameMessageData(time));
+        public void SendStartGameMessage(double time) => SendMessage(new StartGameMessageData(time));
 
         /// <summary>
         /// Sends a restart game message to peer
         /// </summary>
         /// <param name="time">Time to restart game in seconds</param>
-        public void SendRestartGameMessage(float time) => SendMessage(new RestartGameMessageData(time));
+        public void SendRestartGameMessage(double time) => SendMessage(new RestartGameMessageData(time));
 
         /// <summary>
         /// Sends a stop game message to peer
         /// </summary>
         /// <param name="time">Time to stop game in seconds</param>
-        public void SendStopGameMessage(float time) => SendMessage(new StopGameMessageData(time));
+        public void SendStopGameMessage(double time) => SendMessage(new StopGameMessageData(time));
 
         /// <summary>
         /// Sends a client tick message
         /// </summary>
-        /// <param name="color">Game color</param>
-        /// <param name="position">Position</param>
-        /// <param name="rotation">Rotation</param>
-        /// <param name="velocity">Velocity</param>
-        /// <param name="actions">Game actions</param>
         /// <param name="entities">Entities to update</param>
-        public void SendClientTickMessage(EGameColor color, Vector3<float>? position = null, Quaternion<float>? rotation = null, Vector3<float>? velocity = null, IEnumerable<EGameAction> actions = null, IEnumerable<IEntityDelta> entities = null) => SendMessage(new ClientTickMessageData(color, position, rotation, velocity, actions, entities));
+        public void SendClientTickMessage(IEnumerable<IEntityDelta> entities = null) => SendMessage(new ClientTickMessageData(entities));
 
         /// <summary>
         /// Sends an error message
         /// </summary>
+        /// <typeparam name="T">Message type</typeparam>
         /// <param name="errorType">Error type</param>
         /// <param name="errorMessage">Error message</param>
-        public void SendErrorMessage(EErrorType errorType, string errorMessage) => SendErrorMessageToPeer(Peer, errorType, errorMessage);
+        public void SendErrorMessage<T>(EErrorType errorType, string errorMessage) where T : IBaseMessageData => SendErrorMessageToPeer<T>(Peer, errorType, errorMessage);
 
         /// <summary>
         /// Sends an error message
         /// </summary>
+        /// <typeparam name="T">Message type</typeparam>
         /// <param name="errorType">Error tyoe</param>
         /// <param name="errorMessage">Error message</param>
         /// <param name="isFatal">Is error fatal</param>
-        public void SendErrorMessage(EErrorType errorType, string errorMessage, bool isFatal) => SendErrorMessageToPeer(Peer, errorType, errorMessage, isFatal);
+        public void SendErrorMessage<T>(EErrorType errorType, string errorMessage, bool isFatal) where T : IBaseMessageData => SendErrorMessageToPeer<T>(Peer, errorType, errorMessage, isFatal);
     }
 }

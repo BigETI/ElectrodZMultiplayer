@@ -32,94 +32,14 @@ namespace ElectrodZMultiplayer.Client
         bool IsConnected { get; }
 
         /// <summary>
-        /// Is user authenticated
+        /// Is user authentificated
         /// </summary>
-        bool IsAuthenticated { get; }
-
-        /// <summary>
-        /// On acknowledge authentication message received
-        /// </summary>
-        event AuthenticationAcknowledgedDelegate OnAuthenticationAcknowledged;
-
-        /// <summary>
-        /// On lobbies listed
-        /// </summary>
-        event LobbiesListedDelegate OnLobbiesListed;
+        bool IsAuthentificated { get; }
 
         /// <summary>
         /// On lobby join acknowledged
         /// </summary>
         event LobbyJoinAcknowledgedDelegate OnLobbyJoinAcknowledged;
-
-        /// <summary>
-        /// On user joined
-        /// </summary>
-        event UserJoinedDelegate OnUserJoined;
-
-        /// <summary>
-        /// On user left
-        /// </summary>
-        event UserLeftDelegate OnUserLeft;
-
-        /// <summary>
-        /// On lobby rules changed
-        /// </summary>
-        event LobbyRulesChangedDelegate OnLobbyRulesChanged;
-
-        /// <summary>
-        /// On username changed
-        /// </summary>
-        event UsernameChangedDelegate OnUsernameChanged;
-
-        /// <summary>
-        /// On user game color changed
-        /// </summary>
-        event UserGameColorChangedDelegate OnUserGameColorChanged;
-
-        /// <summary>
-        /// On user lobby color changed
-        /// </summary>
-        event UserGameColorChangedDelegate OnUserLobbyColorChanged;
-
-        /// <summary>
-        /// On game start requested
-        /// </summary>
-        event GameStartRequestedDelegate OnGameStartRequested;
-
-        /// <summary>
-        /// On game restart requested
-        /// </summary>
-        event GameRestartRequestedDelegate OnGameRestartRequested;
-
-        /// <summary>
-        /// On game stop requested
-        /// </summary>
-        event GameStopRequestedDelegate OnGameStopRequested;
-
-        /// <summary>
-        /// On game started
-        /// </summary>
-        event GameStartedDelegate OnGameStarted;
-
-        /// <summary>
-        /// On game restarted
-        /// </summary>
-        event GameRestartedDelegate OnGameRestarted;
-
-        /// <summary>
-        /// On game stopped
-        /// </summary>
-        event GameStoppedDelegate OnGameStopped;
-
-        /// <summary>
-        /// On server ticked
-        /// </summary>
-        event ServerTickedDelegate OnServerTicked;
-
-        /// <summary>
-        /// On game ended
-        /// </summary>
-        event GameEndedDelegate OnGameEnded;
 
         /// <summary>
         /// Process events
@@ -131,12 +51,12 @@ namespace ElectrodZMultiplayer.Client
         /// </summary>
         /// <param name="username">Username</param>
         /// <param name="lobbyName">Lobby name</param>
+        /// <param name="gameMode">Game mode</param>
         /// <param name="minimalUserCount">Minimal user count</param>
         /// <param name="maximalUserCount">Maximal user count</param>
         /// <param name="isStartingGameAutomatically">Is starting game automatically</param>
-        /// <param name="gameMode">Game mode</param>
         /// <param name="gameModeRules">Game mode rules</param>
-        void CreateAndJoinLobby(string username, string lobbyName, uint? minimalUserCount = null, uint? maximalUserCount = null, bool? isStartingGameAutomatically = null, string gameMode = null, IReadOnlyDictionary<string, object> gameModeRules = null);
+        void CreateAndJoinLobby(string username, string lobbyName, string gameMode, uint? minimalUserCount = null, uint? maximalUserCount = null, bool? isStartingGameAutomatically = null, IReadOnlyDictionary<string, object> gameModeRules = null);
 
         /// <summary>
         /// Joins a lobby with the specified lobby code
@@ -169,12 +89,12 @@ namespace ElectrodZMultiplayer.Client
         /// </summary>
         /// <param name="username">Username</param>
         /// <param name="lobbyName">Lobby name</param>
+        /// <param name="gameMode">Game mode</param>
         /// <param name="minimalUserCount">Minimal user count</param>
         /// <param name="maximalUserCount">Maximal user count</param>
         /// <param name="isStartingGameAutomatically">Is starting game automatically</param>
-        /// <param name="gameMode">Game mode</param>
         /// <param name="gameModeRules">Game mode rules</param>
-        void SendCreateAndJoinLobbyMessage(string username, string lobbyName, uint? minimalUserCount = null, uint? maximalUserCount = null, bool? isStartingGameAutomatically = null, string gameMode = null, IReadOnlyDictionary<string, object> gameModeRules = null);
+        void SendCreateAndJoinLobbyMessage(string username, string lobbyName, string gameMode, uint? minimalUserCount = null, uint? maximalUserCount = null, bool? isStartingGameAutomatically = null, IReadOnlyDictionary<string, object> gameModeRules = null);
 
         /// <summary>
         /// Sends a quit lobbym message to peer
@@ -188,10 +108,10 @@ namespace ElectrodZMultiplayer.Client
         void SendChangeUsernameMessage(string newUsername);
 
         /// <summary>
-        /// Send change game color message
+        /// Sends a list available game modes message
         /// </summary>
-        /// <param name="gameColor">Game color</param>
-        void SendChangeGameColorMessage(EGameColor gameColor);
+        /// <param name="name">Game mode name filter</param>
+        void SendListAvailableGameModesMessage(string name);
 
         /// <summary>
         /// Send change lobby color message
@@ -202,13 +122,13 @@ namespace ElectrodZMultiplayer.Client
         /// <summary>
         /// Sends a change lobby rules message to peer
         /// </summary>
-        /// <param name="name">Lobby name</param>
-        /// <param name="minimalUserCount">Minimal user count</param>
-        /// <param name="maximalUserCount">Maximal user count</param>
-        /// <param name="isStartingGameAutomatically">Is starting game automatically</param>
-        /// <param name="gameMode">Game mode</param>
-        /// <param name="gameModeRules">Game mode rules</param>
-        void SendChangeLobbyRules(string name = null, uint? minimalUserCount = null, uint? maximalUserCount = null, bool? isStartingGameAutomatically = null, string gameMode = null, IReadOnlyDictionary<string, object> gameModeRules = null);
+        /// <param name="name">Lobby name (optional)</param>
+        /// <param name="gameMode">Game mode (optional)</param>
+        /// <param name="minimalUserCount">Minimal user count (optional)</param>
+        /// <param name="maximalUserCount">Maximal user count (optional)</param>
+        /// <param name="isStartingGameAutomatically">Is starting game automatically (optional)</param>
+        /// <param name="gameModeRules">Game mode rules (optional)</param>
+        void SendChangeLobbyRules(string name = null, string gameMode = null, uint? minimalUserCount = null, uint? maximalUserCount = null, bool? isStartingGameAutomatically = null, IReadOnlyDictionary<string, object> gameModeRules = null);
 
         /// <summary>
         /// Sends a kick user message to peer
@@ -221,43 +141,40 @@ namespace ElectrodZMultiplayer.Client
         /// Sends a start game message to peer
         /// </summary>
         /// <param name="time">Time to start game in seconds</param>
-        void SendStartGameMessage(float time);
+        void SendStartGameMessage(double time);
 
         /// <summary>
         /// Sends a restart game message to peer
         /// </summary>
         /// <param name="time">Time to restart game in seconds</param>
-        void SendRestartGameMessage(float time);
+        void SendRestartGameMessage(double time);
 
         /// <summary>
         /// Sends a stop game message to peer
         /// </summary>
         /// <param name="time">Time to stop game in seconds</param>
-        void SendStopGameMessage(float time);
+        void SendStopGameMessage(double time);
 
         /// <summary>
         /// Sends a client tick message
         /// </summary>
-        /// <param name="color">Game color</param>
-        /// <param name="position">Position</param>
-        /// <param name="rotation">Rotation</param>
-        /// <param name="velocity">Velocity</param>
-        /// <param name="actions">Game actions</param>
         /// <param name="entities">Entities to update</param>
-        void SendClientTickMessage(EGameColor color, Vector3<float>? position = null, Quaternion<float>? rotation = null, Vector3<float>? velocity = null, IEnumerable<EGameAction> actions = null, IEnumerable<IEntityDelta> entities = null);
+        void SendClientTickMessage(IEnumerable<IEntityDelta> entities = null);
 
         /// <summary>
         /// Sends an error message to peer
         /// </summary>
+        /// <typeparam name="T">Message type</typeparam>
         /// <param name="errorType">Error type</param>
         /// <param name="errorMessage">Error message</param>
-        void SendErrorMessage(EErrorType errorType, string errorMessage);
+        void SendErrorMessage<T>(EErrorType errorType, string errorMessage) where T : IBaseMessageData;
 
         /// <summary>
         /// Sends an error message to peer
         /// </summary>
+        /// <typeparam name="T">Message type</typeparam>
         /// <param name="errorType"></param>
         /// <param name="errorMessage"></param>
-        void SendErrorMessage(EErrorType errorType, string errorMessage, bool isFatal);
+        void SendErrorMessage<T>(EErrorType errorType, string errorMessage, bool isFatal) where T : IBaseMessageData;
     }
 }

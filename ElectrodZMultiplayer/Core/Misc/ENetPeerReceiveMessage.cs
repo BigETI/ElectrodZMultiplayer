@@ -21,21 +21,21 @@ namespace ElectrodZMultiplayer
         public uint ChannelID { get; }
 
         /// <summary>
-        /// Packet
+        /// Message
         /// </summary>
-        public Packet Packet { get; }
+        public byte[] Message { get; }
 
         /// <summary>
-        /// Constructor
+        /// Constructs a ENet peer receive message
         /// </summary>
         /// <param name="peer">Peer</param>
         /// <param name="channelID">Channel ID</param>
-        /// <param name="packet">PAcket</param>
-        public ENetPeerReceiveMessage(Peer peer, uint channelID, Packet packet)
+        /// <param name="message">Message</param>
+        public ENetPeerReceiveMessage(Peer peer, uint channelID, byte[] message)
         {
             Peer = peer;
             ChannelID = channelID;
-            Packet = packet;
+            Message = message;
         }
     }
 }

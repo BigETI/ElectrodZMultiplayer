@@ -9,6 +9,11 @@ namespace ElectrodZMultiplayer
     public static class Defaults
     {
         /// <summary>
+        /// API version
+        /// </summary>
+        public static readonly string apiVersion = "1.0";
+
+        /// <summary>
         /// Port
         /// </summary>
         public static readonly ushort networkPort = 6789;
@@ -59,8 +64,8 @@ namespace ElectrodZMultiplayer
         public static readonly uint maximalLobbyNameLength = 32U;
 
         /// <summary>
-        /// Default game mode
+        /// Default player entity type
         /// </summary>
-        public static readonly string gameMode = "Empty";
+        public static readonly string playerEntityType = "Player";
     }
 }

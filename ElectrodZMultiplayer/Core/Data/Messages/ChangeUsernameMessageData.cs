@@ -10,7 +10,7 @@ namespace ElectrodZMultiplayer.Data.Messages
     /// A class that describes a user changing their username as a message
     /// </summary>
     [JsonObject(MemberSerialization.OptIn)]
-    internal class ChangeUsernameMessageData : BaseMessageData
+    public class ChangeUsernameMessageData : BaseMessageData
     {
         /// <summary>
         /// New username

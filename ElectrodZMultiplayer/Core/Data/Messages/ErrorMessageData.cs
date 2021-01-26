@@ -17,8 +17,13 @@ namespace ElectrodZMultiplayer.Data.Messages
         /// Error type
         /// </summary>
         [JsonProperty("errorType")]
-        [JsonConverter(typeof(ErrorTypeJSONConverter))]
-        public EErrorType ErrorType { get; set; } = EErrorType.Unknown;
+        public EErrorType ErrorType { get; set; } = EErrorType.Invalid;
+
+        /// <summary>
+        /// Error message type
+        /// </summary>
+        [JsonProperty("errorMessageType")]
+        public string ErrorMessageType { get; set; }
 
         /// <summary>
         /// Error message
@@ -31,7 +36,8 @@ namespace ElectrodZMultiplayer.Data.Messages
         /// </summary>
         public override bool IsValid =>
             base.IsValid &&
-            (ErrorType != EErrorType.Unknown) &&
+            (ErrorType != EErrorType.Invalid) &&
+            !string.IsNullOrWhiteSpace(ErrorMessageType) &&
             (Message != null);
 
         /// <summary>
@@ -46,14 +52,20 @@ namespace ElectrodZMultiplayer.Data.Messages
         /// Constructs an error message
         /// </summary>
         /// <param name="errorType">Error type</param>
+        /// <param name="errorMessageType">Error message</param>
         /// <param name="message">Error message</param>
-        public ErrorMessageData(EErrorType errorType, string message) : base(Naming.GetMessageTypeNameFromMessageDataType<ErrorMessageData>())
+        public ErrorMessageData(EErrorType errorType, string errorMessageType, string message) : base(Naming.GetMessageTypeNameFromMessageDataType<ErrorMessageData>())
         {
-            if (errorType == EErrorType.Unknown)
+            if (errorType == EErrorType.Invalid)
             {
-                throw new ArgumentException(nameof(errorType));
+                throw new ArgumentException("Error type can't be invalid.", nameof(errorType));
+            }
+            if (string.IsNullOrWhiteSpace(errorMessageType))
+            {
+                throw new ArgumentNullException(nameof(errorMessageType));
             }
             ErrorType = errorType;
+            ErrorMessageType = errorMessageType;
             Message = message ?? throw new ArgumentNullException(nameof(message));
         }
     }

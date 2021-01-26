@@ -25,7 +25,6 @@ namespace ElectrodZMultiplayer.Data.Messages
         /// Joining user game color
         /// </summary>
         [JsonProperty("gameColor")]
-        [JsonConverter(typeof(GameColorJSONConverter))]
         public EGameColor GameColor { get; set; }
 
         /// <summary>
@@ -47,7 +46,7 @@ namespace ElectrodZMultiplayer.Data.Messages
         public override bool IsValid =>
             base.IsValid &&
             (GUID != Guid.Empty) &&
-            (GameColor != EGameColor.Unknown) &&
+            (GameColor != EGameColor.Invalid) &&
             (Name != null);
 
         /// <summary>

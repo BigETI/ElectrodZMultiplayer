@@ -10,20 +10,20 @@ namespace ElectrodZMultiplayer.Data.Messages
     /// A class that describes a game restart request message
     /// </summary>
     [JsonObject(MemberSerialization.OptIn)]
-    internal class RestartGameMessageData : BaseMessageData
+    public class RestartGameMessageData : BaseMessageData
     {
         /// <summary>
         /// Time to start game in seconds
         /// </summary>
         [JsonProperty("time")]
-        public float Time { get; set; }
+        public double Time { get; set; }
 
         /// <summary>
         /// Is valid
         /// </summary>
         public override bool IsValid =>
             base.IsValid &&
-            (Time >= 0.0f);
+            (Time >= 0.0);
 
         /// <summary>
         /// Constructs a restart game request message for deserializers
@@ -37,9 +37,9 @@ namespace ElectrodZMultiplayer.Data.Messages
         /// Constructs a restart game request message
         /// </summary>
         /// <param name="time">Time to start game in seconds</param>
-        public RestartGameMessageData(float time) : base(Naming.GetMessageTypeNameFromMessageDataType<RestartGameMessageData>())
+        public RestartGameMessageData(double time) : base(Naming.GetMessageTypeNameFromMessageDataType<RestartGameMessageData>())
         {
-            if (time < 0.0f)
+            if (time < 0.0)
             {
                 throw new ArgumentException("Time must be positive", nameof(time));
             }
