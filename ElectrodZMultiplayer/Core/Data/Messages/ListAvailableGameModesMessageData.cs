@@ -9,7 +9,7 @@ namespace ElectrodZMultiplayer.Data.Messages
     /// A class that describes a list available game modes message
     /// </summary>
     [JsonObject(MemberSerialization.OptIn)]
-    internal class ListAvailableGameModesMessageData : BaseMessageData
+    public class ListAvailableGameModesMessageData : BaseMessageData
     {
         /// <summary>
         /// Game mode name filter

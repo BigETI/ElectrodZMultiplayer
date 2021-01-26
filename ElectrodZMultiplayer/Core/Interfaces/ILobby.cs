@@ -77,8 +77,51 @@ namespace ElectrodZMultiplayer
         event GameStoppedDelegate OnGameStopped;
 
         /// <summary>
-        /// This event will be invoked when the game has ended.
+        /// Gets user by GUID
         /// </summary>
-        event GameEndedDelegate OnGameEnded;
+        /// <param name="guid">User GUID</param>
+        /// <returns>User if available, otherwise "null"</returns>
+        IUser GetUserByGUID(Guid guid);
+
+        /// <summary>
+        /// Tries to get user by GUID
+        /// </summary>
+        /// <param name="guid">User GUID</param>
+        /// <param name="user">User</param>
+        /// <returns>"true" if user is available, otherwise "false"</returns>
+        bool TryGetUserByGUID(Guid guid, out IUser user);
+
+        /// <summary>
+        /// Gets entity by GUID
+        /// </summary>
+        /// <param name="guid">Entity GUID</param>
+        /// <returns>Entity if available, otherwise "null"</returns>
+        IEntity GetEntityByGUID(Guid guid);
+
+        /// <summary>
+        /// Tries to get entity by GUID
+        /// </summary>
+        /// <param name="guid">Entity GUID</param>
+        /// <param name="entity">Entity</param>
+        /// <returns>"true" if entity exists, otherwise "false"</returns>
+        bool TryGetEntityByGUID(Guid guid, out IEntity entity);
+
+        /// <summary>
+        /// Gets game mode rule
+        /// </summary>
+        /// <typeparam name="T">Game mode rule type</typeparam>
+        /// <param name="key">Game mode rule key</param>
+        /// <param name="defaultValue">Default value</param>
+        /// <returns>Value if successful, otherwise the specified default value</returns>
+        T GetGameModeRule<T>(string key, T defaultValue = default);
+
+        /// <summary>
+        /// Tries to get game mode rule
+        /// </summary>
+        /// <typeparam name="T">Game mode rule type</typeparam>
+        /// <param name="key">Game mode rule key</param>
+        /// <param name="value">Value</param>
+        /// <returns>Value if successful, otherwise the specified default value</returns>
+        bool TryGetGameModeRule<T>(string key, out T value);
     }
 }

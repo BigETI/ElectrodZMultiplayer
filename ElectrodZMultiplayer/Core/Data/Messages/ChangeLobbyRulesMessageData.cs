@@ -12,7 +12,7 @@ namespace ElectrodZMultiplayer.Data.Messages
     /// Change lobby rules message data class
     /// </summary>
     [JsonObject(MemberSerialization.OptIn)]
-    internal class ChangeLobbyRulesMessageData : BaseMessageData
+    public class ChangeLobbyRulesMessageData : BaseMessageData
     {
         /// <summary>
         /// Lobby name
@@ -71,13 +71,13 @@ namespace ElectrodZMultiplayer.Data.Messages
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="name">Lobby name</param>
-        /// <param name="minimalUserCount">Minimal user count</param>
-        /// <param name="maximalUserCount">Maximal user count</param>
-        /// <param name="isStartingGameAutomatically">Is satarting game automatically</param>
-        /// <param name="gameMode">Game mode</param>
-        /// <param name="gameModeRules">Game mode rules</param>
-        public ChangeLobbyRulesMessageData(string name, uint? minimalUserCount, uint? maximalUserCount, bool? isStartingGameAutomatically, string gameMode, Dictionary<string, object> gameModeRules) : base(Naming.GetMessageTypeNameFromMessageDataType<ChangeLobbyRulesMessageData>())
+        /// <param name="name">Lobby name (optional)</param>
+        /// <param name="minimalUserCount">Minimal user count (optional)</param>
+        /// <param name="maximalUserCount">Maximal user count (optional)</param>
+        /// <param name="isStartingGameAutomatically">Is satarting game automatically (optional)</param>
+        /// <param name="gameMode">Game mode (optional)</param>
+        /// <param name="gameModeRules">Game mode rules (optional)</param>
+        public ChangeLobbyRulesMessageData(string name = null, string gameMode = null, uint? minimalUserCount = null, uint? maximalUserCount = null, bool? isStartingGameAutomatically = null, Dictionary<string, object> gameModeRules = null) : base(Naming.GetMessageTypeNameFromMessageDataType<ChangeLobbyRulesMessageData>())
         {
             string new_name = null;
             if (name != null)

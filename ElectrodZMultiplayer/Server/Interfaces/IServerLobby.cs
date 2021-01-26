@@ -41,8 +41,9 @@ namespace ElectrodZMultiplayer.Server
         /// </summary>
         /// <param name="user">User</param>
         /// <param name="reason">Reason</param>
+        /// <param name="message">Message</param>
         /// <returns>"true" if the specified user has been successfully removed, otherwise "false"</returns>
-        bool RemoveUser(IUser user, string reason);
+        bool RemoveUser(IUser user, EDisconnectionReason reason, string message);
 
         /// <summary>
         /// Updates the lobby rules
@@ -79,5 +80,11 @@ namespace ElectrodZMultiplayer.Server
         /// Close lobby
         /// </summary>
         void Close();
+
+        /// <summary>
+        /// Closes lobby
+        /// </summary>
+        /// <param name="reason">Reason</param>
+        void Close(EDisconnectionReason reason);
     }
 }

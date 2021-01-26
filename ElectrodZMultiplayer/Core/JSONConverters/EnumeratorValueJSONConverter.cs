@@ -20,15 +20,15 @@ namespace ElectrodZMultiplayer.JSONConverters
         /// <summary>
         /// Constructs a JSON converter for enumerator values
         /// </summary>
-        /// <param name="defaultEnumValue"></param>
-        public EnumeratorValueJSONConverter(T defaultEnumValue) : base() => this.defaultEnumeratorValue = defaultEnumValue;
+        /// <param name="defaultEnumeratorValue">Default enumerator value</param>
+        public EnumeratorValueJSONConverter(T defaultEnumeratorValue) : base() => this.defaultEnumeratorValue = defaultEnumeratorValue;
 
         /// <summary>
         /// Is type nullable
         /// </summary>
         /// <param name="type">Type</param>
         /// <returns>"true" if type is nullable, otherwise "false"</returns>
-        private static bool IsTypeNullable(Type type) => (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>));
+        private static bool IsTypeNullable(Type type) => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>);
 
         /// <summary>
         /// Can convert the specified object type

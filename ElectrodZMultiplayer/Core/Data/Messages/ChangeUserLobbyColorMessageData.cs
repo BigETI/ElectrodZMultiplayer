@@ -11,7 +11,7 @@ namespace ElectrodZMultiplayer.Data.Messages
     /// A class that describes a user lobby color change as a message
     /// </summary>
     [JsonObject(MemberSerialization.OptIn)]
-    internal class ChangeUserLobbyColorMessageData : BaseMessageData
+    public class ChangeUserLobbyColorMessageData : BaseMessageData
     {
         /// <summary>
         /// New user lobby color

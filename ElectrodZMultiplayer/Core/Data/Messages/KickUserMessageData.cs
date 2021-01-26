@@ -11,7 +11,7 @@ namespace ElectrodZMultiplayer.Data.Messages
     /// A class that describes a message to kick an user
     /// </summary>
     [JsonObject(MemberSerialization.OptIn)]
-    internal class KickUserMessageData : BaseMessageData
+    public class KickUserMessageData : BaseMessageData
     {
         /// <summary>
         /// User GUID to kick

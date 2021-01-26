@@ -14,7 +14,7 @@ namespace ElectrodZMultiplayer
         /// <summary>
         /// Connector
         /// </summary>
-        private IInternalENetConnector connector;
+        private readonly IInternalENetConnector connector;
 
         /// <summary>
         /// Peer
@@ -46,12 +46,8 @@ namespace ElectrodZMultiplayer
             {
                 throw new ArgumentException("Peer is not set.", nameof(peer));
             }
-            if (connector == null)
-            {
-                throw new ArgumentNullException(nameof(connector));
-            }
             Peer = peer;
-            this.connector = connector;
+            this.connector = connector ?? throw new ArgumentNullException(nameof(connector));
         }
 
         /// <summary>

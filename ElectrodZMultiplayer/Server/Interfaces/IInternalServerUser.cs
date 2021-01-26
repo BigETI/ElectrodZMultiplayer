@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using ElectrodZMultiplayer.Data.Messages;
+using System.Collections.Generic;
 using System.Drawing;
 
 /// <summary>
@@ -79,16 +80,18 @@ namespace ElectrodZMultiplayer.Server
         /// <summary>
         /// Sends an error message
         /// </summary>
+        /// <typeparam name="T">Message type</typeparam>
         /// <param name="errorType">Error type</param>
         /// <param name="message">Error message</param>
-        void SendErrorMessage(EErrorType errorType, string message);
+        void SendErrorMessage<T>(EErrorType errorType, string message) where T : IBaseMessageData;
 
         /// <summary>
         /// Sends an error message
         /// </summary>
+        /// <typeparam name="T">Message type</typeparam>
         /// <param name="errorType">Error type</param>
         /// <param name="message">Error message</param>
         /// <param name="isFatal">Is error fatal</param>
-        void SendErrorMessage(EErrorType errorType, string message, bool isFatal);
+        void SendErrorMessage<T>(EErrorType errorType, string message, bool isFatal) where T : IBaseMessageData;
     }
 }

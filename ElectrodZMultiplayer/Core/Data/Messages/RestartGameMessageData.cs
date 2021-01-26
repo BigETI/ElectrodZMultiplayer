@@ -10,7 +10,7 @@ namespace ElectrodZMultiplayer.Data.Messages
     /// A class that describes a game restart request message
     /// </summary>
     [JsonObject(MemberSerialization.OptIn)]
-    internal class RestartGameMessageData : BaseMessageData
+    public class RestartGameMessageData : BaseMessageData
     {
         /// <summary>
         /// Time to start game in seconds

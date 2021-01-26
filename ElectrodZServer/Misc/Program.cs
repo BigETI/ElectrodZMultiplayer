@@ -600,6 +600,7 @@ namespace ElectrodZServer
                             {
                                 TimeSpan tick_time_span = TimeSpan.FromMilliseconds(1000 / serverConfigurationData.TickRate);
                                 Stopwatch stopwatch = new Stopwatch();
+                                uint lag_count = 0U;
                                 ConsoleKeyInfo console_key_information;
                                 StringBuilder input_string_builder = new StringBuilder();
                                 foreach (IConnector connector in server.Connectors)
@@ -691,11 +692,17 @@ namespace ElectrodZServer
                                     stopwatch.Stop();
                                     if (tick_time_span > stopwatch.Elapsed)
                                     {
+                                        lag_count = (lag_count > 0U) ? (lag_count - 1U) : 0U;
                                         Thread.Sleep(tick_time_span - stopwatch.Elapsed);
                                     }
                                     else
                                     {
-                                        WriteErrorLogLine($"Server can't keep up. Try lowering the tick rate in \"{ serverJSONFilePath }\" or run the server with a lower tick rate.");
+                                        ++lag_count;
+                                        if (lag_count >= serverConfigurationData.TickRate)
+                                        {
+                                            lag_count = 0U;
+                                            WriteErrorLogLine($"Server can't keep up. Try lowering the tick rate in \"{ serverJSONFilePath }\" or run the server with a lower tick rate.");
+                                        }
                                     }
                                 }
                                 server.Bans.WriteToFile(bansJSONFilePath);

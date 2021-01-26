@@ -11,7 +11,7 @@ namespace ElectrodZMultiplayer.Data.Messages
     /// A class that describes a client tick message
     /// </summary>
     [JsonObject(MemberSerialization.OptIn)]
-    internal class ClientTickMessageData : BaseMessageData
+    public class ClientTickMessageData : BaseMessageData
     {
         /// <summary>
         /// Entities to update (optional)
@@ -37,13 +37,8 @@ namespace ElectrodZMultiplayer.Data.Messages
         /// <summary>
         /// Constructs a client tick message
         /// </summary>
-        /// <param name="color">Current game color (optional)</param>
-        /// <param name="position">Current position (optional)</param>
-        /// <param name="rotation">Current rotation (optional)</param>
-        /// <param name="velocity">Current velocity (optional)</param>
-        /// <param name="actions">Current game actions (optional)</param>
-        /// <param name="entities">Entities to update (optional)</param>
-        public ClientTickMessageData(IEnumerable<IEntityDelta> entities) : base(Naming.GetMessageTypeNameFromMessageDataType<ClientTickMessageData>())
+        /// <param name="entities">Entities (optional)</param>
+        public ClientTickMessageData(IEnumerable<IEntityDelta> entities = null) : base(Naming.GetMessageTypeNameFromMessageDataType<ClientTickMessageData>())
         {
             if ((entities != null) && Protection.IsValid(entities))
             {

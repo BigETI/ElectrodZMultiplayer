@@ -189,11 +189,6 @@ namespace ElectrodZMultiplayer.Server
         public event GameStoppedDelegate OnGameStopped;
 
         /// <summary>
-        /// This event will be invoked when the game has ended.
-        /// </summary>
-        public event GameEndedDelegate OnGameEnded;
-
-        /// <summary>
         /// Gets invoked when a game mode has been started
         /// </summary>
         public event GameModeStartedDelegate OnGameModeStarted;
@@ -252,6 +247,59 @@ namespace ElectrodZMultiplayer.Server
             }
             Server = server ?? throw new ArgumentNullException(nameof(server));
             Owner = owner ?? throw new ArgumentNullException(nameof(owner));
+        }
+
+        /// <summary>
+        /// Gets user by GUID
+        /// </summary>
+        /// <param name="guid">User GUID</param>
+        /// <returns>User if available, otherwise "null"</returns>
+        public IUser GetUserByGUID(Guid guid) => TryGetUserByGUID(guid, out IUser ret) ? ret : null;
+
+        /// <summary>
+        /// Tries to get user by GUID
+        /// </summary>
+        /// <param name="guid">User GUID</param>
+        /// <param name="user">User</param>
+        /// <returns>"true" if user is available, otherwise "false"</returns>
+        public bool TryGetUserByGUID(Guid guid, out IUser user) => users.TryGetValue(guid.ToString(), out user);
+
+        /// <summary>
+        /// Gets entity by GUID
+        /// </summary>
+        /// <param name="guid">Entity GUID</param>
+        /// <returns>Entity if available, otherwise "null"</returns>
+        public IEntity GetEntityByGUID(Guid guid) => TryGetEntityByGUID(guid, out IEntity ret) ? ret : null;
+
+        /// <summary>
+        /// Tries to get entity by GUID
+        /// </summary>
+        /// <param name="guid">Entity GUID</param>
+        /// <param name="entity">Entity</param>
+        /// <returns>"true" if entity exists, otherwise "false"</returns>
+        public bool TryGetEntityByGUID(Guid guid, out IEntity entity) => entities.TryGetValue(guid.ToString(), out entity);
+
+        /// <summary>
+        /// Gets game mode rule
+        /// </summary>
+        /// <typeparam name="T">Game mode rule type</typeparam>
+        /// <param name="key">Game mode rule key</param>
+        /// <param name="defaultValue">Default value</param>
+        /// <returns>Value if successful, otherwise the specified default value</returns>
+        public T GetGameModeRule<T>(string key, T defaultValue = default) => TryGetGameModeRule(key, out T ret) ? ret : defaultValue;
+
+        /// <summary>
+        /// Tries to get game mode rule
+        /// </summary>
+        /// <typeparam name="T">Game mode rule type</typeparam>
+        /// <param name="key">Game mode rule key</param>
+        /// <param name="value">Value</param>
+        /// <returns>Value if successful, otherwise the specified default value</returns>
+        public bool TryGetGameModeRule<T>(string key, out T value)
+        {
+            bool ret = gameModeRules.TryGetValue(key ?? throw new ArgumentNullException(nameof(key)), out object object_value);
+            value = ret ? ((object_value is T result) ? result : default) : default;
+            return ret;
         }
 
         /// <summary>
@@ -409,13 +457,16 @@ namespace ElectrodZMultiplayer.Server
                     CurrentlyLoadedGameMode.OnUserJoined(game_user);
                 }
             }
+            RemainingGameStartTime = 0.0;
             if (was_running)
             {
-                SendRestartGameMessage();
+                OnGameRestarted?.Invoke();
+                SendMessageToAll(new GameRestartedMessageData());
             }
             else
             {
-                SendStartGameMessage();
+                OnGameStarted?.Invoke();
+                SendMessageToAll(new GameStartedMessageData());
             }
         }
 
@@ -451,7 +502,7 @@ namespace ElectrodZMultiplayer.Server
                 remove_users.Clear();
                 gameUsers.Clear();
                 OnGameModeStopped?.Invoke(CurrentlyLoadedGameMode);
-                OnGameEnded?.Invoke(CurrentlyLoadedGameMode.UserResults, CurrentlyLoadedGameMode.Results);
+                OnGameStopped?.Invoke(CurrentlyLoadedGameMode.UserResults, CurrentlyLoadedGameMode.Results);
                 CurrentlyLoadedGameMode.OnClosed();
                 gameUserFactory = null;
                 gameEntityFactory = null;
@@ -507,8 +558,9 @@ namespace ElectrodZMultiplayer.Server
         /// </summary>
         /// <param name="user">User</param>
         /// <param name="reason">Reason</param>
+        /// <param name="message">Message</param>
         /// <returns>"true" if the specified user has been successfully removed, otherwise "false"</returns>
-        public bool RemoveUser(IUser user, string reason)
+        public bool RemoveUser(IUser user, EDisconnectionReason reason, string message)
         {
             if (user == null)
             {
@@ -518,9 +570,9 @@ namespace ElectrodZMultiplayer.Server
             {
                 throw new ArgumentException("User is not valid.", nameof(user));
             }
-            if (reason == null)
+            if (message == null)
             {
-                throw new ArgumentNullException(nameof(reason));
+                throw new ArgumentNullException(nameof(message));
             }
             bool ret = false;
             string key = user.GUID.ToString();
@@ -536,8 +588,8 @@ namespace ElectrodZMultiplayer.Server
                 {
                     server_user.ServerLobby = null;
                 }
-                OnUserLeft?.Invoke(real_user, reason);
-                SendUserLeftMessage(real_user, reason);
+                OnUserLeft?.Invoke(real_user, reason, message);
+                SendUserLeftMessage(real_user, reason, message);
                 ret = users.Remove(key);
             }
             return ret;
@@ -696,7 +748,8 @@ namespace ElectrodZMultiplayer.Server
         /// </summary>
         /// <param name="user">User</param>
         /// <param name="reason">Reason</param>
-        public void SendUserLeftMessage(IUser user, string reason) => SendMessageToAll(new UserLeftMessageData(user, reason));
+        /// <param name="message">Message</param>
+        public void SendUserLeftMessage(IUser user, EDisconnectionReason reason, string message) => SendMessageToAll(new UserLeftMessageData(user, reason, message));
 
         /// <summary>
         /// Sends an user color changed message
@@ -761,45 +814,21 @@ namespace ElectrodZMultiplayer.Server
         }
 
         /// <summary>
-        /// Sends a start game message
+        /// Closes lobby
         /// </summary>
-        public void SendStartGameMessage()
-        {
-            RemainingGameStartTime = 0.0;
-            OnGameStarted?.Invoke();
-            SendMessageToAll(new GameStartedMessageData());
-        }
-
-        /// <summary>
-        /// Sends a restart game message
-        /// </summary>
-        public void SendRestartGameMessage()
-        {
-            RemainingGameStartTime = 0.0;
-            OnGameRestarted?.Invoke();
-            SendMessageToAll(new GameRestartedMessageData());
-        }
-
-        /// <summary>
-        /// Sends a stop game message
-        /// </summary>
-        public void SendStopGameMessage()
-        {
-            RemainingGameStopTime = 0.0;
-            OnGameStopped?.Invoke();
-            SendMessageToAll(new GameStoppedMessageData());
-        }
+        public void Close() => Close(EDisconnectionReason.LobbyClosed);
 
         /// <summary>
         /// Closes lobby
         /// </summary>
-        public void Close()
+        /// <param name="reason">Reason</param>
+        public void Close(EDisconnectionReason reason)
         {
             StopGameModeInstance();
             List<IUser> users = new List<IUser>(this.users.Values);
             foreach (IServerUser user in users)
             {
-                RemoveUser(user, "Lobby has been closed.");
+                RemoveUser(user, reason, "Lobby has been closed.");
             }
             users.Clear();
             OnLobbyClosed?.Invoke(this);
@@ -808,7 +837,7 @@ namespace ElectrodZMultiplayer.Server
         /// <summary>
         /// Dispose
         /// </summary>
-        public void Dispose() => Close();
+        public void Dispose() => Close(EDisconnectionReason.Disposed);
 
         /// <summary>
         /// Performs a game tick

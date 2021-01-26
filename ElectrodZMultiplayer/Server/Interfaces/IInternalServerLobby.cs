@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 /// <summary>
 /// ElectrodZ multiplayer server namespace
@@ -124,7 +123,8 @@ namespace ElectrodZMultiplayer.Server
         /// </summary>
         /// <param name="user">User</param>
         /// <param name="reason">Reason</param>
-        void SendUserLeftMessage(IUser user, string reason);
+        /// <param name="message">Message</param>
+        void SendUserLeftMessage(IUser user, EDisconnectionReason reason, string message);
 
         /// <summary>
         /// Sends an username changed message
@@ -155,20 +155,5 @@ namespace ElectrodZMultiplayer.Server
         /// </summary>
         /// <param name="time">Time to stop game in seconds</param>
         void SendGameStopRequestedMessage(double time);
-
-        /// <summary>
-        /// Sends a start game message
-        /// </summary>
-        void SendStartGameMessage();
-
-        /// <summary>
-        /// Sends a restart game message
-        /// </summary>
-        void SendRestartGameMessage();
-
-        /// <summary>
-        /// Sends a stop game message
-        /// </summary>
-        void SendStopGameMessage();
     }
 }

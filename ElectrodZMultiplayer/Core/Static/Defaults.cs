@@ -9,6 +9,11 @@ namespace ElectrodZMultiplayer
     public static class Defaults
     {
         /// <summary>
+        /// API version
+        /// </summary>
+        public static readonly string apiVersion = "1.0";
+
+        /// <summary>
         /// Port
         /// </summary>
         public static readonly ushort networkPort = 6789;

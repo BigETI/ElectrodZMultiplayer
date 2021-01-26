@@ -21,10 +21,23 @@ namespace ElectrodZMultiplayer.Data.Messages
         public Guid GUID { get; set; }
 
         /// <summary>
+        /// Kicked by user GUID
+        /// </summary>
+        [JsonProperty("kickedByGUID")]
+        [JsonConverter(typeof(GUIDJSONConverter))]
+        public Guid? KickedByGUID { get; set; }
+
+        /// <summary>
         /// Reason for leaving the lobby
         /// </summary>
         [JsonProperty("reason")]
-        public string Reason { get; set; }
+        public EDisconnectionReason Reason { get; set; }
+
+        /// <summary>
+        /// Leave message
+        /// </summary>
+        [JsonProperty("message")]
+        public string Message { get; set; }
 
         /// <summary>
         /// Is valid
@@ -32,7 +45,8 @@ namespace ElectrodZMultiplayer.Data.Messages
         public override bool IsValid =>
             base.IsValid &&
             (GUID != Guid.Empty) &&
-            (Reason != null);
+            ((KickedByGUID == null) || (KickedByGUID != Guid.Empty)) &&
+            (Reason != EDisconnectionReason.Invalid);
 
         /// <summary>
         /// Constructs a message informing about an useer leaving the lobby for deserializers
@@ -47,7 +61,8 @@ namespace ElectrodZMultiplayer.Data.Messages
         /// </summary>
         /// <param name="user">User</param>
         /// <param name="reason">Reason</param>
-        public UserLeftMessageData(IUser user, string reason) : base(Naming.GetMessageTypeNameFromMessageDataType<UserLeftMessageData>())
+        /// <param name="message">Message</param>
+        public UserLeftMessageData(IUser user, EDisconnectionReason reason, string message) : base(Naming.GetMessageTypeNameFromMessageDataType<UserLeftMessageData>())
         {
             if (user == null)
             {
@@ -57,8 +72,13 @@ namespace ElectrodZMultiplayer.Data.Messages
             {
                 throw new ArgumentException("User is not valid.", nameof(user));
             }
+            if (reason == EDisconnectionReason.Invalid)
+            {
+                throw new ArgumentException("Reason can't be invalid.", nameof(reason));
+            }
             GUID = user.GUID;
-            Reason = reason ?? throw new ArgumentNullException(nameof(reason));
+            Reason = reason;
+            Message = message ?? throw new ArgumentNullException(nameof(message));
         }
     }
 }

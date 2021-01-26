@@ -209,19 +209,21 @@ namespace ElectrodZMultiplayer.Server
         /// <summary>
         /// Sends an error message
         /// </summary>
+        /// <typeparam name="T">Message type</typeparam>
         /// <param name="errorType">Error type</param>
         /// <param name="message">Error message</param>
-        public void SendErrorMessage(EErrorType errorType, string message) => SendErrorMessage(errorType, message, false);
+        public void SendErrorMessage<T>(EErrorType errorType, string message) where T : IBaseMessageData => SendErrorMessage<T>(errorType, message, false);
 
         /// <summary>
         /// Sends an error message
         /// </summary>
+        /// <typeparam name="T">Message type</typeparam>
         /// <param name="errorType">Error type</param>
         /// <param name="message">Error message</param>
         /// <param name="isFatal">Is error fatal</param>
-        public void SendErrorMessage(EErrorType errorType, string message, bool isFatal)
+        public void SendErrorMessage<T>(EErrorType errorType, string message, bool isFatal) where T : IBaseMessageData
         {
-            SendMessage(new ErrorMessageData(errorType, message));
+            SendMessage(new ErrorMessageData(errorType, Naming.GetMessageTypeNameFromMessageDataType<T>(), message));
             if (isFatal)
             {
                 Peer.Disconnect(EDisconnectionReason.Error);

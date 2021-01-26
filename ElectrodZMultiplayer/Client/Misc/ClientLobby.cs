@@ -25,7 +25,7 @@ namespace ElectrodZMultiplayer.Client
         /// <summary>
         /// Entities
         /// </summary>
-        private Dictionary<string, IEntity> entities = new Dictionary<string, IEntity>();
+        private readonly Dictionary<string, IEntity> entities = new Dictionary<string, IEntity>();
 
         /// <summary>
         /// Game mode rules
@@ -156,11 +156,6 @@ namespace ElectrodZMultiplayer.Client
         public event GameStoppedDelegate OnGameStopped;
 
         /// <summary>
-        /// This event will be invoked when the game has ended.
-        /// </summary>
-        public event GameEndedDelegate OnGameEnded;
-
-        /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="client">Client</param>
@@ -217,6 +212,59 @@ namespace ElectrodZMultiplayer.Client
         }
 
         /// <summary>
+        /// Gets user by GUID
+        /// </summary>
+        /// <param name="guid">User GUID</param>
+        /// <returns>User if available, otherwise "null"</returns>
+        public IUser GetUserByGUID(Guid guid) => TryGetUserByGUID(guid, out IUser ret) ? ret : null;
+
+        /// <summary>
+        /// Tries to get user by GUID
+        /// </summary>
+        /// <param name="guid">User GUID</param>
+        /// <param name="user">User</param>
+        /// <returns>"true" if user is available, otherwise "false"</returns>
+        public bool TryGetUserByGUID(Guid guid, out IUser user) => users.TryGetValue(guid.ToString(), out user);
+
+        /// <summary>
+        /// Gets entity by GUID
+        /// </summary>
+        /// <param name="guid">Entity GUID</param>
+        /// <returns>Entity if available, otherwise "null"</returns>
+        public IEntity GetEntityByGUID(Guid guid) => TryGetEntityByGUID(guid, out IEntity ret) ? ret : null;
+
+        /// <summary>
+        /// Tries to get entity by GUID
+        /// </summary>
+        /// <param name="guid">Entity GUID</param>
+        /// <param name="entity">Entity</param>
+        /// <returns>"true" if entity exists, otherwise "false"</returns>
+        public bool TryGetEntityByGUID(Guid guid, out IEntity entity) => entities.TryGetValue(guid.ToString(), out entity);
+
+        /// <summary>
+        /// Gets game mode rule
+        /// </summary>
+        /// <typeparam name="T">Game mode rule type</typeparam>
+        /// <param name="key">Game mode rule key</param>
+        /// <param name="defaultValue">Default value</param>
+        /// <returns>Value if successful, otherwise the specified default value</returns>
+        public T GetGameModeRule<T>(string key, T defaultValue = default) => TryGetGameModeRule(key, out T ret) ? ret : defaultValue;
+
+        /// <summary>
+        /// Tries to get game mode rule
+        /// </summary>
+        /// <typeparam name="T">Game mode rule type</typeparam>
+        /// <param name="key">Game mode rule key</param>
+        /// <param name="value">Value</param>
+        /// <returns>Value if successful, otherwise the specified default value</returns>
+        public bool TryGetGameModeRule<T>(string key, out T value)
+        {
+            bool ret = gameModeRules.TryGetValue(key ?? throw new ArgumentNullException(nameof(key)), out object object_value);
+            value = ret ? ((object_value is T result) ? result : default) : default;
+            return ret;
+        }
+
+        /// <summary>
         /// Leave lobby
         /// </summary>
         public void Leave() => client.SendQuitLobbyMessage();
@@ -248,14 +296,15 @@ namespace ElectrodZMultiplayer.Client
         /// </summary>
         /// <param name="user">User</param>
         /// <param name="reason">Reason</param>
+        /// <param name="message">Message</param>
         /// <returns>"true" if user was successfully removed, othewrwise </returns>
-        public bool RemoveUserInternally(IUser user, string reason)
+        public bool RemoveUserInternally(IUser user, EDisconnectionReason reason, string message)
         {
             bool ret = false;
             string key = user.GUID.ToString();
             if (users.ContainsKey(key))
             {
-                OnUserLeft?.Invoke(user, reason);
+                OnUserLeft?.Invoke(user, reason, message);
                 ret = users.Remove(key);
             }
             return ret;
@@ -300,10 +349,12 @@ namespace ElectrodZMultiplayer.Client
         /// <summary>
         /// Invokes the game stopped event internally
         /// </summary>
-        public void InvokeGameStoppedEventInternally()
+        /// <param name="users">Users</param>
+        /// <param name="results">Results</param>
+        public void InvokeGameStoppedEventInternally(IReadOnlyDictionary<string, UserWithResults> users, IReadOnlyDictionary<string, object> results)
         {
             CurrentGameTime = 0.0;
-            OnGameStopped?.Invoke();
+            OnGameStopped?.Invoke(users, results);
         }
 
         /// <summary>
@@ -413,13 +464,6 @@ namespace ElectrodZMultiplayer.Client
                 my_client_user.InvokeServerTickedEvent(time, entity_deltas);
             }
         }
-
-        /// <summary>
-        /// Invokes the game ended event internally
-        /// </summary>
-        /// <param name="users">Users</param>
-        /// <param name="results">Results</param>
-        public void InvokeGameEndedEventInternally(IReadOnlyDictionary<string, UserWithResults> users, IReadOnlyDictionary<string, object> results) => OnGameEnded?.Invoke(users, results);
 
         /// <summary>
         /// Dispose

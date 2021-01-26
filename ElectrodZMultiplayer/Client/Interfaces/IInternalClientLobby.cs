@@ -35,8 +35,9 @@ namespace ElectrodZMultiplayer.Client
         /// </summary>
         /// <param name="user">User</param>
         /// <param name="reason">Reason</param>
+        /// <param name="message">Message</param>
         /// <returns>"true" if user was successfully removed, othewrwise </returns>
-        bool RemoveUserInternally(IUser user, string reason);
+        bool RemoveUserInternally(IUser user, EDisconnectionReason reason, string message);
 
         /// <summary>
         /// Invokes the game start requested event internally
@@ -69,7 +70,9 @@ namespace ElectrodZMultiplayer.Client
         /// <summary>
         /// Invokes the game stopped event internally
         /// </summary>
-        void InvokeGameStoppedEventInternally();
+        /// <param name="users">Users</param>
+        /// <param name="results">Results</param>
+        void InvokeGameStoppedEventInternally(IReadOnlyDictionary<string, UserWithResults> users, IReadOnlyDictionary<string, object> results);
 
         /// <summary>
         /// Processes server tick internally
@@ -77,12 +80,5 @@ namespace ElectrodZMultiplayer.Client
         /// <param name="time">Time in seconds elapsed since game start</param>
         /// <param name="entityDeltas">Entity deltas</param>
         void ProcessServerTickInternally(double time, IEnumerable<EntityData> entityDeltas);
-
-        /// <summary>
-        /// Invokes the game ended event internally
-        /// </summary>
-        /// <param name="users">Users</param>
-        /// <param name="results">Results</param>
-        void InvokeGameEndedEventInternally(IReadOnlyDictionary<string, UserWithResults> users, IReadOnlyDictionary<string, object> results);
     }
 }

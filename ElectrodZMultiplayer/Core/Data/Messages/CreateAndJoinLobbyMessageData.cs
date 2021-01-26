@@ -11,7 +11,7 @@ namespace ElectrodZMultiplayer.Data.Messages
     /// A class that describes a message to create and join a new lobby
     /// </summary>
     [JsonObject(MemberSerialization.OptIn)]
-    internal class CreateAndJoinLobbyMessageData : BaseMessageData
+    public class CreateAndJoinLobbyMessageData : BaseMessageData
     {
         /// <summary>
         /// Username
@@ -88,7 +88,7 @@ namespace ElectrodZMultiplayer.Data.Messages
         /// <param name="maximalUserCount">Maximal user count</param>
         /// <param name="isStartingGameAutomatically">Is starting game automatically</param>
         /// <param name="gameModeRules">Game mode rules</param>
-        public CreateAndJoinLobbyMessageData(string username, string lobbyName, string gameMode, uint? minimalUserCount, uint? maximalUserCount, bool? isStartingGameAutomatically, Dictionary<string, object> gameModeRules) : base(Naming.GetMessageTypeNameFromMessageDataType<CreateAndJoinLobbyMessageData>())
+        public CreateAndJoinLobbyMessageData(string username, string lobbyName, string gameMode, uint? minimalUserCount = null, uint? maximalUserCount = null, bool? isStartingGameAutomatically = null, IReadOnlyDictionary<string, object> gameModeRules = null) : base(Naming.GetMessageTypeNameFromMessageDataType<CreateAndJoinLobbyMessageData>())
         {
             if (username == null)
             {
@@ -116,11 +116,7 @@ namespace ElectrodZMultiplayer.Data.Messages
             {
                 throw new ArgumentException("Minimal user count can't be greater than maximal user count.", nameof(minimalUserCount));
             }
-            if (string.IsNullOrWhiteSpace(gameMode))
-            {
-                throw new ArgumentNullException(nameof(gameMode));
-            }
-            if ((gameModeRules != null) && gameModeRules.ContainsValue(null))
+            if ((gameModeRules != null) && Protection.IsContained(gameModeRules.Values, (value) => value == null))
             {
                 throw new ArgumentException("Game mode rules contains null.", nameof(gameModeRules));
             }
@@ -130,7 +126,14 @@ namespace ElectrodZMultiplayer.Data.Messages
             MinimalUserCount = minimalUserCount;
             MaximalUserCount = maximalUserCount;
             IsStartingGameAutomatically = isStartingGameAutomatically;
-            GameModeRules = gameModeRules;
+            if (gameModeRules != null)
+            {
+                GameModeRules = new Dictionary<string, object>();
+                foreach (KeyValuePair<string, object> game_mode_rule in gameModeRules)
+                {
+                    GameModeRules.Add(game_mode_rule.Key, game_mode_rule.Value);
+                }
+            }
         }
     }
 }

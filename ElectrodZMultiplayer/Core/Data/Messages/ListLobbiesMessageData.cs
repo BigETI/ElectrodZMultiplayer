@@ -11,7 +11,7 @@ namespace ElectrodZMultiplayer.Data.Messages
     /// A class that describes a list lobbies request message
     /// </summary>
     [JsonObject(MemberSerialization.OptIn)]
-    internal class ListLobbiesMessageData : BaseMessageData
+    public class ListLobbiesMessageData : BaseMessageData
     {
         /// <summary>
         /// Exclude full lobbies

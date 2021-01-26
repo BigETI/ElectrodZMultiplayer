@@ -12,7 +12,7 @@ namespace ElectrodZMultiplayer.Data
     /// A class that describes entity data
     /// </summary>
     [JsonObject(MemberSerialization.OptIn)]
-    internal class EntityData : IValidable
+    public class EntityData : IValidable
     {
         /// <summary>
         /// Entity GUID

@@ -122,13 +122,13 @@ namespace ElectrodZMultiplayer.Client
         /// <summary>
         /// Sends a change lobby rules message to peer
         /// </summary>
-        /// <param name="name">Lobby name</param>
-        /// <param name="minimalUserCount">Minimal user count</param>
-        /// <param name="maximalUserCount">Maximal user count</param>
-        /// <param name="isStartingGameAutomatically">Is starting game automatically</param>
-        /// <param name="gameMode">Game mode</param>
-        /// <param name="gameModeRules">Game mode rules</param>
-        void SendChangeLobbyRules(string name = null, uint? minimalUserCount = null, uint? maximalUserCount = null, bool? isStartingGameAutomatically = null, string gameMode = null, IReadOnlyDictionary<string, object> gameModeRules = null);
+        /// <param name="name">Lobby name (optional)</param>
+        /// <param name="gameMode">Game mode (optional)</param>
+        /// <param name="minimalUserCount">Minimal user count (optional)</param>
+        /// <param name="maximalUserCount">Maximal user count (optional)</param>
+        /// <param name="isStartingGameAutomatically">Is starting game automatically (optional)</param>
+        /// <param name="gameModeRules">Game mode rules (optional)</param>
+        void SendChangeLobbyRules(string name = null, string gameMode = null, uint? minimalUserCount = null, uint? maximalUserCount = null, bool? isStartingGameAutomatically = null, IReadOnlyDictionary<string, object> gameModeRules = null);
 
         /// <summary>
         /// Sends a kick user message to peer
@@ -164,15 +164,17 @@ namespace ElectrodZMultiplayer.Client
         /// <summary>
         /// Sends an error message to peer
         /// </summary>
+        /// <typeparam name="T">Message type</typeparam>
         /// <param name="errorType">Error type</param>
         /// <param name="errorMessage">Error message</param>
-        void SendErrorMessage(EErrorType errorType, string errorMessage);
+        void SendErrorMessage<T>(EErrorType errorType, string errorMessage) where T : IBaseMessageData;
 
         /// <summary>
         /// Sends an error message to peer
         /// </summary>
+        /// <typeparam name="T">Message type</typeparam>
         /// <param name="errorType"></param>
         /// <param name="errorMessage"></param>
-        void SendErrorMessage(EErrorType errorType, string errorMessage, bool isFatal);
+        void SendErrorMessage<T>(EErrorType errorType, string errorMessage, bool isFatal) where T : IBaseMessageData;
     }
 }

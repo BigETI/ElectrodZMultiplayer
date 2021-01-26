@@ -10,7 +10,7 @@ namespace ElectrodZMultiplayer.Data.Messages
     /// A class that describes the base of any sent or received data
     /// </summary>
     [JsonObject(MemberSerialization.OptIn)]
-    internal class BaseMessageData : IBaseMessageData
+    public class BaseMessageData : IBaseMessageData
     {
         /// <summary>
         /// Message type

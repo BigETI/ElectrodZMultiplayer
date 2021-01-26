@@ -10,7 +10,7 @@ namespace ElectrodZMultiplayer.Data.Messages
     /// A class that describes a stop game request message
     /// </summary>
     [JsonObject(MemberSerialization.OptIn)]
-    internal class StopGameMessageData : BaseMessageData
+    public class StopGameMessageData : BaseMessageData
     {
         /// <summary>
         /// Time to stop game in seconds

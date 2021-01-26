@@ -10,7 +10,7 @@ namespace ElectrodZMultiplayer.Data.Messages
     /// A class that describes a start game request message
     /// </summary>
     [JsonObject(MemberSerialization.OptIn)]
-    internal class StartGameMessageData : BaseMessageData
+    public class StartGameMessageData : BaseMessageData
     {
         /// <summary>
         /// Time to start game in seconds

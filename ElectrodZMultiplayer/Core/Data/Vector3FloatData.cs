@@ -9,7 +9,7 @@ namespace ElectrodZMultiplayer.Data
     /// A class that describes 3D vector data
     /// </summary>
     [JsonObject(MemberSerialization.OptIn)]
-    internal class Vector3FloatData
+    public class Vector3FloatData
     {
         /// <summary>
         /// X component of the 3D vector

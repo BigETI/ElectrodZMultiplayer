@@ -9,7 +9,7 @@ namespace ElectrodZMultiplayer.Data
     /// A class that describes quaternion data
     /// </summary>
     [JsonObject(MemberSerialization.OptIn)]
-    internal class QuaternionFloatData
+    public class QuaternionFloatData
     {
         /// <summary>
         /// X component of the quaternion

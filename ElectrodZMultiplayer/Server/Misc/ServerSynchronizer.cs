@@ -58,7 +58,7 @@ namespace ElectrodZMultiplayer.Server
         /// <summary>
         /// Tick stopwatch
         /// </summary>
-        private Stopwatch tickStopwatch = new Stopwatch();
+        private readonly Stopwatch tickStopwatch = new Stopwatch();
 
         /// <summary>
         /// Bans
@@ -91,9 +91,19 @@ namespace ElectrodZMultiplayer.Server
         public override event AuthentificationAcknowledgedDelegate OnAuthentificationAcknowledged;
 
         /// <summary>
+        /// This event will be invoked when an authentification has failed.
+        /// </summary>
+        public override event AuthentificationFailedDelegate OnAuthentificationFailed;
+
+        /// <summary>
         /// This event will be invoked when lobbies have been listed.
         /// </summary>
         public override event LobbiesListedDelegate OnLobbiesListed;
+
+        /// <summary>
+        /// This event will be invoked when listing lobbies has failed.
+        /// </summary>
+        public override event ListLobbiesFailedDelegate OnListLobbiesFailed;
 
         /// <summary>
         /// This event will be invoked when available game modes have been listed.
@@ -101,303 +111,626 @@ namespace ElectrodZMultiplayer.Server
         public override event AvailableGameModesListedDelegate OnAvailableGameModesListed;
 
         /// <summary>
+        /// This event will be invoked when listing available game modes has failed.
+        /// </summary>
+        public override event ListAvailableGameModesFailedDelegate OnListAvailableGameModesFailed;
+
+        /// <summary>
+        /// This event will be invoked when joining a lobby has failed.
+        /// </summary>
+        public override event JoinLobbyFailedDelegate OnJoinLobbyFailed;
+
+        /// <summary>
+        /// This event will be invoked when creating a lobby has failed.
+        /// </summary>
+        public override event CreateLobbyFailedDelegate OnCreateLobbyFailed;
+
+        /// <summary>
+        /// This event will be invoked when changing username has failed.
+        /// </summary>
+        public override event ChangeUsernameFailedDelegate OnChangeUsernameFailed;
+
+        /// <summary>
+        /// This event will be invoked when changing user lobby color has failed.
+        /// </summary>
+        public override event ChangeUserLobbyColorFailedDelegate OnChangeUserLobbyColorFailed;
+
+        /// <summary>
+        /// This event will be invoked when changing lobby rules have failed.
+        /// </summary>
+        public override event ChangeLobbyRulesFailedDelegate OnChangeLobbyRulesFailed;
+
+        /// <summary>
+        /// This event will be invoked when kicking a user has failed.
+        /// </summary>
+        public override event KickUserFailedDelegate OnKickUserFailed;
+
+        /// <summary>
+        /// This event will be invoked when starting a game has failed.
+        /// </summary>
+        public override event StartGameFailedDelegate OnStartGameFailed;
+
+        /// <summary>
+        /// This event will be invoked when restarting a game has failed.
+        /// </summary>
+        public override event RestartGameFailedDelegate OnRestartGameFailed;
+
+        /// <summary>
+        /// This event will be invoked when stopping a game has failed.
+        /// </summary>
+        public override event StopGameFailedDelegate OnStopGameFailed;
+
+        /// <summary>
+        /// This event will be invoked when a client tick has failed.
+        /// </summary>
+        public override event ClientTickFailedDelegate OnClientTickFailed;
+
+        /// <summary>
         /// Constructs a server synchronizer
         /// </summary>
         public ServerSynchronizer() : base()
         {
-            AddMessageParser<AuthenticateMessageData>((peer, message, json) =>
-            {
-                string key = peer.GUID.ToString();
-                if (users.ContainsKey(key))
+            AddMessageParser<AuthenticateMessageData>
+            (
+                (peer, message, _) =>
                 {
-                    SendErrorMessageToPeer(peer, EErrorType.InvalidMessageContext, "User is already authentificated");
-                }
-                else if ((message.Token == null) || !tokenToUserLookup.ContainsKey(message.Token))
-                {
-                    string token;
-                    do
+                    string key = peer.GUID.ToString();
+                    if (users.ContainsKey(key) && users[key] is IInternalServerUser server_user)
                     {
-                        token = Randomizer.GetRandomString(32U, tokenCharacters);
+                        SendAuthentificationFailedMessage(peer, message, EAuthentificationFailedReason.AlreadyAuthenticated);
                     }
-                    while (tokenToUserLookup.ContainsKey(token));
-                    IInternalServerUser server_user = new ServerUser(peer, this, token);
-                    users.Add(key, server_user);
-                    tokenToUserLookup.Add(token, server_user);
-                    OnAuthentificationAcknowledged?.Invoke(server_user);
-                    server_user.SendAuthentificationAcknowledgedMessage();
-                }
-                else
-                {
-                    IInternalServerUser server_user = tokenToUserLookup[message.Token];
-                    if (users.ContainsKey(server_user.GUID.ToString()))
+                    else if ((message.Token == null) || !tokenToUserLookup.ContainsKey(message.Token))
                     {
-                        SendErrorMessageToPeer(peer, EErrorType.InvalidMessageContext, "Token is already being used for a connected user.", true);
+                        string token;
+                        do
+                        {
+                            token = Randomizer.GetRandomString(32U, tokenCharacters);
+                        }
+                        while (tokenToUserLookup.ContainsKey(token));
+                        server_user = new ServerUser(peer, this, token);
+                        users.Add(key, server_user);
+                        tokenToUserLookup.Add(token, server_user);
+                        OnAuthentificationAcknowledged?.Invoke(server_user);
+                        server_user.SendAuthentificationAcknowledgedMessage();
                     }
                     else
                     {
-                        server_user.SetPeerInternally(peer);
-                        users.Add(key, server_user);
-                        OnAuthentificationAcknowledged?.Invoke(server_user);
-                        server_user.SendAuthentificationAcknowledgedMessage();
-                        // TODO: Establish state back after returning from the dead.
-                    }
-                }
-            }, FatalMessageParseFailedEvent);
-            AddMessageParser<ListLobbiesMessageData>((peer, message, json) =>
-                AssertPeerIsAuthentificated(peer, (serverUser) =>
-                {
-                    List<ILobbyView> lobby_list = new List<ILobbyView>();
-                    foreach (ILobby lobby in lobbies.Values)
-                    {
-                        if
-                        (
-                            ((message.Name == null) || lobby.Name.Contains(message.Name.Trim())) &&
-                            ((message.MinimalUserCount == null) || (lobby.UserCount >= message.MinimalUserCount)) &&
-                            ((message.MaximalUserCount == null) || (lobby.UserCount <= message.MaximalUserCount)) &&
-                            ((message.ExcludeFull == null) || (lobby.UserCount < lobby.MaximalUserCount)) &&
-                            ((message.IsStartingGameAutomatically == null) || (lobby.IsStartingGameAutomatically == message.IsStartingGameAutomatically)) &&
-                            ((message.GameMode == null) || (lobby.GameMode.Contains(message.GameMode))) &&
-                            ((message.GameModeRules == null) || AreGameModeRulesContained(lobby.GameModeRules, message.GameModeRules))
-                        )
+                        server_user = tokenToUserLookup[message.Token];
+                        if (users.ContainsKey(server_user.GUID.ToString()))
                         {
-                            lobby_list.Add(lobby);
+                            SendAuthentificationFailedMessage(peer, message, EAuthentificationFailedReason.TokenIsAlreadyInUse, true);
+                        }
+                        else
+                        {
+                            server_user.SetPeerInternally(peer);
+                            users.Add(key, server_user);
+                            OnAuthentificationAcknowledged?.Invoke(server_user);
+                            server_user.SendAuthentificationAcknowledgedMessage();
+                            // TODO: Establish state back after returning from the dead.
                         }
                     }
-                    OnLobbiesListed?.Invoke(lobby_list);
-                    serverUser.SendListLobbyResultsMessage(lobby_list);
-                    lobby_list.Clear();
-                }), MessageParseFailedEvent);
-            AddMessageParser<ListAvailableGameModesMessageData>((peer, message, json) =>
-                AssertPeerIsAuthentificated(peer, (serverUser) =>
+                },
+                (peer, message, _) =>
                 {
-                    HashSet<string> available_game_modes = new HashSet<string>();
-                    string name = message.Name ?? string.Empty;
-                    foreach (string available_game_mode in availableGameModeTypes.Keys)
+                    if (message.Version == null)
                     {
-                        if (available_game_mode.Contains(name))
-                        {
-                            available_game_modes.Add(available_game_mode);
-                        }
+                        SendAuthentificationFailedMessage(peer, message, EAuthentificationFailedReason.VersionIsNull, true);
                     }
-                    OnAvailableGameModesListed?.Invoke(available_game_modes);
-                    serverUser.SendListAvailableGameModeResultsMessage(available_game_modes);
-                    available_game_modes.Clear();
-                }), MessageParseFailedEvent);
-            AddMessageParser<JoinLobbyMessageData>((peer, message, json) =>
-                AssertPeerIsNotInLobby(peer, (serverUser) =>
-                {
-                    string lobby_code = message.LobbyCode.ToUpper();
-                    if (lobbies.ContainsKey(lobby_code))
+                    else if (message.Version != Defaults.apiVersion)
                     {
-                        if (lobbies[lobby_code] is IInternalServerLobby server_lobby)
+                        SendAuthentificationFailedMessage(peer, message, EAuthentificationFailedReason.NotSupportedVersion, true);
+                    }
+                    else
+                    {
+                        SendAuthentificationFailedMessage(peer, message, EAuthentificationFailedReason.Unknown, true);
+                    }
+                },
+                FatalMessageParseFailedEvent<AuthenticateMessageData>
+            );
+            AddMessageParser<ListLobbiesMessageData>
+            (
+                (peer, message, _) => AssertPeerIsAuthentificated<ListLobbiesMessageData>
+                (
+                    peer,
+                    (serverUser) =>
+                    {
+                        List<ILobbyView> lobby_list = new List<ILobbyView>();
+                        foreach (ILobby lobby in lobbies.Values)
                         {
-                            if (server_lobby.UserCount < server_lobby.MaximalUserCount)
+                            if
+                            (
+                                ((message.Name == null) || lobby.Name.Contains(message.Name.Trim())) &&
+                                ((message.MinimalUserCount == null) || (lobby.UserCount >= message.MinimalUserCount)) &&
+                                ((message.MaximalUserCount == null) || (lobby.UserCount <= message.MaximalUserCount)) &&
+                                ((message.ExcludeFull == null) || (lobby.UserCount < lobby.MaximalUserCount)) &&
+                                ((message.IsStartingGameAutomatically == null) || (lobby.IsStartingGameAutomatically == message.IsStartingGameAutomatically)) &&
+                                ((message.GameMode == null) || (lobby.GameMode.Contains(message.GameMode))) &&
+                                ((message.GameModeRules == null) || AreGameModeRulesContained(lobby.GameModeRules, message.GameModeRules))
+                            )
                             {
-                                serverUser.ServerLobby = server_lobby;
-                                serverUser.SetNameInternally(message.Username);
-                                server_lobby.AddUser(serverUser);
-                                serverUser.SendJoinLobbyAcknowledgedMessage(server_lobby);
+                                lobby_list.Add(lobby);
+                            }
+                        }
+                        OnLobbiesListed?.Invoke(lobby_list);
+                        serverUser.SendListLobbyResultsMessage(lobby_list);
+                        lobby_list.Clear();
+                    }
+                ),
+                (peer, message, _) =>
+                {
+                    OnListLobbiesFailed?.Invoke(peer, message, EListLobbiesFailedReason.Unknown);
+                    SendMessageToPeer(peer, new ListLobbiesFailedMessageData(message, EListLobbiesFailedReason.Unknown));
+                },
+                MessageParseFailedEvent<ListLobbiesMessageData>
+            );
+            AddMessageParser<ListAvailableGameModesMessageData>
+            (
+                (peer, message, _) => AssertPeerIsAuthentificated<ListAvailableGameModesMessageData>
+                (
+                    peer,
+                    (serverUser) =>
+                    {
+                        HashSet<string> available_game_modes = null;
+                        string name = message.Name ?? string.Empty;
+                        foreach (string available_game_mode in availableGameModeTypes.Keys)
+                        {
+                            if (available_game_mode.Contains(name))
+                            {
+                                available_game_modes = available_game_modes ?? new HashSet<string>();
+                                available_game_modes.Add(available_game_mode);
+                            }
+                        }
+                        OnAvailableGameModesListed?.Invoke(available_game_modes);
+                        serverUser.SendListAvailableGameModeResultsMessage(available_game_modes);
+                        available_game_modes.Clear();
+                    }
+                ),
+                (peer, message, _) =>
+                {
+                    OnListAvailableGameModesFailed?.Invoke(peer, message, EListAvailableGameModesFailedReason.Unknown);
+                    SendMessageToPeer(peer, new ListAvailableGameModesFailedMessageData(message, EListAvailableGameModesFailedReason.Unknown));
+                },
+                MessageParseFailedEvent<ListAvailableGameModesMessageData>
+            );
+            AddMessageParser<JoinLobbyMessageData>
+            (
+                (peer, message, json) => AssertPeerIsNotInLobby<JoinLobbyMessageData>
+                (
+                    peer,
+                    (serverUser) =>
+                    {
+                        string lobby_code = message.LobbyCode.ToUpper();
+                        if (lobbies.ContainsKey(lobby_code))
+                        {
+                            if (lobbies[lobby_code] is IInternalServerLobby server_lobby)
+                            {
+                                if (server_lobby.UserCount < server_lobby.MaximalUserCount)
+                                {
+                                    serverUser.ServerLobby = server_lobby;
+                                    serverUser.SetNameInternally(message.Username);
+                                    server_lobby.AddUser(serverUser);
+                                    serverUser.SendJoinLobbyAcknowledgedMessage(server_lobby);
+                                }
+                                else
+                                {
+                                    SendJoinLobbyFailedMessage(peer, message, EJoinLobbyFailedReason.Full);
+                                }
                             }
                             else
                             {
-                                serverUser.SendErrorMessage(EErrorType.Full, $"Lobby \"{ server_lobby.Name }\" with lobby code \"{ server_lobby.LobbyCode }\" is full.");
+                                SendJoinLobbyFailedMessage(peer, message, EJoinLobbyFailedReason.Unknown);
                             }
                         }
                         else
                         {
-                            serverUser.SendErrorMessage(EErrorType.InternalError, $"Lobby with lobby code \"{ lobby_code }\" does not inherit from \"{ nameof(IInternalServerLobby) }\".");
+                            SendJoinLobbyFailedMessage(peer, message, EJoinLobbyFailedReason.NotFound);
                         }
+                    }
+                ),
+                (peer, message, _) =>
+                {
+                    if (message.LobbyCode == null)
+                    {
+                        SendJoinLobbyFailedMessage(peer, message, EJoinLobbyFailedReason.LobbyCodeIsNull);
+                    }
+                    else if (message.Username == null)
+                    {
+                        SendJoinLobbyFailedMessage(peer, message, EJoinLobbyFailedReason.UsernameIsNull);
                     }
                     else
                     {
-                        serverUser.SendErrorMessage(EErrorType.NotFound, $"Lobby with lobby code \"{ lobby_code }\" does not exist.");
-                    }
-                }), MessageParseFailedEvent);
-            AddMessageParser<CreateAndJoinLobbyMessageData>((peer, message, json) =>
-                AssertPeerIsNotInLobby(peer, (serverUser) =>
-                {
-                    if (availableGameModeTypes.ContainsKey(message.GameMode))
-                    {
-                        string lobby_code;
-                        do
+                        string trimmed_username = message.Username.Trim();
+                        if ((message.Username.Trim().Length < Defaults.minimalUsernameLength) || (message.Username.Trim().Length > Defaults.maximalUsernameLength))
                         {
-                            lobby_code = Randomizer.GetRandomString(6U, humanFriendlyLobbyCodeCharacters);
+                            SendJoinLobbyFailedMessage(peer, message, EJoinLobbyFailedReason.InvalidUsernameLength);
                         }
-                        while (lobbies.ContainsKey(lobby_code));
-                        IInternalServerLobby server_lobby = new ServerLobby(lobby_code, message.LobbyName, message.MinimalUserCount ?? Defaults.minimalUserCount, message.MaximalUserCount ?? Defaults.maximalUserCount, message.IsStartingGameAutomatically ?? Defaults.isStartingGameAutomatically, availableGameModeTypes[message.GameMode], message.GameModeRules, this, serverUser);
-                        lobbies.Add(lobby_code, server_lobby);
-                        serverUser.ServerLobby = server_lobby;
-                        serverUser.SetNameInternally(message.Username);
-                        server_lobby.AddUser(serverUser);
-                        serverUser.SendJoinLobbyAcknowledgedMessage(server_lobby);
-                    }
-                    else
-                    {
-                        serverUser.SendErrorMessage(EErrorType.InvalidMessageParameters, $"Game mode \"{ message.GameMode }\" is not available.");
-                    }
-                }), MessageParseFailedEvent);
-            AddMessageParser<QuitLobbyMessageData>((peer, message, json) => AssertPeerIsInLobby(peer, (serverUser, serverLobby) => serverLobby.RemoveUser(serverUser, "User has left the lobby.")), MessageParseFailedEvent);
-            AddMessageParser<ChangeUsernameMessageData>((peer, message, json) => AssertPeerIsInLobby(peer, (serverUser, serverLobby) => serverUser.UpdateUsername(message.NewUsername.Trim())), MessageParseFailedEvent);
-            AddMessageParser<ChangeUserLobbyColorMessageData>((peer, message, json) => AssertPeerIsInLobby(peer, (serverUser, serverLobby) => serverUser.UpdateUserLobbyColor(message.NewUserLobbyColor)), MessageParseFailedEvent);
-            AddMessageParser<ChangeLobbyRulesMessageData>((peer, message, json) =>
-                AssertPeerIsLobbyOwner(peer, (serverUser, serverLobby) =>
-                {
-                    if ((message.GameMode == null) || availableGameModeTypes.ContainsKey(message.GameMode))
-                    {
-                        serverLobby.UpdateLobbyRules
-                        (
-                            message.Name,
-                            (message.GameMode == null) ? ((IGameResource, Type)?)null : availableGameModeTypes[message.GameMode],
-                            message.MinimalUserCount,
-                            message.MaximalUserCount,
-                            message.IsStartingGameAutomatically,
-                            message.GameModeRules
-                        );
-                    }
-                    else
-                    {
-                        SendErrorMessageToPeer(peer, EErrorType.InvalidMessageParameters, $"Game mode \"{ message.GameMode }\" is not available.");
-                    }
-                }), MessageParseFailedEvent);
-            AddMessageParser<KickUserMessageData>((peer, message, json) =>
-                AssertPeerIsLobbyOwner(peer, (serverUser, serverLobby) =>
-                {
-                    string key = message.UserGUID.ToString();
-                    if (users.ContainsKey(key))
-                    {
-                        IUser user = users[key];
-                        if (user.Lobby == null)
+                        else
                         {
-                            serverUser.SendErrorMessage(EErrorType.InternalError, $"User with GUID \"{ user.GUID }\" does not exist.");
+                            SendJoinLobbyFailedMessage(peer, message, EJoinLobbyFailedReason.Unknown);
                         }
-                        else if (serverLobby.LobbyCode == user.Lobby.LobbyCode)
+                    }
+                },
+                MessageParseFailedEvent<JoinLobbyMessageData>
+            );
+            AddMessageParser<CreateAndJoinLobbyMessageData>
+            (
+                (peer, message, json) => AssertPeerIsNotInLobby<CreateAndJoinLobbyMessageData>
+                (
+                    peer, (serverUser) =>
+                    {
+                        if (availableGameModeTypes.ContainsKey(message.GameMode))
                         {
-                            if (!serverLobby.RemoveUser(user, message.Reason))
+                            string lobby_code;
+                            do
                             {
-                                serverUser.SendErrorMessage(EErrorType.InternalError, $"Failed to remove user \"{ user.Name }\" with GUID \"{ user.GUID }\" from lobby \"{ serverLobby.Name }\" with lobby code \"{ serverLobby.LobbyCode }\".");
+                                lobby_code = Randomizer.GetRandomString(6U, humanFriendlyLobbyCodeCharacters);
                             }
+                            while (lobbies.ContainsKey(lobby_code));
+                            IInternalServerLobby server_lobby = new ServerLobby(lobby_code, message.LobbyName, message.MinimalUserCount ?? Defaults.minimalUserCount, message.MaximalUserCount ?? Defaults.maximalUserCount, message.IsStartingGameAutomatically ?? Defaults.isStartingGameAutomatically, availableGameModeTypes[message.GameMode], message.GameModeRules, this, serverUser);
+                            lobbies.Add(lobby_code, server_lobby);
+                            serverUser.ServerLobby = server_lobby;
+                            serverUser.SetNameInternally(message.Username);
+                            server_lobby.AddUser(serverUser);
+                            serverUser.SendJoinLobbyAcknowledgedMessage(server_lobby);
                         }
                         else
                         {
-                            serverUser.SendErrorMessage(EErrorType.InternalError, $"User with GUID \"{ user.GUID }\" does not exist.");
+                            SendCreateLobbyFailedMessage(peer, message, ECreateLobbyFailedReason.GameModeIsNotAvailable);
                         }
                     }
-                }), MessageParseFailedEvent);
-            AddMessageParser<StartGameMessageData>((peer, message, json) =>
-                AssertPeerIsLobbyOwner(peer, (serverUser, serverLobby) =>
+                ),
+                (peer, message, _) =>
                 {
-                    if (serverLobby.CurrentlyLoadedGameMode == null)
+                    if (message.Username == null)
                     {
-                        if (message.Time <= double.Epsilon)
+                        SendCreateLobbyFailedMessage(peer, message, ECreateLobbyFailedReason.UsernameIsNull);
+                    }
+                    else if ((message.Username.Length < Defaults.minimalUsernameLength) || (message.Username.Length > Defaults.maximalUsernameLength))
+                    {
+                        SendCreateLobbyFailedMessage(peer, message, ECreateLobbyFailedReason.InvalidUsernameLength);
+                    }
+                    else if (message.LobbyName == null)
+                    {
+                        SendCreateLobbyFailedMessage(peer, message, ECreateLobbyFailedReason.LobbyNameIsNull);
+                    }
+                    else if ((message.LobbyName.Length < Defaults.minimalLobbyNameLength) || (message.LobbyName.Length > Defaults.maximalLobbyNameLength))
+                    {
+                        SendCreateLobbyFailedMessage(peer, message, ECreateLobbyFailedReason.InvalidLobbyNameLength);
+                    }
+                    else if (string.IsNullOrWhiteSpace(message.GameMode))
+                    {
+                        SendCreateLobbyFailedMessage(peer, message, ECreateLobbyFailedReason.InvalidGameMode);
+                    }
+                    else if ((message.MinimalUserCount != null) && (message.MaximalUserCount != null) && (message.MinimalUserCount > message.MaximalUserCount))
+                    {
+                        SendCreateLobbyFailedMessage(peer, message, ECreateLobbyFailedReason.MinimalUserCountIsBiggerThanMaximalUserCount);
+                    }
+                    else if ((message.GameModeRules != null) && Protection.IsContained(message.GameModeRules.Values, (value) => value == null))
+                    {
+                        SendCreateLobbyFailedMessage(peer, message, ECreateLobbyFailedReason.GameModeRulesContainNull);
+                    }
+                    else
+                    {
+                        SendCreateLobbyFailedMessage(peer, message, ECreateLobbyFailedReason.Unknown);
+                    }
+                },
+                MessageParseFailedEvent<CreateAndJoinLobbyMessageData>
+            );
+            AddMessageParser<QuitLobbyMessageData>((peer, message, json) => AssertPeerIsInLobby<QuitLobbyMessageData>(peer, (serverUser, serverLobby) => serverLobby.RemoveUser(serverUser, EDisconnectionReason.Quit, "User has left the lobby.")), (peer, message, _) => SendMessageToPeer(peer, new QuitLobbyFailedMessageData(message, EQuitLobbyFailedReason.Unknown)), MessageParseFailedEvent<QuitLobbyMessageData>);
+            AddMessageParser<ChangeUsernameMessageData>
+            (
+                (peer, message, json) => AssertPeerIsInLobby<ChangeUsernameMessageData>(peer, (serverUser, serverLobby) => serverUser.UpdateUsername(message.NewUsername.Trim())),
+                (peer, message, _) =>
+                {
+                    if (message.NewUsername == null)
+                    {
+                        SendChangeUsernameFailedMessage(peer, message, EChangeUsernameFailedReason.UsernameIsNull);
+                    }
+                    else if ((message.NewUsername.Length < Defaults.minimalUsernameLength) || (message.NewUsername.Length > Defaults.maximalUsernameLength))
+                    {
+                        SendChangeUsernameFailedMessage(peer, message, EChangeUsernameFailedReason.InvalidUsernameLength);
+                    }
+                    else
+                    {
+                        SendChangeUsernameFailedMessage(peer, message, EChangeUsernameFailedReason.Unknown);
+                    }
+                },
+                MessageParseFailedEvent<ChangeUsernameMessageData>
+            );
+            AddMessageParser<ChangeUserLobbyColorMessageData>
+            (
+                (peer, message, json) => AssertPeerIsInLobby<ChangeUserLobbyColorMessageData>
+                (
+                    peer,
+                    (serverUser, serverLobby) => serverUser.UpdateUserLobbyColor(message.NewUserLobbyColor)
+                ),
+                (peer, message, _) =>
+                {
+                    OnChangeUserLobbyColorFailed?.Invoke(peer, message, EChangeUserLobbyColorFailedReason.Unknown);
+                    SendMessageToPeer(peer, new ChangeUserLobbyColorFailedMessageData(message, EChangeUserLobbyColorFailedReason.Unknown));
+                },
+                MessageParseFailedEvent<ChangeUserLobbyColorMessageData>
+            );
+            AddMessageParser<ChangeLobbyRulesMessageData>
+            (
+                (peer, message, json) => AssertPeerIsLobbyOwner<ChangeLobbyRulesMessageData>
+                (
+                    peer,
+                    (serverUser, serverLobby) =>
+                    {
+                        if ((message.GameMode == null) || availableGameModeTypes.ContainsKey(message.GameMode))
                         {
-                            serverLobby.StartNewGameModeInstance();
+                            serverLobby.UpdateLobbyRules
+                            (
+                                message.Name,
+                                (message.GameMode == null) ? ((IGameResource, Type)?)null : availableGameModeTypes[message.GameMode],
+                                message.MinimalUserCount,
+                                message.MaximalUserCount,
+                                message.IsStartingGameAutomatically,
+                                message.GameModeRules
+                            );
                         }
                         else
                         {
-                            serverLobby.RemainingGameStartTime = message.Time;
-                            serverLobby.SendGameStartRequestedMessage(message.Time);
+                            SendChangeLobbyRulesFailedMessage(peer, message, EChangeLobbyRulesFailedReason.GameModeIsNotAvailable);
                         }
+                    }
+                ),
+                (peer, message, _) =>
+                {
+                    if ((message.Name != null) && ((message.Name.Length < Defaults.minimalLobbyNameLength) || (message.Name.Length > Defaults.maximalLobbyNameLength)))
+                    {
+                        SendChangeLobbyRulesFailedMessage(peer, message, EChangeLobbyRulesFailedReason.InvalidLobbyNameLength);
+                    }
+                    else if ((message.GameMode != null) && string.IsNullOrWhiteSpace(message.GameMode))
+                    {
+                        SendChangeLobbyRulesFailedMessage(peer, message, EChangeLobbyRulesFailedReason.InvalidGameMode);
+                    }
+                    else if ((message.MinimalUserCount != null) && (message.MaximalUserCount != null) && (message.MinimalUserCount > message.MaximalUserCount))
+                    {
+                        SendChangeLobbyRulesFailedMessage(peer, message, EChangeLobbyRulesFailedReason.MinimalUserCountIsBiggerThanMaximalUserCount);
+                    }
+                    else if ((message.GameModeRules != null) && message.GameModeRules.ContainsValue(null))
+                    {
+                        SendChangeLobbyRulesFailedMessage(peer, message, EChangeLobbyRulesFailedReason.GameModeRulesContainNull);
                     }
                     else
                     {
-                        serverUser.SendErrorMessage(EErrorType.InvalidMessageContext, "Game mode is already running.");
+                        SendChangeLobbyRulesFailedMessage(peer, message, EChangeLobbyRulesFailedReason.Unknown);
                     }
-                }), MessageParseFailedEvent);
-            AddMessageParser<RestartGameMessageData>((peer, message, json) =>
-                AssertPeerIsLobbyOwner(peer, (serverUser, serverLobby) =>
-                {
-                    if (serverLobby.CurrentlyLoadedGameMode == null)
+                },
+                MessageParseFailedEvent<ChangeLobbyRulesMessageData>
+            );
+            AddMessageParser<KickUserMessageData>
+            (
+                (peer, message, json) => AssertPeerIsLobbyOwner<KickUserMessageData>
+                (
+                    peer,
+                    (serverUser, serverLobby) =>
                     {
-                        serverUser.SendErrorMessage(EErrorType.InvalidMessageContext, "Game mode is not runnning yet.");
-                    }
-                    else
-                    {
-                        if (message.Time <= double.Epsilon)
+                        string key = message.UserGUID.ToString();
+                        if (users.ContainsKey(key))
                         {
-                            serverLobby.StartNewGameModeInstance();
-                        }
-                        else
-                        {
-                            serverLobby.RemainingGameStartTime = message.Time;
-                            serverLobby.SendGameRestartRequestedMessage(message.Time);
-                        }
-                    }
-                }), MessageParseFailedEvent);
-            AddMessageParser<StopGameMessageData>((peer, message, json) =>
-                AssertPeerIsLobbyOwner(peer, (serverUser, serverLobby) =>
-                {
-                    if (serverLobby.CurrentlyLoadedGameMode == null)
-                    {
-                        serverUser.SendErrorMessage(EErrorType.InvalidMessageContext, $"User \"{ serverUser.Name }\" with GUID \"{ serverUser.GUID }\" lobby \"{ serverLobby.Name }\" with lobby code \"{ serverLobby.LobbyCode }\" is not in a running game.");
-                    }
-                    else if (message.Time <= double.Epsilon)
-                    {
-                        serverLobby.StopGameModeInstance();
-                    }
-                    else
-                    {
-                        serverLobby.RemainingGameStopTime = message.Time;
-                        serverLobby.SendGameStopRequestedMessage(message.Time);
-                    }
-                }), MessageParseFailedEvent);
-            AddMessageParser<ClientTickMessageData>((peer, message, json) =>
-                AssertPeerIsInRunningGame(peer, (serverUser, serverLobby, gameMode) =>
-                {
-                    entityDeltas.Clear();
-                    if (message.Entities != null)
-                    {
-                        foreach (EntityData entity in message.Entities)
-                        {
-                            if ((entity != null) && entity.IsValid)
+                            IUser user = users[key];
+                            if (user.Lobby == null)
                             {
-                                string key = entity.GUID.ToString();
-                                if (serverLobby.Entities.ContainsKey(key) && serverLobby.Entities[key] is IGameEntity game_entity)
+                                SendKickUserFailedMessage(peer, message, EKickUserFailedReason.InvalidUserGUID);
+                            }
+                            else if (serverLobby.LobbyCode == user.Lobby.LobbyCode)
+                            {
+                                if (!serverLobby.RemoveUser(user, EDisconnectionReason.Kicked, message.Reason))
                                 {
-                                    bool is_simulating = true;
-                                    float magnitude_squared = (game_entity.Position - serverUser.Position).MagnitudeSquared;
-                                    foreach (IUser user in serverLobby.Users.Values)
+                                    SendKickUserFailedMessage(peer, message, EKickUserFailedReason.FailedExecution);
+                                }
+                            }
+                            else
+                            {
+                                SendKickUserFailedMessage(peer, message, EKickUserFailedReason.InvalidUserGUID);
+                            }
+                        }
+                    }
+                ),
+                (peer, message, _) =>
+                {
+                    if (message.UserGUID == Guid.Empty)
+                    {
+                        SendKickUserFailedMessage(peer, message, EKickUserFailedReason.InvalidUserGUID);
+                    }
+                    else
+                    {
+                        SendKickUserFailedMessage(peer, message, EKickUserFailedReason.Unknown);
+                    }
+                },
+                MessageParseFailedEvent<KickUserMessageData>
+            );
+            AddMessageParser<StartGameMessageData>
+            (
+                (peer, message, json) => AssertPeerIsLobbyOwner<StartGameMessageData>
+                (
+                    peer,
+                    (serverUser, serverLobby) =>
+                    {
+                        if (serverLobby.CurrentlyLoadedGameMode == null)
+                        {
+                            if (message.Time <= double.Epsilon)
+                            {
+                                serverLobby.StartNewGameModeInstance();
+                            }
+                            else
+                            {
+                                serverLobby.RemainingGameStartTime = message.Time;
+                                serverLobby.SendGameStartRequestedMessage(message.Time);
+                            }
+                        }
+                        else
+                        {
+                            SendStartGameFailedMessage(peer, message, EStartGameFailedReason.GameModeIsAlreadyRunning);
+                        }
+                    }
+                ),
+                (peer, message, _) =>
+                {
+                    if (message.Time < 0.0)
+                    {
+                        SendStartGameFailedMessage(peer, message, EStartGameFailedReason.NegativeTime);
+                    }
+                    else
+                    {
+                        SendStartGameFailedMessage(peer, message, EStartGameFailedReason.Unknown);
+                    }
+                },
+                MessageParseFailedEvent<StartGameMessageData>
+            );
+            AddMessageParser<RestartGameMessageData>
+            (
+                (peer, message, json) => AssertPeerIsLobbyOwner<RestartGameMessageData>
+                (
+                    peer,
+                    (serverUser, serverLobby) =>
+                    {
+                        if (serverLobby.CurrentlyLoadedGameMode == null)
+                        {
+                            SendRestartGameFailedMessage(peer, message, ERestartGameFailedReason.GameModeIsNotRunning);
+                        }
+                        else
+                        {
+                            if (message.Time <= double.Epsilon)
+                            {
+                                serverLobby.StartNewGameModeInstance();
+                            }
+                            else
+                            {
+                                serverLobby.RemainingGameStartTime = message.Time;
+                                serverLobby.SendGameRestartRequestedMessage(message.Time);
+                            }
+                        }
+                    }
+                ),
+                (peer, message, _) =>
+                {
+                    if (message.Time < 0.0)
+                    {
+                        SendRestartGameFailedMessage(peer, message, ERestartGameFailedReason.NegativeTime);
+                    }
+                    else
+                    {
+                        SendRestartGameFailedMessage(peer, message, ERestartGameFailedReason.Unknown);
+                    }
+                },
+                MessageParseFailedEvent<RestartGameMessageData>
+            );
+            AddMessageParser<StopGameMessageData>
+            (
+                (peer, message, json) => AssertPeerIsLobbyOwner<StopGameMessageData>
+                (
+                    peer,
+                    (serverUser, serverLobby) =>
+                    {
+                        if (serverLobby.CurrentlyLoadedGameMode == null)
+                        {
+                            SendStopGameFailedMessage(peer, message, EStopGameFailedReason.GameModeIsNotRunning);
+                        }
+                        else if (message.Time <= double.Epsilon)
+                        {
+                            serverLobby.StopGameModeInstance();
+                        }
+                        else
+                        {
+                            serverLobby.RemainingGameStopTime = message.Time;
+                            serverLobby.SendGameStopRequestedMessage(message.Time);
+                        }
+                    }
+                ),
+                (peer, message, _) =>
+                {
+                    if (message.Time < 0.0)
+                    {
+                        SendStopGameFailedMessage(peer, message, EStopGameFailedReason.NegativeTime);
+                    }
+                    else
+                    {
+                        SendStopGameFailedMessage(peer, message, EStopGameFailedReason.Unknown);
+                    }
+                },
+                MessageParseFailedEvent<StopGameMessageData>
+            );
+            AddMessageParser<ClientTickMessageData>
+            (
+                (peer, message, json) =>
+                AssertPeerIsInRunningGame<ClientTickMessageData>
+                (
+                    peer,
+                    (serverUser, serverLobby, gameMode) =>
+                    {
+                        entityDeltas.Clear();
+                        if (message.Entities != null)
+                        {
+                            foreach (EntityData entity in message.Entities)
+                            {
+                                if ((entity != null) && entity.IsValid)
+                                {
+                                    string key = entity.GUID.ToString();
+                                    if (serverLobby.Entities.ContainsKey(key) && serverLobby.Entities[key] is IGameEntity game_entity)
                                     {
-                                        if ((user.GUID != serverUser.GUID) && ((game_entity.Position - user.Position).MagnitudeSquared < magnitude_squared))
+                                        bool is_simulating = true;
+                                        float magnitude_squared = (game_entity.Position - serverUser.Position).MagnitudeSquared;
+                                        foreach (IUser user in serverLobby.Users.Values)
                                         {
-                                            is_simulating = false;
-                                            break;
+                                            if ((user.GUID != serverUser.GUID) && ((game_entity.Position - user.Position).MagnitudeSquared < magnitude_squared))
+                                            {
+                                                is_simulating = false;
+                                                break;
+                                            }
                                         }
-                                    }
-                                    if (is_simulating)
-                                    {
-                                        EntityDelta entity_delta = (EntityDelta)entity;
-                                        if (entity_delta.GameColor != null)
+                                        if (is_simulating)
                                         {
-                                            game_entity.SetGameColor(entity_delta.GameColor.Value);
+                                            EntityDelta entity_delta = (EntityDelta)entity;
+                                            if (entity_delta.GameColor != null)
+                                            {
+                                                game_entity.SetGameColor(entity_delta.GameColor.Value);
+                                            }
+                                            if (entity_delta.Position != null)
+                                            {
+                                                game_entity.SetPosition(entity_delta.Position.Value);
+                                            }
+                                            if (entity_delta.Rotation != null)
+                                            {
+                                                game_entity.SetRotation(entity_delta.Rotation.Value);
+                                            }
+                                            if (entity_delta.Velocity != null)
+                                            {
+                                                game_entity.SetVelocity(entity_delta.Velocity.Value);
+                                            }
+                                            if (entity_delta.AngularVelocity != null)
+                                            {
+                                                game_entity.SetAngularVelocity(entity_delta.AngularVelocity.Value);
+                                            }
+                                            if (entity_delta.Actions != null)
+                                            {
+                                                game_entity.SetActions(entity_delta.Actions);
+                                            }
+                                            entityDeltas.Add(entity_delta);
                                         }
-                                        if (entity_delta.Position != null)
-                                        {
-                                            game_entity.SetPosition(entity_delta.Position.Value);
-                                        }
-                                        if (entity_delta.Rotation != null)
-                                        {
-                                            game_entity.SetRotation(entity_delta.Rotation.Value);
-                                        }
-                                        if (entity_delta.Velocity != null)
-                                        {
-                                            game_entity.SetVelocity(entity_delta.Velocity.Value);
-                                        }
-                                        if (entity_delta.AngularVelocity != null)
-                                        {
-                                            game_entity.SetAngularVelocity(entity_delta.AngularVelocity.Value);
-                                        }
-                                        if (entity_delta.Actions != null)
-                                        {
-                                            game_entity.SetActions(entity_delta.Actions);
-                                        }
-                                        entityDeltas.Add(entity_delta);
                                     }
                                 }
                             }
                         }
+                        serverUser.InvokeClientTickedEvent(entityDeltas);
                     }
-                    serverUser.InvokeClientTickedEvent(entityDeltas);
-                }), MessageParseFailedEvent);
+                ),
+                (peer, message, _) =>
+                {
+                    if ((message.Entities != null) && Protection.IsValid(message.Entities))
+                    {
+                        SendClientTickFailedMessage(peer, message, EClientTickFailedReason.InvalidEntities);
+                    }
+                    else
+                    {
+                        SendClientTickFailedMessage(peer, message, EClientTickFailedReason.Unknown);
+                    }
+                },
+                MessageParseFailedEvent<ClientTickMessageData>
+            );
             OnPeerDisconnected += (peer) =>
             {
                 string key = peer.GUID.ToString();
@@ -406,7 +739,7 @@ namespace ElectrodZMultiplayer.Server
                     IUser user = users[key];
                     if (user.Lobby is IServerLobby server_lobby)
                     {
-                        server_lobby.RemoveUser(user, "User has been disconnected.");
+                        server_lobby.RemoveUser(user, EDisconnectionReason.Disconnected, "User has been disconnected.");
                     }
                 }
             };
@@ -436,9 +769,10 @@ namespace ElectrodZMultiplayer.Server
         /// <summary>
         /// Asserts peer is authentificated
         /// </summary>
+        /// <typeparam name="T">Message type</typeparam>
         /// <param name="peer">Peer</param>
         /// <param name="onPeerIsAuthentificated">On peer is authentificated</param>
-        private void AssertPeerIsAuthentificated(IPeer peer, PeerIsAuthentificatedDelegate onPeerIsAuthentificated)
+        private void AssertPeerIsAuthentificated<T>(IPeer peer, PeerIsAuthentificatedDelegate onPeerIsAuthentificated) where T : IBaseMessageData
         {
             string key = peer.GUID.ToString();
             if (users.ContainsKey(key))
@@ -449,22 +783,23 @@ namespace ElectrodZMultiplayer.Server
                 }
                 else
                 {
-                    SendErrorMessageToPeer(peer, EErrorType.InvalidMessageContext, $"User with GUID \"{ key }\" does not inherit from \"{ nameof(IInternalServerUser) }\".");
+                    SendUnknownErrorMessageToPeer<T>(peer, $"User with GUID \"{ key }\" does not inherit from \"{ nameof(IInternalServerUser) }\".");
                 }
             }
             else
             {
-                SendErrorMessageToPeer(peer, EErrorType.InvalidMessageContext, "User is not authentificated yet.", true);
+                SendErrorMessageToPeer<T>(peer, EErrorType.InvalidMessageContext, "User is not authentificated yet.", true);
             }
         }
 
         /// <summary>
         /// Asserts peer is not in lobby
         /// </summary>
+        /// <typeparam name="T">Message type</typeparam>
         /// <param name="peer">Peer</param>
         /// <param name="onPeerIsInLobby">On peer is not in lobby</param>
-        private void AssertPeerIsNotInLobby(IPeer peer, PeerIsNotInLobbyDelegate onPeerIsNotInLobby) =>
-            AssertPeerIsAuthentificated(peer, (serverUser) =>
+        private void AssertPeerIsNotInLobby<T>(IPeer peer, PeerIsNotInLobbyDelegate onPeerIsNotInLobby) where T : IBaseMessageData =>
+            AssertPeerIsAuthentificated<T>(peer, (serverUser) =>
             {
                 if (serverUser.ServerLobby == null)
                 {
@@ -472,21 +807,22 @@ namespace ElectrodZMultiplayer.Server
                 }
                 else
                 {
-                    serverUser.SendErrorMessage(EErrorType.InvalidMessageContext, $"User \"{ serverUser.Name }\" with GUID \"{ serverUser.GUID }\" is already in lobby \"{ serverUser.ServerLobby.Name }\" with lobby code \"{ serverUser.ServerLobby.LobbyCode }\".");
+                    SendInvalidMessageContextErrorMessageToPeer<T>(peer, $"User \"{ serverUser.Name }\" with GUID \"{ serverUser.GUID }\" is already in lobby \"{ serverUser.ServerLobby.Name }\" with lobby code \"{ serverUser.ServerLobby.LobbyCode }\".");
                 }
             });
 
         /// <summary>
         /// Asserts peer is in lobby
         /// </summary>
+        /// <typeparam name="T">Message type</typeparam>
         /// <param name="peer">Peer</param>
         /// <param name="onPeerIsInLobby">On peer is in lobby</param>
-        private void AssertPeerIsInLobby(IPeer peer, PeerIsInLobbyDelegate onPeerIsInLobby) =>
-            AssertPeerIsAuthentificated(peer, (serverUser) =>
+        private void AssertPeerIsInLobby<T>(IPeer peer, PeerIsInLobbyDelegate onPeerIsInLobby) where T : IBaseMessageData =>
+            AssertPeerIsAuthentificated<T>(peer, (serverUser) =>
             {
                 if (serverUser.ServerLobby == null)
                 {
-                    serverUser.SendErrorMessage(EErrorType.InvalidMessageContext, $"User \"{ serverUser.Name }\" with GUID \"{ serverUser.GUID }\" is not in a lobby.");
+                    SendInvalidMessageContextErrorMessageToPeer<T>(peer, $"User \"{ serverUser.Name }\" with GUID \"{ serverUser.GUID }\" is not in a lobby.");
                 }
                 else
                 {
@@ -497,10 +833,11 @@ namespace ElectrodZMultiplayer.Server
         /// <summary>
         /// Asserts peer is lobby owner
         /// </summary>
+        /// <typeparam name="T">Message type</typeparam>
         /// <param name="peer">Peer</param>
         /// <param name="onPeerIsLobbyOwner">On peer is lobby owner</param>
-        private void AssertPeerIsLobbyOwner(IPeer peer, PeerIsLobbyOwnerDelegate onPeerIsLobbyOwner) =>
-            AssertPeerIsInLobby(peer, (serverUser, serverLobby) =>
+        private void AssertPeerIsLobbyOwner<T>(IPeer peer, PeerIsLobbyOwnerDelegate onPeerIsLobbyOwner) where T : IBaseMessageData =>
+            AssertPeerIsInLobby<T>(peer, (serverUser, serverLobby) =>
             {
                 if (serverUser.GUID == serverLobby.Owner.GUID)
                 {
@@ -508,27 +845,191 @@ namespace ElectrodZMultiplayer.Server
                 }
                 else
                 {
-                    serverUser.SendErrorMessage(EErrorType.InvalidMessageContext, $"User \"{ serverUser.Name }\" with GUID \"{ serverUser.GUID }\" is not the lobby owner of \"{ serverLobby.Name }\" with lobby code \"{ serverLobby.LobbyCode }\".");
+                    SendInvalidMessageContextErrorMessageToPeer<T>(peer, $"User \"{ serverUser.Name }\" with GUID \"{ serverUser.GUID }\" is not the lobby owner of \"{ serverLobby.Name }\" with lobby code \"{ serverLobby.LobbyCode }\".");
                 }
             });
 
         /// <summary>
         /// Asserts peer is in a running game
         /// </summary>
+        /// <typeparam name="T">Message type</typeparam>
         /// <param name="peer">Peer</param>
         /// <param name="onPeerIsInRunningGame">On peer is in running game</param>
-        private void AssertPeerIsInRunningGame(IPeer peer, PeerIsInRunningGameDelegate onPeerIsInRunningGame) =>
-            AssertPeerIsInLobby(peer, (serverUser, serverLobby) =>
+        private void AssertPeerIsInRunningGame<T>(IPeer peer, PeerIsInRunningGameDelegate onPeerIsInRunningGame) where T : IBaseMessageData =>
+            AssertPeerIsInLobby<T>(peer, (serverUser, serverLobby) =>
             {
                 if (serverLobby.CurrentlyLoadedGameMode == null)
                 {
-                    serverUser.SendErrorMessage(EErrorType.InvalidMessageContext, $"User \"{ serverUser.Name }\" with GUID \"{ serverUser.GUID }\" lobby \"{ serverLobby.Name }\" with lobby code \"{ serverLobby.LobbyCode }\" is not in a running game.");
+                    SendInvalidMessageContextErrorMessageToPeer<T>(peer, $"User \"{ serverUser.Name }\" with GUID \"{ serverUser.GUID }\" lobby \"{ serverLobby.Name }\" with lobby code \"{ serverLobby.LobbyCode }\" is not in a running game.");
                 }
                 else
                 {
                     onPeerIsInRunningGame(serverUser, serverLobby, serverLobby.CurrentlyLoadedGameMode);
                 }
             });
+
+        /// <summary>
+        /// Sends an authentification failed message
+        /// </summary>
+        /// <param name="peer">Peer</param>
+        /// <param name="message">Received message</param>
+        /// <param name="reason">Reason</param>
+        /// <param name="isFatal">Is authentification fail fatal</param>
+        private void SendAuthentificationFailedMessage(IPeer peer, AuthenticateMessageData message, EAuthentificationFailedReason reason, bool isFatal)
+        {
+            OnAuthentificationFailed?.Invoke(peer, message, EAuthentificationFailedReason.AlreadyAuthenticated);
+            SendMessageToPeer(peer, new AuthentificationFailedMessageData(message, reason));
+            if (isFatal)
+            {
+                peer.Disconnect(EDisconnectionReason.Error);
+            }
+        }
+
+        /// <summary>
+        /// Sends an authentification failed message
+        /// </summary>
+        /// <param name="peer">Peer</param>
+        /// <param name="message">Received message</param>
+        /// <param name="reason">Reason</param>
+        private void SendAuthentificationFailedMessage(IPeer peer, AuthenticateMessageData message, EAuthentificationFailedReason reason) => SendAuthentificationFailedMessage(peer, message, reason, false);
+
+        /// <summary>
+        /// Sends a join lobby failed message
+        /// </summary>
+        /// <param name="peer">Peer</param>
+        /// <param name="message">Received message</param>
+        /// <param name="reason">Reason</param>
+        private void SendJoinLobbyFailedMessage(IPeer peer, JoinLobbyMessageData message, EJoinLobbyFailedReason reason)
+        {
+            OnJoinLobbyFailed?.Invoke(peer, message, reason);
+            SendMessageToPeer(peer, new JoinLobbyFailedMessageData(message, reason));
+        }
+
+        /// <summary>
+        /// Sends a create lobby failed message
+        /// </summary>
+        /// <param name="peer">Peer</param>
+        /// <param name="message">Received message</param>
+        /// <param name="reason">Reason</param>
+        private void SendCreateLobbyFailedMessage(IPeer peer, CreateAndJoinLobbyMessageData message, ECreateLobbyFailedReason reason)
+        {
+            OnCreateLobbyFailed?.Invoke(peer, message, reason);
+            SendMessageToPeer(peer, new CreateLobbyFailedMessageData(message, reason));
+        }
+
+        /// <summary>
+        /// Sends a change username failed message
+        /// </summary>
+        /// <param name="peer">Peer</param>
+        /// <param name="message">Received message</param>
+        /// <param name="reason">Reason</param>
+        private void SendChangeUsernameFailedMessage(IPeer peer, ChangeUsernameMessageData message, EChangeUsernameFailedReason reason)
+        {
+            OnChangeUsernameFailed?.Invoke(peer, message, reason);
+            SendMessageToPeer(peer, new ChangeUsernameFailedMessageData(message, reason));
+        }
+
+        /// <summary>
+        /// Sends a change lobby rules failed message
+        /// </summary>
+        /// <param name="peer">Peer</param>
+        /// <param name="message">Received message</param>
+        /// <param name="reason">Reason</param>
+        private void SendChangeLobbyRulesFailedMessage(IPeer peer, ChangeLobbyRulesMessageData message, EChangeLobbyRulesFailedReason reason)
+        {
+            OnChangeLobbyRulesFailed?.Invoke(peer, message, reason);
+            SendMessageToPeer(peer, new ChangeLobbyRulesFailedMessageData(message, reason));
+        }
+
+        /// <summary>
+        /// Sends a kick user failed message
+        /// </summary>
+        /// <param name="peer">Peer</param>
+        /// <param name="message">Message</param>
+        /// <param name="reason">Reason</param>
+        private void SendKickUserFailedMessage(IPeer peer, KickUserMessageData message, EKickUserFailedReason reason)
+        {
+            OnKickUserFailed?.Invoke(peer, message, reason);
+            SendMessageToPeer(peer, new KickUserFailedMessageData(message, reason));
+        }
+
+        /// <summary>
+        /// Sends a start game failed message
+        /// </summary>
+        /// <param name="peer">Peer</param>
+        /// <param name="message">Received message</param>
+        /// <param name="reason">Reason</param>
+        private void SendStartGameFailedMessage(IPeer peer, StartGameMessageData message, EStartGameFailedReason reason)
+        {
+            OnStartGameFailed?.Invoke(peer, message, reason);
+            SendMessageToPeer(peer, new StartGameFailedMessageData(message, reason));
+        }
+
+        /// <summary>
+        /// Sends a restart game failed message
+        /// </summary>
+        /// <param name="peer">Peer</param>
+        /// <param name="message">Received message</param>
+        /// <param name="reason">Reason</param>
+        private void SendRestartGameFailedMessage(IPeer peer, RestartGameMessageData message, ERestartGameFailedReason reason)
+        {
+            OnRestartGameFailed?.Invoke(peer, message, reason);
+            SendMessageToPeer(peer, new RestartGameFailedMessageData(message, reason));
+        }
+
+        /// <summary>
+        /// Sends a stop game failed message
+        /// </summary>
+        /// <param name="peer">Peer</param>
+        /// <param name="message">Received message</param>
+        /// <param name="reason">Reason</param>
+        private void SendStopGameFailedMessage(IPeer peer, StopGameMessageData message, EStopGameFailedReason reason)
+        {
+            OnStopGameFailed?.Invoke(peer, message, reason);
+            SendMessageToPeer(peer, new StopGameFailedMessageData(message, reason));
+        }
+
+        /// <summary>
+        /// Sends a client tick failed message
+        /// </summary>
+        /// <param name="peer">Peer</param>
+        /// <param name="message">Received message</param>
+        /// <param name="reason">Reason</param>
+        private void SendClientTickFailedMessage(IPeer peer, ClientTickMessageData message, EClientTickFailedReason reason)
+        {
+            OnClientTickFailed?.Invoke(peer, message, reason);
+            SendMessageToPeer(peer, new ClientTickFailedMessageData(message, reason));
+        }
+
+        /// <summary>
+        /// Gets user by GUID
+        /// </summary>
+        /// <param name="guid">User GUID</param>
+        /// <returns>User if user is available, otherwise "null"</returns>
+        public IUser GetUserByGUID(Guid guid) => TryGetUserByGUID(guid, out IUser ret) ? ret : null;
+
+        /// <summary>
+        /// Tries to get user by GUID
+        /// </summary>
+        /// <param name="guid">User GUID</param>
+        /// <param name="user">User</param>
+        /// <returns>"true" if user is available, otherwise "false"</returns>
+        public bool TryGetUserByGUID(Guid guid, out IUser user) => users.TryGetValue(guid.ToString(), out user);
+
+        /// <summary>
+        /// Gets lobby by lobby code
+        /// </summary>
+        /// <param name="lobbyCode">Lobby code</param>
+        /// <returns>Lobby if lobby is available, otherwise "null"</returns>
+        public ILobby GetLobbyByLobbyCode(string lobbyCode) => TryGetLobbyByLobbyCode(lobbyCode, out ILobby ret) ? ret : null;
+
+        /// <summary>
+        /// Tries to get lobby by lobby code
+        /// </summary>
+        /// <param name="lobbyCode">Lobby code</param>
+        /// <param name="lobby">Lobby</param>
+        /// <returns>"true" if lobby is available, otherwise "false"</returns>
+        public bool TryGetLobbyByLobbyCode(string lobbyCode, out ILobby lobby) => lobbies.TryGetValue(lobbyCode ?? throw new ArgumentNullException(nameof(lobbyCode)), out lobby);
 
         /// <summary>
         /// Adds a new game resource
@@ -606,6 +1107,33 @@ namespace ElectrodZMultiplayer.Server
         }
 
         /// <summary>
+        /// Gets a game resources of type
+        /// </summary>
+        /// <typeparam name="T">Game resource type</typeparam>
+        /// <returns>Game resource if available, otherwise "null"</returns>
+        public IGameResource GetGameResourceOfType<T>() where T : IGameResource => TryGetGameResourceOfType(out T ret) ? ret : default;
+
+        /// <summary>
+        /// Tries to get a game resource by type
+        /// </summary>
+        /// <typeparam name="T">Game resource type</typeparam>
+        /// <param name="gameResource">Game resource</param>
+        /// <returns>"true" if game resource is available, otherwise "false"</returns>
+        public bool TryGetGameResourceOfType<T>(out T gameResource) where T : IGameResource
+        {
+            bool ret = gameResources.TryGetValue(typeof(T).FullName, out IGameResource game_resource);
+            gameResource = ret ? (T)game_resource : default;
+            return ret;
+        }
+
+        /// <summary>
+        /// Is game mode available
+        /// </summary>
+        /// <param name="gameMode">Game mode</param>
+        /// <returns>"true" if game mode is available, otherwise "false"</returns>
+        public bool IsGameModeAvailable(string gameMode) => availableGameModeTypes.ContainsKey(gameMode ?? throw new ArgumentNullException(nameof(gameMode)));
+
+        /// <summary>
         /// Removes the specified game resource
         /// </summary>
         /// <typeparam name="T">Game resource type</typeparam>
@@ -679,7 +1207,7 @@ namespace ElectrodZMultiplayer.Server
             {
                 if (lobby is IServerLobby server_lobby)
                 {
-                    server_lobby.Close();
+                    server_lobby.Close(reason);
                 }
             }
             lobbies.Clear();
