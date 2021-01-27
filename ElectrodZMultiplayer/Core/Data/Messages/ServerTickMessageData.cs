@@ -11,7 +11,7 @@ namespace ElectrodZMultiplayer.Data.Messages
     /// A class that describes a server tick message
     /// </summary>
     [JsonObject(MemberSerialization.OptIn)]
-    internal class ServerTickMessageData : BaseMessageData
+    public class ServerTickMessageData : BaseMessageData
     {
         /// <summary>
         /// Elapsed time in seconds since game start
