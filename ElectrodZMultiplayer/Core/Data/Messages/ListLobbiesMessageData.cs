@@ -77,13 +77,12 @@ namespace ElectrodZMultiplayer.Data.Messages
         /// </summary>
         /// <param name="excludeFull">Exclude full lobbies</param>
         /// <param name="name">Lobby name</param>
-        /// <param name="isPrivate">Is lobby private</param>
+        /// <param name="gameMode">Game mode</param>
         /// <param name="minimalUserCount">Minimal user count</param>
         /// <param name="maximalUserCount">Maximal user count</param>
         /// <param name="isStartingGameAutomatically">Is starting game automatically</param>
-        /// <param name="gameMode">Game mode</param>
         /// <param name="gameModeRules">Game mode rules</param>
-        public ListLobbiesMessageData(bool? excludeFull, string name, uint? minimalUserCount, uint? maximalUserCount, bool? isStartingGameAutomatically, string gameMode, Dictionary<string, object> gameModeRules) : base(Naming.GetMessageTypeNameFromMessageDataType<ListLobbiesMessageData>())
+        public ListLobbiesMessageData(bool? excludeFull, string name, string gameMode, uint? minimalUserCount, uint? maximalUserCount, bool? isStartingGameAutomatically, Dictionary<string, object> gameModeRules) : base(Naming.GetMessageTypeNameFromMessageDataType<ListLobbiesMessageData>())
         {
             if ((minimalUserCount != null) && (maximalUserCount != null) && (minimalUserCount > maximalUserCount))
             {

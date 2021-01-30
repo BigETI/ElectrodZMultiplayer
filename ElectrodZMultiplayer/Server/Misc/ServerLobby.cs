@@ -89,6 +89,11 @@ namespace ElectrodZMultiplayer.Server
         public string Name { get; private set; }
 
         /// <summary>
+        /// Game mode
+        /// </summary>
+        public string GameMode => gameModeType.Item2.FullName;
+
+        /// <summary>
         /// Is lobby private
         /// </summary>
         public bool IsPrivate { get; }
@@ -107,11 +112,6 @@ namespace ElectrodZMultiplayer.Server
         /// Is starting game automatically
         /// </summary>
         public bool IsStartingGameAutomatically { get; private set; }
-
-        /// <summary>
-        /// Game mode
-        /// </summary>
-        public string GameMode => gameModeType.Item2.FullName;
 
         /// <summary>
         /// Game mode rules
@@ -135,9 +135,9 @@ namespace ElectrodZMultiplayer.Server
             (Server != null) &&
             (LobbyCode != null) &&
             (Name != null) &&
+            !string.IsNullOrWhiteSpace(GameMode) &&
             (MinimalUserCount <= MaximalUserCount) &&
             (UserCount <= MaximalUserCount) &&
-            !string.IsNullOrWhiteSpace(GameMode) &&
             (gameModeRules != null) &&
             (users != null) &&
             Protection.IsValid(gameModeRules.Values) &&
@@ -213,14 +213,14 @@ namespace ElectrodZMultiplayer.Server
         /// </summary>
         /// <param name="lobbyCode">Lobby code</param>
         /// <param name="name">Lobby name</param>
+        /// <param name="gameModeType">Game mode type</param>
         /// <param name="isPrivate">Is lobby private</param>
         /// <param name="minimalUserCount">Minimal user count</param>
         /// <param name="maximalUserCount">Maximal user count</param>
         /// <param name="isStartingGameAutomatically">Is starting game automatically</param>
-        /// <param name="gameModeType">Game mode type</param>
         /// <param name="gameModeRules">Game mode rules</param>
         /// <param name="server">Server</param>
-        public ServerLobby(string lobbyCode, string name, bool isPrivate, uint minimalUserCount, uint maximalUserCount, bool isStartingGameAutomatically, (IGameResource, Type) gameModeType, IReadOnlyDictionary<string, object> gameModeRules, IServerSynchronizer server, IUser owner)
+        public ServerLobby(string lobbyCode, string name, (IGameResource, Type) gameModeType, bool isPrivate, uint minimalUserCount, uint maximalUserCount, bool isStartingGameAutomatically, IReadOnlyDictionary<string, object> gameModeRules, IServerSynchronizer server, IUser owner)
         {
             if (minimalUserCount > maximalUserCount)
             {
@@ -236,11 +236,11 @@ namespace ElectrodZMultiplayer.Server
             }
             LobbyCode = lobbyCode ?? throw new ArgumentNullException(nameof(lobbyCode));
             Name = name ?? throw new ArgumentNullException(nameof(name));
+            this.gameModeType = gameModeType;
             IsPrivate = isPrivate;
             MinimalUserCount = minimalUserCount;
             MaximalUserCount = maximalUserCount;
             IsStartingGameAutomatically = isStartingGameAutomatically;
-            this.gameModeType = gameModeType;
             if (gameModeRules != null)
             {
                 foreach (KeyValuePair<string, object> game_mode_rule in gameModeRules)

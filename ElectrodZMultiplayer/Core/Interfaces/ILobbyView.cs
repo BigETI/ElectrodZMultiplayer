@@ -21,6 +21,11 @@ namespace ElectrodZMultiplayer
         string Name { get; }
 
         /// <summary>
+        /// Game mode
+        /// </summary>
+        string GameMode { get; }
+
+        /// <summary>
         /// Is lobby private
         /// </summary>
         bool IsPrivate { get; }
@@ -39,11 +44,6 @@ namespace ElectrodZMultiplayer
         /// Is starting game automatically
         /// </summary>
         bool IsStartingGameAutomatically { get; }
-
-        /// <summary>
-        /// Game mode
-        /// </summary>
-        string GameMode { get; }
 
         /// <summary>
         /// Game mode rules

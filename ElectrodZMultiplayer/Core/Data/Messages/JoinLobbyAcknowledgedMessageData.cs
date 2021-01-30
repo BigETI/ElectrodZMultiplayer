@@ -75,7 +75,7 @@ namespace ElectrodZMultiplayer.Data.Messages
                 }
                 game_mode_rules.Add(game_mode_rule.Key, game_mode_rule.Value);
             }
-            Rules = new LobbyRulesData(lobby.LobbyCode, lobby.Name, lobby.IsPrivate, lobby.MinimalUserCount, lobby.MaximalUserCount, lobby.IsStartingGameAutomatically, lobby.GameMode, game_mode_rules);
+            Rules = new LobbyRulesData(lobby.LobbyCode, lobby.Name, lobby.GameMode, lobby.IsPrivate, lobby.MinimalUserCount, lobby.MaximalUserCount, lobby.IsStartingGameAutomatically, game_mode_rules);
             OwnerGUID = lobby.Owner.GUID;
             Users = new List<UserData>();
             foreach (IUser user in lobby.Users.Values)

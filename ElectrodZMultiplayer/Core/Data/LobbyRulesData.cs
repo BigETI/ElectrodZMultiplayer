@@ -26,6 +26,12 @@ namespace ElectrodZMultiplayer.Data
         public string Name { get; set; }
 
         /// <summary>
+        /// Game mode
+        /// </summary>
+        [JsonProperty("gameMode")]
+        public string GameMode { get; set; }
+
+        /// <summary>
         /// Is lobby private
         /// </summary>
         [JsonProperty("isPrivate")]
@@ -48,12 +54,6 @@ namespace ElectrodZMultiplayer.Data
         /// </summary>
         [JsonProperty("isStartingGameAutomatically")]
         public bool IsStartingGameAutomatically { get; set; }
-
-        /// <summary>
-        /// Game mode
-        /// </summary>
-        [JsonProperty("gameMode")]
-        public string GameMode { get; set; }
 
         /// <summary>
         /// Game mode rules
@@ -85,13 +85,13 @@ namespace ElectrodZMultiplayer.Data
         /// </summary>
         /// <param name="lobbyCode">Lobby code</param>
         /// <param name="name">Lobby name</param>
+        /// <param name="gameMode">Game mode</param>
         /// <param name="isPrivate">Is lobby private</param>
         /// <param name="minimalUserCount">Minimal user count in lobby</param>
         /// <param name="maximalUserCount">Maximal user count in lobby</param>
         /// <param name="isStartingGameAutomatically">Is starting game automatically in lobby</param>
-        /// <param name="gameMode">Game mode</param>
         /// <param name="gameModeRules">Game mode rules</param>
-        public LobbyRulesData(string lobbyCode, string name, bool isPrivate, uint minimalUserCount, uint maximalUserCount, bool isStartingGameAutomatically, string gameMode, Dictionary<string, object> gameModeRules)
+        public LobbyRulesData(string lobbyCode, string name, string gameMode, bool isPrivate, uint minimalUserCount, uint maximalUserCount, bool isStartingGameAutomatically, Dictionary<string, object> gameModeRules)
         {
             if (gameModeRules == null)
             {
@@ -107,11 +107,11 @@ namespace ElectrodZMultiplayer.Data
             }
             LobbyCode = lobbyCode ?? throw new ArgumentNullException(nameof(lobbyCode));
             Name = name ?? throw new ArgumentNullException(nameof(name));
+            GameMode = gameMode;
             IsPrivate = isPrivate;
             MinimalUserCount = minimalUserCount;
             MaximalUserCount = maximalUserCount;
             IsStartingGameAutomatically = isStartingGameAutomatically;
-            GameMode = gameMode;
             GameModeRules = gameModeRules;
         }
     }

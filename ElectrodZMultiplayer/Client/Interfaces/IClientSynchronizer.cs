@@ -51,13 +51,13 @@ namespace ElectrodZMultiplayer.Client
         /// </summary>
         /// <param name="username">Username</param>
         /// <param name="lobbyName">Lobby name</param>
-        /// <param name="isPrivate">Is lobby private</param>
         /// <param name="gameMode">Game mode</param>
+        /// <param name="isPrivate">Is lobby private</param>
         /// <param name="minimalUserCount">Minimal user count</param>
         /// <param name="maximalUserCount">Maximal user count</param>
         /// <param name="isStartingGameAutomatically">Is starting game automatically</param>
         /// <param name="gameModeRules">Game mode rules</param>
-        void CreateAndJoinLobby(string username, string lobbyName, bool isPrivate, string gameMode, uint? minimalUserCount = null, uint? maximalUserCount = null, bool? isStartingGameAutomatically = null, IReadOnlyDictionary<string, object> gameModeRules = null);
+        void CreateAndJoinLobby(string username, string lobbyName, string gameMode, bool? isPrivate = null, uint? minimalUserCount = null, uint? maximalUserCount = null, bool? isStartingGameAutomatically = null, IReadOnlyDictionary<string, object> gameModeRules = null);
 
         /// <summary>
         /// Joins a lobby with the specified lobby code
@@ -76,7 +76,7 @@ namespace ElectrodZMultiplayer.Client
         /// <param name="isStartingGameAutomatically">Is starting game automatically</param>
         /// <param name="gameMode">Game mode</param>
         /// <param name="gameModeRules">Game mode rules</param>
-        void SendListLobbiesMessage(bool? excludeFull = null, string name = null, uint? minimalUserCount = null, uint? maximalUserCount = null, bool? isStartingGameAutomatically = null, string gameMode = null, IReadOnlyDictionary<string, object> gameModeRules = null);
+        void SendListLobbiesMessage(bool? excludeFull = null, string name = null, string gameMode = null, uint? minimalUserCount = null, uint? maximalUserCount = null, bool? isStartingGameAutomatically = null, IReadOnlyDictionary<string, object> gameModeRules = null);
 
         /// <summary>
         /// Sends a join lobby message to peer
@@ -90,13 +90,13 @@ namespace ElectrodZMultiplayer.Client
         /// </summary>
         /// <param name="username">Username</param>
         /// <param name="lobbyName">Lobby name</param>
-        /// <param name="isPrivate">Is lobby private</param>
         /// <param name="gameMode">Game mode</param>
+        /// <param name="isPrivate">Is lobby private</param>
         /// <param name="minimalUserCount">Minimal user count</param>
         /// <param name="maximalUserCount">Maximal user count</param>
         /// <param name="isStartingGameAutomatically">Is starting game automatically</param>
         /// <param name="gameModeRules">Game mode rules</param>
-        void SendCreateAndJoinLobbyMessage(string username, string lobbyName, bool isPrivate, string gameMode, uint? minimalUserCount = null, uint? maximalUserCount = null, bool? isStartingGameAutomatically = null, IReadOnlyDictionary<string, object> gameModeRules = null);
+        void SendCreateAndJoinLobbyMessage(string username, string lobbyName, string gameMode, bool? isPrivate = null, uint? minimalUserCount = null, uint? maximalUserCount = null, bool? isStartingGameAutomatically = null, IReadOnlyDictionary<string, object> gameModeRules = null);
 
         /// <summary>
         /// Sends a quit lobbym message to peer
@@ -126,11 +126,12 @@ namespace ElectrodZMultiplayer.Client
         /// </summary>
         /// <param name="name">Lobby name (optional)</param>
         /// <param name="gameMode">Game mode (optional)</param>
+        /// <param name="isPrivate">Is lobby private (optional)</param>
         /// <param name="minimalUserCount">Minimal user count (optional)</param>
         /// <param name="maximalUserCount">Maximal user count (optional)</param>
         /// <param name="isStartingGameAutomatically">Is starting game automatically (optional)</param>
         /// <param name="gameModeRules">Game mode rules (optional)</param>
-        void SendChangeLobbyRules(string name = null, string gameMode = null, uint? minimalUserCount = null, uint? maximalUserCount = null, bool? isStartingGameAutomatically = null, IReadOnlyDictionary<string, object> gameModeRules = null);
+        void SendChangeLobbyRules(string name = null, string gameMode = null, bool? isPrivate = null, uint? minimalUserCount = null, uint? maximalUserCount = null, bool? isStartingGameAutomatically = null, IReadOnlyDictionary<string, object> gameModeRules = null);
 
         /// <summary>
         /// Sends a kick user message to peer

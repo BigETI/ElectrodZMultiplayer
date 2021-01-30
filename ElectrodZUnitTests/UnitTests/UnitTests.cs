@@ -102,7 +102,7 @@ namespace ElectrodZUnitTests
                                 clients[client_index].JoinLobby(lobby.LobbyCode, $"Client_{ client_index }");
                             }
                         };
-                        client.CreateAndJoinLobby($"Client_{ current_index }", "Test lobby", false, typeof(ExampleGameMode).FullName);
+                        client.CreateAndJoinLobby($"Client_{ current_index }", "Test lobby", typeof(ExampleGameMode).FullName);
                     }
                 };
                 client.OnErrorMessageReceived += (errorType, message) => Console.Error.WriteLine($"Error at client index { current_index }: [{ errorType }] { message }");

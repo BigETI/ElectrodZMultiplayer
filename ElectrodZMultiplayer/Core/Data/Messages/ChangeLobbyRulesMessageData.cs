@@ -21,6 +21,18 @@ namespace ElectrodZMultiplayer.Data.Messages
         public string Name { get; set; }
 
         /// <summary>
+        /// Game mode
+        /// </summary>
+        [JsonProperty("gameMode")]
+        public string GameMode { get; set; }
+
+        /// <summary>
+        /// Is lobby private
+        /// </summary>
+        [JsonProperty("isPrivate")]
+        public bool? IsPrivate { get; set; }
+
+        /// <summary>
         /// Minimal user count
         /// </summary>
         [JsonProperty("minUserCount")]
@@ -37,12 +49,6 @@ namespace ElectrodZMultiplayer.Data.Messages
         /// </summary>
         [JsonProperty("isStartingGameAutomatically")]
         public bool? IsStartingGameAutomatically { get; set; }
-
-        /// <summary>
-        /// Game mode
-        /// </summary>
-        [JsonProperty("gameMode")]
-        public string GameMode { get; set; }
 
         /// <summary>
         /// Game mode rules
@@ -72,12 +78,13 @@ namespace ElectrodZMultiplayer.Data.Messages
         /// Constructor
         /// </summary>
         /// <param name="name">Lobby name (optional)</param>
+        /// <param name="gameMode">Game mode (optional)</param>
+        /// <param name="isPrivate">Is lobby private (optional)</param>
         /// <param name="minimalUserCount">Minimal user count (optional)</param>
         /// <param name="maximalUserCount">Maximal user count (optional)</param>
         /// <param name="isStartingGameAutomatically">Is satarting game automatically (optional)</param>
-        /// <param name="gameMode">Game mode (optional)</param>
         /// <param name="gameModeRules">Game mode rules (optional)</param>
-        public ChangeLobbyRulesMessageData(string name = null, string gameMode = null, uint? minimalUserCount = null, uint? maximalUserCount = null, bool? isStartingGameAutomatically = null, Dictionary<string, object> gameModeRules = null) : base(Naming.GetMessageTypeNameFromMessageDataType<ChangeLobbyRulesMessageData>())
+        public ChangeLobbyRulesMessageData(string name = null, string gameMode = null, bool? isPrivate = null, uint? minimalUserCount = null, uint? maximalUserCount = null, bool? isStartingGameAutomatically = null, Dictionary<string, object> gameModeRules = null) : base(Naming.GetMessageTypeNameFromMessageDataType<ChangeLobbyRulesMessageData>())
         {
             string new_name = null;
             if (name != null)
@@ -101,10 +108,11 @@ namespace ElectrodZMultiplayer.Data.Messages
                 throw new ArgumentException("Game mode rules contains null.", nameof(gameModeRules));
             }
             Name = new_name;
+            GameMode = gameMode;
+            IsPrivate = isPrivate;
             MinimalUserCount = minimalUserCount;
             MaximalUserCount = maximalUserCount;
             IsStartingGameAutomatically = isStartingGameAutomatically;
-            GameMode = gameMode;
             GameModeRules = gameModeRules;
         }
     }
