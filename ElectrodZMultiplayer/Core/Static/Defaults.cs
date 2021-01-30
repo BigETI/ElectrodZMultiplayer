@@ -29,6 +29,11 @@ namespace ElectrodZMultiplayer
         public static readonly uint maximalListeningPipeStreamCount = 4U;
 
         /// <summary>
+        /// Default is lobby private
+        /// </summary>
+        public static readonly bool isLobbyPrivate = false;
+
+        /// <summary>
         /// Default minimal user count
         /// </summary>
         public static readonly uint minimalUserCount = 2U;

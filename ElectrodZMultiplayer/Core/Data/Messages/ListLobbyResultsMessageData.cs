@@ -47,7 +47,7 @@ namespace ElectrodZMultiplayer.Data.Messages
             Lobbies = new List<LobbyData>();
             foreach (ILobbyView lobby in lobbies)
             {
-                Lobbies.Add(new LobbyData(lobby.LobbyCode, lobby.Name, lobby.MinimalUserCount, lobby.MaximalUserCount, lobby.IsStartingGameAutomatically, lobby.GameMode, lobby.GameModeRules, lobby.UserCount));
+                Lobbies.Add(new LobbyData(lobby.LobbyCode, lobby.Name, lobby.GameMode, lobby.IsPrivate, lobby.MinimalUserCount, lobby.MaximalUserCount, lobby.IsStartingGameAutomatically, lobby.GameModeRules, lobby.UserCount));
             }
         }
     }

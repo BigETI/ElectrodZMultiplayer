@@ -17,11 +17,12 @@ namespace ElectrodZMultiplayer.Client
         /// <param name="newLobbyCode">New lobby code</param>
         /// <param name="newName">New lobby name</param>
         /// <param name="newGameMode">New game mode</param>
+        /// <param name="newPrivateState">New lobby private state</param>
         /// <param name="newMinimalUserCount">New minimal user count</param>
         /// <param name="newMaximalUserCount">New maximal user count</param>
         /// <param name="newStartingGameAutomaticallyState">New starting game automatically state</param>
         /// <param name="newGameModeRules">New game mode rules</param>
-        void UpdateGameModeRulesInternally(string newLobbyCode, string newName, string newGameMode, uint newMinimalUserCount, uint newMaximalUserCount, bool newStartingGameAutomaticallyState, IReadOnlyDictionary<string, object> newGameModeRules);
+        void UpdateGameModeRulesInternally(string newLobbyCode, string newName, string newGameMode, bool newPrivateState, uint newMinimalUserCount, uint newMaximalUserCount, bool newStartingGameAutomaticallyState, IReadOnlyDictionary<string, object> newGameModeRules);
 
         /// <summary>
         /// Adds a new user to the lobby

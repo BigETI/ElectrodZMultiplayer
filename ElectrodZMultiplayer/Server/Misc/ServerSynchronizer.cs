@@ -313,12 +313,13 @@ namespace ElectrodZMultiplayer.Server
                         {
                             if
                             (
+                                !lobby.IsPrivate &&
                                 ((message.Name == null) || lobby.Name.Contains(message.Name.Trim())) &&
                                 ((message.MinimalUserCount == null) || (lobby.UserCount >= message.MinimalUserCount)) &&
                                 ((message.MaximalUserCount == null) || (lobby.UserCount <= message.MaximalUserCount)) &&
                                 ((message.ExcludeFull == null) || (lobby.UserCount < lobby.MaximalUserCount)) &&
                                 ((message.IsStartingGameAutomatically == null) || (lobby.IsStartingGameAutomatically == message.IsStartingGameAutomatically)) &&
-                                ((message.GameMode == null) || (lobby.GameMode.Contains(message.GameMode))) &&
+                                ((message.GameMode == null) || lobby.GameMode.Contains(message.GameMode)) &&
                                 ((message.GameModeRules == null) || AreGameModeRulesContained(lobby.GameModeRules, message.GameModeRules))
                             )
                             {
@@ -447,7 +448,7 @@ namespace ElectrodZMultiplayer.Server
                                 lobby_code = Randomizer.GetRandomString(6U, humanFriendlyLobbyCodeCharacters);
                             }
                             while (lobbies.ContainsKey(lobby_code));
-                            IInternalServerLobby server_lobby = new ServerLobby(lobby_code, message.LobbyName, message.MinimalUserCount ?? Defaults.minimalUserCount, message.MaximalUserCount ?? Defaults.maximalUserCount, message.IsStartingGameAutomatically ?? Defaults.isStartingGameAutomatically, availableGameModeTypes[message.GameMode], message.GameModeRules, this, serverUser);
+                            IInternalServerLobby server_lobby = new ServerLobby(lobby_code, message.LobbyName, availableGameModeTypes[message.GameMode], message.IsPrivate ?? Defaults.isLobbyPrivate, message.MinimalUserCount ?? Defaults.minimalUserCount, message.MaximalUserCount ?? Defaults.maximalUserCount, message.IsStartingGameAutomatically ?? Defaults.isStartingGameAutomatically, message.GameModeRules, this, serverUser);
                             server_lobby.OnUserJoined += (user) => OnUserJoined?.Invoke(server_lobby, user);
                             server_lobby.OnUserLeft += (user, reason, leaveMessage) => OnUserLeft?.Invoke(server_lobby, user, reason, leaveMessage);
                             server_lobby.OnLobbyRulesUpdated += () => OnLobbyRulesUpdated?.Invoke(server_lobby);

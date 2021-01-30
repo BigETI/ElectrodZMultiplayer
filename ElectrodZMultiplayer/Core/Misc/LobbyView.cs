@@ -23,6 +23,16 @@ namespace ElectrodZMultiplayer
         public string Name { get; }
 
         /// <summary>
+        /// Game mode
+        /// </summary>
+        public string GameMode { get; }
+
+        /// <summary>
+        /// Is lobby private
+        /// </summary>
+        public bool IsPrivate { get; }
+
+        /// <summary>
         /// Minimal user count
         /// </summary>
         public uint MinimalUserCount { get; }
@@ -36,11 +46,6 @@ namespace ElectrodZMultiplayer
         /// Is starting game automatically
         /// </summary>
         public bool IsStartingGameAutomatically { get; }
-
-        /// <summary>
-        /// Game mode
-        /// </summary>
-        public string GameMode { get; }
 
         /// <summary>
         /// Game mode rules
@@ -69,13 +74,14 @@ namespace ElectrodZMultiplayer
         /// </summary>
         /// <param name="lobbyCode">Lobby code</param>
         /// <param name="name">Lobby name</param>
+        /// <param name="gameMode">Game mode</param>
+        /// <param name="isPrivate">Is lobby private</param>
         /// <param name="minimalUserCount">Minimal user count</param>
         /// <param name="maximalUserCount">Maximal user count</param>
         /// <param name="isStartingGameAutomatically">Is starting game automatically</param>
-        /// <param name="gameMode">Game mode</param>
         /// <param name="gameModeRules">Game mode rules</param>
         /// <param name="userCount">User count</param>
-        public LobbyView(string lobbyCode, string name, uint minimalUserCount, uint maximalUserCount, bool isStartingGameAutomatically, string gameMode, IReadOnlyDictionary<string, object> gameModeRules, uint userCount)
+        public LobbyView(string lobbyCode, string name, string gameMode, bool isPrivate, uint minimalUserCount, uint maximalUserCount, bool isStartingGameAutomatically, IReadOnlyDictionary<string, object> gameModeRules, uint userCount)
         {
             if (minimalUserCount > maximalUserCount)
             {
@@ -91,10 +97,11 @@ namespace ElectrodZMultiplayer
             }
             LobbyCode = lobbyCode ?? throw new ArgumentNullException(nameof(lobbyCode));
             Name = name ?? throw new ArgumentNullException(nameof(name));
+            GameMode = gameMode;
+            IsPrivate = isPrivate;
             MinimalUserCount = minimalUserCount;
             MaximalUserCount = maximalUserCount;
             IsStartingGameAutomatically = isStartingGameAutomatically;
-            GameMode = gameMode;
             Dictionary<string, object> game_mode_rules = new Dictionary<string, object>();
             foreach (KeyValuePair<string, object> game_mode_rule in gameModeRules)
             {
@@ -122,7 +129,7 @@ namespace ElectrodZMultiplayer
             {
                 throw new ArgumentException($"\"{ nameof(lobby) }\" is invalid.", nameof(lobby));
             }
-            return new LobbyView(lobby.LobbyCode, lobby.Name, lobby.MinimalUserCount, lobby.MaximalUserCount, lobby.IsStartingGameAutomatically, lobby.GameMode, lobby.GameModeRules, lobby.UserCount);
+            return new LobbyView(lobby.LobbyCode, lobby.Name, lobby.GameMode, lobby.IsPrivate, lobby.MinimalUserCount, lobby.MaximalUserCount, lobby.IsStartingGameAutomatically, lobby.GameModeRules, lobby.UserCount);
         }
     }
 }
