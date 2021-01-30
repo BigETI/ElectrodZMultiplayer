@@ -89,6 +89,11 @@ namespace ElectrodZMultiplayer.Server
         public string Name { get; private set; }
 
         /// <summary>
+        /// Is lobby private
+        /// </summary>
+        public bool IsPrivate { get; }
+
+        /// <summary>
         /// Minimal user count
         /// </summary>
         public uint MinimalUserCount { get; private set; }
@@ -208,13 +213,14 @@ namespace ElectrodZMultiplayer.Server
         /// </summary>
         /// <param name="lobbyCode">Lobby code</param>
         /// <param name="name">Lobby name</param>
+        /// <param name="isPrivate">Is lobby private</param>
         /// <param name="minimalUserCount">Minimal user count</param>
         /// <param name="maximalUserCount">Maximal user count</param>
         /// <param name="isStartingGameAutomatically">Is starting game automatically</param>
         /// <param name="gameModeType">Game mode type</param>
         /// <param name="gameModeRules">Game mode rules</param>
         /// <param name="server">Server</param>
-        public ServerLobby(string lobbyCode, string name, uint minimalUserCount, uint maximalUserCount, bool isStartingGameAutomatically, (IGameResource, Type) gameModeType, IReadOnlyDictionary<string, object> gameModeRules, IServerSynchronizer server, IUser owner)
+        public ServerLobby(string lobbyCode, string name, bool isPrivate, uint minimalUserCount, uint maximalUserCount, bool isStartingGameAutomatically, (IGameResource, Type) gameModeType, IReadOnlyDictionary<string, object> gameModeRules, IServerSynchronizer server, IUser owner)
         {
             if (minimalUserCount > maximalUserCount)
             {
@@ -230,6 +236,7 @@ namespace ElectrodZMultiplayer.Server
             }
             LobbyCode = lobbyCode ?? throw new ArgumentNullException(nameof(lobbyCode));
             Name = name ?? throw new ArgumentNullException(nameof(name));
+            IsPrivate = isPrivate;
             MinimalUserCount = minimalUserCount;
             MaximalUserCount = maximalUserCount;
             IsStartingGameAutomatically = isStartingGameAutomatically;

@@ -77,6 +77,7 @@ namespace ElectrodZMultiplayer.Data.Messages
         /// </summary>
         /// <param name="excludeFull">Exclude full lobbies</param>
         /// <param name="name">Lobby name</param>
+        /// <param name="isPrivate">Is lobby private</param>
         /// <param name="minimalUserCount">Minimal user count</param>
         /// <param name="maximalUserCount">Maximal user count</param>
         /// <param name="isStartingGameAutomatically">Is starting game automatically</param>

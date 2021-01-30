@@ -26,6 +26,12 @@ namespace ElectrodZMultiplayer.Data
         public string Name { get; set; }
 
         /// <summary>
+        /// Is lobby private
+        /// </summary>
+        [JsonProperty("isPrivate")]
+        public bool IsPrivate { get; set; }
+
+        /// <summary>
         /// Minimal user count in lobby
         /// </summary>
         [JsonProperty("minUserCount")]
@@ -86,13 +92,14 @@ namespace ElectrodZMultiplayer.Data
         /// </summary>
         /// <param name="lobbyCode">Lobby code</param>
         /// <param name="name">Lobby name</param>
+        /// <param name="isPrivate">Is lobby private</param>
         /// <param name="minimalUserCount">Minimal user count in lobby</param>
         /// <param name="maximalUserCount">Maximal user count in lobby</param>
         /// <param name="isStartingGameAutomatically">Is starting game automatically in lobby</param>
         /// <param name="gameMode">Game mode</param>
         /// <param name="gameModeRules">Game mode rules</param>
         /// <param name="userCount">User count in lobby</param>
-        public LobbyData(string lobbyCode, string name, uint minimalUserCount, uint maximalUserCount, bool isStartingGameAutomatically, string gameMode, IReadOnlyDictionary<string, object> gameModeRules, uint userCount)
+        public LobbyData(string lobbyCode, string name, bool isPrivate, uint minimalUserCount, uint maximalUserCount, bool isStartingGameAutomatically, string gameMode, IReadOnlyDictionary<string, object> gameModeRules, uint userCount)
         {
             if (gameModeRules == null)
             {
@@ -108,6 +115,7 @@ namespace ElectrodZMultiplayer.Data
             }
             LobbyCode = lobbyCode ?? throw new ArgumentNullException(nameof(lobbyCode));
             Name = name ?? throw new ArgumentNullException(nameof(name));
+            IsPrivate = isPrivate;
             MinimalUserCount = minimalUserCount;
             MaximalUserCount = maximalUserCount;
             IsStartingGameAutomatically = isStartingGameAutomatically;

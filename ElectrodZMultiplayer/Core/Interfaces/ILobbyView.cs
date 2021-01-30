@@ -21,6 +21,11 @@ namespace ElectrodZMultiplayer
         string Name { get; }
 
         /// <summary>
+        /// Is lobby private
+        /// </summary>
+        bool IsPrivate { get; }
+
+        /// <summary>
         /// Minimal user count
         /// </summary>
         uint MinimalUserCount { get; }

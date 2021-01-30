@@ -49,7 +49,7 @@ namespace ElectrodZMultiplayer.Data.Messages
                 }
                 game_mode_rules.Add(game_mode_rule.Key, game_mode_rule.Value);
             }
-            Rules = new LobbyRulesData(lobby.LobbyCode, lobby.Name, lobby.MinimalUserCount, lobby.MaximalUserCount, lobby.IsStartingGameAutomatically, lobby.GameMode, game_mode_rules);
+            Rules = new LobbyRulesData(lobby.LobbyCode, lobby.Name, lobby.IsPrivate, lobby.MinimalUserCount, lobby.MaximalUserCount, lobby.IsStartingGameAutomatically, lobby.GameMode, game_mode_rules);
         }
     }
 }

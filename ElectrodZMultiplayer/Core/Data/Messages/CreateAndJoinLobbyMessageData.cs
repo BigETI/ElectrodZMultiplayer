@@ -26,6 +26,12 @@ namespace ElectrodZMultiplayer.Data.Messages
         public string LobbyName { get; set; }
 
         /// <summary>
+        /// Is lobby private
+        /// </summary>
+        [JsonProperty("isPrivate")]
+        public bool IsPrivate { get; set; }
+
+        /// <summary>
         /// Game mode
         /// </summary>
         [JsonProperty("gameMode")]
@@ -83,12 +89,13 @@ namespace ElectrodZMultiplayer.Data.Messages
         /// </summary>
         /// <param name="username">Username</param>
         /// <param name="lobbyName">Lobby name</param>
+        /// <param name="isPrivate">Is lobby private</param>
         /// <param name="gameMode">Game mode</param>
         /// <param name="minimalUserCount">Minimal user count</param>
         /// <param name="maximalUserCount">Maximal user count</param>
         /// <param name="isStartingGameAutomatically">Is starting game automatically</param>
         /// <param name="gameModeRules">Game mode rules</param>
-        public CreateAndJoinLobbyMessageData(string username, string lobbyName, string gameMode, uint? minimalUserCount = null, uint? maximalUserCount = null, bool? isStartingGameAutomatically = null, IReadOnlyDictionary<string, object> gameModeRules = null) : base(Naming.GetMessageTypeNameFromMessageDataType<CreateAndJoinLobbyMessageData>())
+        public CreateAndJoinLobbyMessageData(string username, string lobbyName, bool isPrivate, string gameMode, uint? minimalUserCount = null, uint? maximalUserCount = null, bool? isStartingGameAutomatically = null, IReadOnlyDictionary<string, object> gameModeRules = null) : base(Naming.GetMessageTypeNameFromMessageDataType<CreateAndJoinLobbyMessageData>())
         {
             if (username == null)
             {
@@ -122,6 +129,7 @@ namespace ElectrodZMultiplayer.Data.Messages
             }
             Username = new_username;
             LobbyName = new_lobby_name;
+            IsPrivate = isPrivate;
             GameMode = gameMode;
             MinimalUserCount = minimalUserCount;
             MaximalUserCount = maximalUserCount;

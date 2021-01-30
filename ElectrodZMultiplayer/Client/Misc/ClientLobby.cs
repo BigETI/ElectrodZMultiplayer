@@ -63,6 +63,11 @@ namespace ElectrodZMultiplayer.Client
         public string Name { get; private set; }
 
         /// <summary>
+        /// Is lobby private
+        /// </summary>
+        public bool IsPrivate { get; private set; }
+
+        /// <summary>
         /// Minimal user count
         /// </summary>
         public uint MinimalUserCount { get; private set; }
@@ -161,13 +166,14 @@ namespace ElectrodZMultiplayer.Client
         /// <param name="client">Client</param>
         /// <param name="lobbyCode">Lobby code</param>
         /// <param name="name">Lobby name</param>
+        /// <param name="isPrivate">Is lobby private</param>
         /// <param name="minimalUserCount">Minimal user count</param>
         /// <param name="maximalUserCount">Maximal user count</param>
         /// <param name="users">Users</param>
         /// <param name="isStartingGameAutomatically">Is starting game automatically</param>
         /// <param name="gameMode">Game mode</param>
         /// <param name="gameModeRules">Game mode rules</param>
-        public ClientLobby(IInternalClientSynchronizer client, string lobbyCode, string name, uint minimalUserCount, uint maximalUserCount, bool isStartingGameAutomatically, string gameMode, IReadOnlyDictionary<string, object> gameModeRules, IUser owner, IReadOnlyDictionary<string, IUser> users)
+        public ClientLobby(IInternalClientSynchronizer client, string lobbyCode, string name, bool isPrivate, uint minimalUserCount, uint maximalUserCount, bool isStartingGameAutomatically, string gameMode, IReadOnlyDictionary<string, object> gameModeRules, IUser owner, IReadOnlyDictionary<string, IUser> users)
         {
             if (minimalUserCount > maximalUserCount)
             {
@@ -188,6 +194,7 @@ namespace ElectrodZMultiplayer.Client
             this.client = client ?? throw new ArgumentNullException(nameof(client));
             LobbyCode = lobbyCode ?? throw new ArgumentNullException(nameof(lobbyCode));
             Name = name ?? throw new ArgumentNullException(nameof(name));
+            IsPrivate = isPrivate;
             MinimalUserCount = minimalUserCount;
             MaximalUserCount = maximalUserCount;
             IsStartingGameAutomatically = isStartingGameAutomatically;
@@ -362,12 +369,13 @@ namespace ElectrodZMultiplayer.Client
         /// </summary>
         /// <param name="newLobbyCode">New lobby code</param>
         /// <param name="newName">New lobby name</param>
+        /// <param name="newPrivateState">New lobby private state</param>
         /// <param name="newGameMode">New game mode</param>
         /// <param name="newMinimalUserCount">New minimal user count</param>
         /// <param name="newMaximalUserCount">New maximal user count</param>
         /// <param name="newStartingGameAutomaticallyState">New starting game automatically state</param>
         /// <param name="newGameModeRules">New game mode rules</param>
-        public void UpdateGameModeRulesInternally(string newLobbyCode, string newName, string newGameMode, uint newMinimalUserCount, uint newMaximalUserCount, bool newStartingGameAutomaticallyState, IReadOnlyDictionary<string, object> newGameModeRules)
+        public void UpdateGameModeRulesInternally(string newLobbyCode, string newName, bool newPrivateState, string newGameMode, uint newMinimalUserCount, uint newMaximalUserCount, bool newStartingGameAutomaticallyState, IReadOnlyDictionary<string, object> newGameModeRules)
         {
             if (string.IsNullOrWhiteSpace(newGameMode))
             {
@@ -379,6 +387,7 @@ namespace ElectrodZMultiplayer.Client
             }
             LobbyCode = newLobbyCode ?? throw new ArgumentNullException(nameof(newLobbyCode));
             Name = newName ?? throw new ArgumentNullException(nameof(newName));
+            IsPrivate = newPrivateState;
             GameMode = newGameMode;
             MinimalUserCount = newMinimalUserCount;
             MaximalUserCount = newMaximalUserCount;
