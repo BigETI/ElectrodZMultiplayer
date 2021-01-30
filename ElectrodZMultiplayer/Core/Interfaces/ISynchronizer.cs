@@ -77,6 +77,11 @@ namespace ElectrodZMultiplayer
         event ListAvailableGameModesFailedDelegate OnListAvailableGameModesFailed;
 
         /// <summary>
+        /// This event will be invoked when an user has joined this lobby.
+        /// </summary>
+        event LobbyUserJoinedDelegate OnUserJoined;
+
+        /// <summary>
         /// This event will be invoked when joining a lobby has failed.
         /// </summary>
         event JoinLobbyFailedDelegate OnJoinLobbyFailed;
@@ -87,14 +92,34 @@ namespace ElectrodZMultiplayer
         event CreateLobbyFailedDelegate OnCreateLobbyFailed;
 
         /// <summary>
+        /// This event will be invoked when an user left this lobby.
+        /// </summary>
+        event LobbyUserLeftDelegate OnUserLeft;
+
+        /// <summary>
+        /// This event will be invoked when the username changes.
+        /// </summary>
+        event UserUsernameUpdatedDelegate OnUsernameUpdated;
+
+        /// <summary>
         /// This event will be invoked when changing username has failed.
         /// </summary>
         event ChangeUsernameFailedDelegate OnChangeUsernameFailed;
 
         /// <summary>
+        /// This event will be invoked when the user lobby color changes.
+        /// </summary>
+        event UserUserLobbyColorUpdatedDelegate OnUserLobbyColorUpdated;
+
+        /// <summary>
         /// This event will be invoked when changing user lobby color has failed.
         /// </summary>
         event ChangeUserLobbyColorFailedDelegate OnChangeUserLobbyColorFailed;
+
+        /// <summary>
+        /// This event will be invoked when the lobby rules of this lobby has been updated.
+        /// </summary>
+        event LobbyLobbyRulesUpdatedDelegate OnLobbyRulesUpdated;
 
         /// <summary>
         /// This event will be invoked when changing lobby rules have failed.
@@ -107,9 +132,29 @@ namespace ElectrodZMultiplayer
         event KickUserFailedDelegate OnKickUserFailed;
 
         /// <summary>
+        /// This event will be invoked when a game has been started.
+        /// </summary>
+        event LobbyGameStartedDelegate OnGameStarted;
+
+        /// <summary>
+        /// This event will be invoked when a game start has been requested.
+        /// </summary>
+        event LobbyGameStartRequestedDelegate OnGameStartRequested;
+
+        /// <summary>
         /// This event will be invoked when starting a game has failed.
         /// </summary>
         event StartGameFailedDelegate OnStartGameFailed;
+
+        /// <summary>
+        /// This event will be invoked when a game has been restarted.
+        /// </summary>
+        event LobbyGameRestartedDelegate OnGameRestarted;
+
+        /// <summary>
+        /// This event will be invoked when a game restart has been requested.
+        /// </summary>
+        event LobbyGameRestartRequestedDelegate OnGameRestartRequested;
 
         /// <summary>
         /// This event will be invoked when restarting a game has failed.
@@ -117,14 +162,39 @@ namespace ElectrodZMultiplayer
         event RestartGameFailedDelegate OnRestartGameFailed;
 
         /// <summary>
+        /// This event will be invoked when a game has been stopped.
+        /// </summary>
+        event LobbyGameStoppedDelegate OnGameStopped;
+
+        /// <summary>
+        /// This event will be invoked when a game stop has been requested.
+        /// </summary>
+        event LobbyGameStopRequestedDelegate OnGameStopRequested;
+
+        /// <summary>
         /// This event will be invoked when stopping a game has failed.
         /// </summary>
         event StopGameFailedDelegate OnStopGameFailed;
 
         /// <summary>
+        /// This event will be invoked when a client tick has been performed.
+        /// </summary>
+        event UserClientTickedDelegate OnClientTicked;
+
+        /// <summary>
         /// This event will be invoked when a client tick has failed.
         /// </summary>
         event ClientTickFailedDelegate OnClientTickFailed;
+
+        /// <summary>
+        /// This event will be invoked when a server tick has been performed.
+        /// </summary>
+        event UserServerTickedDelegate OnServerTicked;
+
+        /// <summary>
+        /// This event will be invoked when a server tick has failed.
+        /// </summary>
+        event ServerTickFailedDelegate OnServerTickFailed;
 
         /// <summary>
         /// Add connector

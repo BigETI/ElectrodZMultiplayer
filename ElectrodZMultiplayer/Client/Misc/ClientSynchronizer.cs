@@ -76,6 +76,11 @@ namespace ElectrodZMultiplayer.Client
         public override event ListAvailableGameModesFailedDelegate OnListAvailableGameModesFailed;
 
         /// <summary>
+        /// This event will be invoked when an user has joined this lobby.
+        /// </summary>
+        public override event LobbyUserJoinedDelegate OnUserJoined;
+
+        /// <summary>
         /// On lobby join acknowledged
         /// </summary>
         public event LobbyJoinAcknowledgedDelegate OnLobbyJoinAcknowledged;
@@ -91,14 +96,34 @@ namespace ElectrodZMultiplayer.Client
         public override event CreateLobbyFailedDelegate OnCreateLobbyFailed;
 
         /// <summary>
+        /// This event will be invoked when an user left this lobby.
+        /// </summary>
+        public override event LobbyUserLeftDelegate OnUserLeft;
+
+        /// <summary>
+        /// This event will be invoked when the username changes.
+        /// </summary>
+        public override event UserUsernameUpdatedDelegate OnUsernameUpdated;
+
+        /// <summary>
         /// This event will be invoked when changing username has failed.
         /// </summary>
         public override event ChangeUsernameFailedDelegate OnChangeUsernameFailed;
 
         /// <summary>
+        /// This event will be invoked when the user lobby color changes.
+        /// </summary>
+        public override event UserUserLobbyColorUpdatedDelegate OnUserLobbyColorUpdated;
+
+        /// <summary>
         /// This event will be invoked when changing user lobby color has failed.
         /// </summary>
         public override event ChangeUserLobbyColorFailedDelegate OnChangeUserLobbyColorFailed;
+
+        /// <summary>
+        /// This event will be invoked when the lobby rules of this lobby has been updated.
+        /// </summary>
+        public override event LobbyLobbyRulesUpdatedDelegate OnLobbyRulesUpdated;
 
         /// <summary>
         /// This event will be invoked when changing lobby rules have failed.
@@ -111,9 +136,29 @@ namespace ElectrodZMultiplayer.Client
         public override event KickUserFailedDelegate OnKickUserFailed;
 
         /// <summary>
+        /// This event will be invoked when a game has been started.
+        /// </summary>
+        public override event LobbyGameStartedDelegate OnGameStarted;
+
+        /// <summary>
+        /// This event will be invoked when a game start has been requested.
+        /// </summary>
+        public override event LobbyGameStartRequestedDelegate OnGameStartRequested;
+
+        /// <summary>
         /// This event will be invoked when starting a game has failed.
         /// </summary>
         public override event StartGameFailedDelegate OnStartGameFailed;
+
+        /// <summary>
+        /// This event will be invoked when a game has been restarted.
+        /// </summary>
+        public override event LobbyGameRestartedDelegate OnGameRestarted;
+
+        /// <summary>
+        /// This event will be invoked when a game restart has been requested.
+        /// </summary>
+        public override event LobbyGameRestartRequestedDelegate OnGameRestartRequested;
 
         /// <summary>
         /// This event will be invoked when restarting a game has failed.
@@ -121,14 +166,39 @@ namespace ElectrodZMultiplayer.Client
         public override event RestartGameFailedDelegate OnRestartGameFailed;
 
         /// <summary>
+        /// This event will be invoked when a game has been stopped.
+        /// </summary>
+        public override event LobbyGameStoppedDelegate OnGameStopped;
+
+        /// <summary>
+        /// This event will be invoked when a game stop has been requested.
+        /// </summary>
+        public override event LobbyGameStopRequestedDelegate OnGameStopRequested;
+
+        /// <summary>
         /// This event will be invoked when stopping a game has failed.
         /// </summary>
         public override event StopGameFailedDelegate OnStopGameFailed;
 
         /// <summary>
+        /// This event will be invoked when a client tick has been performed.
+        /// </summary>
+        public override event UserClientTickedDelegate OnClientTicked;
+
+        /// <summary>
         /// This event will be invoked when a client tick has failed.
         /// </summary>
         public override event ClientTickFailedDelegate OnClientTickFailed;
+
+        /// <summary>
+        /// This event will be invoked when a server tick has been performed.
+        /// </summary>
+        public override event UserServerTickedDelegate OnServerTicked;
+
+        /// <summary>
+        /// This event will be invoked when a server tick has failed.
+        /// </summary>
+        public override event ServerTickFailedDelegate OnServerTickFailed;
 
         /// <summary>
         /// Constructor
@@ -189,11 +259,21 @@ namespace ElectrodZMultiplayer.Client
                                 else
                                 {
                                     client_user = new ClientUser(user.GUID, user.GameColor, user.Name, user.LobbyColor);
+                                    RegisterUserEvents(client_user);
                                 }
                                 users.Add(user.GUID.ToString(), client_user);
                                 user_list.Add(client_user);
                             }
                             IInternalClientLobby client_lobby = new ClientLobby(this, message.Rules.LobbyCode, message.Rules.Name, message.Rules.MinimalUserCount, message.Rules.MaximalUserCount, message.Rules.IsStartingGameAutomatically, message.Rules.GameMode, message.Rules.GameModeRules, users[message.OwnerGUID.ToString()], users);
+                            client_lobby.OnUserJoined += (user) => OnUserJoined?.Invoke(client_lobby, user);
+                            client_lobby.OnUserLeft += (user, reason, leaveMessage) => OnUserLeft?.Invoke(client_lobby, user, reason, leaveMessage);
+                            client_lobby.OnLobbyRulesUpdated += () => OnLobbyRulesUpdated?.Invoke(client_lobby);
+                            client_lobby.OnGameStarted += () => OnGameStarted?.Invoke(client_lobby);
+                            client_lobby.OnGameStartRequested += (time) => OnGameStartRequested?.Invoke(client_lobby, time);
+                            client_lobby.OnGameRestarted += () => OnGameRestarted?.Invoke(client_lobby);
+                            client_lobby.OnGameRestartRequested += (time) => OnGameRestartRequested?.Invoke(client_lobby, time);
+                            client_lobby.OnGameStopped += (gameStopUsers, results) => OnGameStopped?.Invoke(client_lobby, gameStopUsers, results);
+                            client_lobby.OnGameStopRequested += (time) => OnGameStopRequested?.Invoke(client_lobby, time);
                             user.ClientLobby = client_lobby;
                             foreach (IInternalClientUser client_user in user_list)
                             {
@@ -238,6 +318,7 @@ namespace ElectrodZMultiplayer.Client
                     (clientUser, clientLobby) =>
                     {
                         IUser user = new ClientUser(message.GUID, message.GameColor, message.Name, message.LobbyColor);
+                        RegisterUserEvents(user);
                         if (!clientLobby.AddUserInternally(user))
                         {
                             SendInvalidMessageContextErrorMessageToPeer<UserJoinedMessageData>(peer, $"Failed to add user \"{ user.Name }\" with GUID \"{ user.GUID }\" to lobby \"{ clientLobby.Name }\" with lobby code \"{ clientLobby.LobbyCode }\".");
@@ -297,7 +378,12 @@ namespace ElectrodZMultiplayer.Client
                 )
             );
             AddAutomaticMessageParser<StopGameFailedMessageData>((currentPeer, message, _) => OnStopGameFailed?.Invoke(currentPeer, message.Message, message.Reason));
-            AddAutomaticMessageParser<ServerTickMessageData>((_, message, __) => AssertIsUserInLobby<ServerTickMessageData>((clientUser, clientLobby) => clientLobby.ProcessServerTickInternally(message.Time, message.Entities)));
+            AddMessageParser<ServerTickMessageData>
+            (
+                (_, message, __) => AssertIsUserInLobby<ServerTickMessageData>((clientUser, clientLobby) => clientLobby.ProcessServerTickInternally(message.Time, message.Entities)),
+                (_, message, __) => SendServerTickFailedMessage(message, EServerTickFailedReason.Unknown),
+                MessageParseFailedEvent<ServerTickMessageData>
+            );
             AddAutomaticMessageParser<ClientTickFailedMessageData>((currentPeer, message, _) => OnClientTickFailed?.Invoke(currentPeer, message.Message, message.Reason));
             OnPeerConnected += (_) => SendAuthenticateMessage(token);
         }
@@ -374,6 +460,29 @@ namespace ElectrodZMultiplayer.Client
                     }
                 }
             );
+
+        /// <summary>
+        /// Registers user events
+        /// </summary>
+        /// <param name="user">User</param>
+        private void RegisterUserEvents(IUser user)
+        {
+            user.OnUsernameUpdated += () => OnUsernameUpdated?.Invoke(user);
+            user.OnUserLobbyColorUpdated += () => OnUserLobbyColorUpdated?.Invoke(user);
+            user.OnClientTicked += (entityDeltas) => OnClientTicked?.Invoke(user, entityDeltas);
+            user.OnServerTicked += (time, entityDeltas) => OnServerTicked?.Invoke(user, time, entityDeltas);
+        }
+
+        /// <summary>
+        /// Sends a server tick failed message
+        /// </summary>
+        /// <param name="message">Received message</param>
+        /// <param name="reason">Reason</param>
+        private void SendServerTickFailedMessage(ServerTickMessageData message, EServerTickFailedReason reason)
+        {
+            OnServerTickFailed?.Invoke(Peer, message, reason);
+            SendMessage(new ServerTickFailedMessageData(message, reason));
+        }
 
         /// <summary>
         /// Sends a request to create and join a lobby
