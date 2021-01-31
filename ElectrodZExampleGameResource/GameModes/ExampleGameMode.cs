@@ -73,7 +73,7 @@ namespace ElectrodZExampleGameResource.GameModes
         {
             if (issuer == null)
             {
-                Console.WriteLine($"Victim with GUID \"{ victim.GUID }\" has beenm hit with weapon \"{ weaponName }\".");
+                Console.WriteLine($"Victim with GUID \"{ victim.GUID }\" has been hit with weapon \"{ weaponName }\".");
             }
             else
             {
