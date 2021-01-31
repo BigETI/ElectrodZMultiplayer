@@ -77,6 +77,12 @@ namespace ElectrodZMultiplayer.Server
         bool RemoveEntity(IEntity entity);
 
         /// <summary>
+        /// Performs a hit
+        /// </summary>
+        /// <param name="hit">Hit</param>
+        void PerformHit(IHit hit);
+
+        /// <summary>
         /// Close lobby
         /// </summary>
         void Close();

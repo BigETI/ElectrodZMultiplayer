@@ -164,7 +164,8 @@ namespace ElectrodZMultiplayer.Server
         /// Invoked the client ticked event
         /// </summary>
         /// <param name="entityDeltas">Entity deltas</param>
-        public void InvokeClientTickedEvent(IEnumerable<IEntityDelta> entityDeltas) => OnClientTicked?.Invoke(entityDeltas);
+        /// <param name="hits">Hits</param>
+        public void InvokeClientTickedEvent(IEnumerable<IEntityDelta> entityDeltas, IEnumerable<IHit> hits) => OnClientTicked?.Invoke(entityDeltas, hits);
 
         /// <summary>
         /// Sends a message
@@ -200,10 +201,15 @@ namespace ElectrodZMultiplayer.Server
         /// Sends a server tick message
         /// </summary>
         /// <param name="time">Time elapsed in seconds since game started</param>
-        public void SendServerTickMessage(double time)
+        /// <param name="hits">Hits</param>
+        public void SendServerTickMessage(double time, IEnumerable<IHit> hits)
         {
-            OnServerTicked?.Invoke(time, EntityStreamer.GetEntityDeltas(Lobby.Users.Values, Lobby.Entities.Values, ref lastEntityDeltas));
-            SendMessage(new ServerTickMessageData(time, lastEntityDeltas));
+            if (!Protection.IsValid(hits))
+            {
+                throw new ArgumentException("Hits contain invalid hits.", nameof(hits));
+            }
+            OnServerTicked?.Invoke(time, EntityStreamer.GetEntityDeltas(Lobby.Users.Values, Lobby.Entities.Values, ref lastEntityDeltas), hits);
+            SendMessage(new ServerTickMessageData(time, lastEntityDeltas, hits));
         }
 
         /// <summary>

@@ -33,6 +33,11 @@ namespace ElectrodZMultiplayer.Server
         private readonly Dictionary<string, IGameUser> gameUsers = new Dictionary<string, IGameUser>();
 
         /// <summary>
+        /// Current hits
+        /// </summary>
+        private readonly List<IHit> currentHits = new List<IHit>();
+
+        /// <summary>
         /// Game mode type
         /// </summary>
         private (IGameResource, Type) gameModeType;
@@ -712,6 +717,58 @@ namespace ElectrodZMultiplayer.Server
         }
 
         /// <summary>
+        /// Performs a hit
+        /// </summary>
+        /// <param name="hit">Hit</param>
+        public void PerformHit(IHit hit)
+        {
+            if (hit == null)
+            {
+                throw new ArgumentNullException(nameof(hit));
+            }
+            if (!hit.IsValid)
+            {
+                throw new ArgumentException("Hit is invalid.", nameof(hit));
+            }
+            if (CurrentlyLoadedGameMode == null)
+            {
+                throw new InvalidOperationException("Game mode is not running yet.");
+            }
+            string issuer_key = hit.Issuer.GUID.ToString();
+            string victim_key = hit.Victim.GUID.ToString();
+            IGameEntity issuer;
+            IGameEntity victim;
+            if (gameUsers.ContainsKey(issuer_key))
+            {
+                issuer = gameUsers[issuer_key];
+            }
+            else if (entities.ContainsKey(issuer_key) && entities[issuer_key] is IGameEntity game_entity)
+            {
+                issuer = game_entity;
+            }
+            else
+            {
+                throw new ArgumentException($"Issuer GUID \"{ issuer_key }\" is invalid.", nameof(hit));
+            }
+            if (gameUsers.ContainsKey(victim_key))
+            {
+                victim = gameUsers[issuer_key];
+            }
+            else if (entities.ContainsKey(victim_key) && entities[victim_key] is IGameEntity game_entity)
+            {
+                victim = game_entity;
+            }
+            else
+            {
+                throw new ArgumentException($"Victim GUID \"{ victim_key }\" is invalid.", nameof(hit));
+            }
+            if (CurrentlyLoadedGameMode.OnGameEntityHit(issuer, victim, hit.HitPosition, hit.HitForce, hit.Damage))
+            {
+                currentHits.Add(hit);
+            }
+        }
+
+        /// <summary>
         /// Sends a message to all
         /// </summary>
         /// <typeparam name="T">Message type</typeparam>
@@ -873,11 +930,13 @@ namespace ElectrodZMultiplayer.Server
                     }
                 }
                 CurrentlyLoadedGameMode?.OnGameTicked(deltaTime);
+                IHit[] current_hits = currentHits.ToArray();
+                currentHits.Clear();
                 foreach (IUser user in users.Values)
                 {
                     if (user is IInternalServerUser server_user)
                     {
-                        server_user.SendServerTickMessage(CurrentGameTime);
+                        server_user.SendServerTickMessage(CurrentGameTime, current_hits);
                     }
                 }
             }

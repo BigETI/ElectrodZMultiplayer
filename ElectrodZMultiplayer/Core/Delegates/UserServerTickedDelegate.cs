@@ -11,5 +11,6 @@ namespace ElectrodZMultiplayer
     /// <param name="user">User</param>
     /// <param name="time">Elapsed time in seconds since game start</param>
     /// <param name="entityDeltas">Entity deltas</param>>
-    public delegate void UserServerTickedDelegate(IUser user, double time, IEnumerable<IEntityDelta> entityDeltas);
+    /// <param name="hits">Hits</param>>
+    public delegate void UserServerTickedDelegate(IUser user, double time, IEnumerable<IEntityDelta> entityDeltas, IEnumerable<IHit> hits);
 }

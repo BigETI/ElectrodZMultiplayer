@@ -33,6 +33,7 @@ namespace ElectrodZMultiplayer.Client
         /// </summary>
         /// <param name="time">Time in seconds elapsed since game start</param>
         /// <param name="entityDeltas">Entity deltas</param>
-        void InvokeServerTickedEvent(double time, IEnumerable<IEntityDelta> entityDeltas);
+        /// <param name="hits">Hits</param>
+        void InvokeServerTickedEvent(double time, IEnumerable<IEntityDelta> entityDeltas, IEnumerable<IHit> hits);
     }
 }

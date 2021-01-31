@@ -26,12 +26,19 @@ namespace ElectrodZMultiplayer.Data.Messages
         public List<EntityData> Entities { get; set; }
 
         /// <summary>
+        /// Hits
+        /// </summary>
+        [JsonProperty("hits")]
+        public List<ServerHitData> Hits { get; set; }
+
+        /// <summary>
         /// Is object in a valid state
         /// </summary>
         public override bool IsValid =>
             base.IsValid &&
             (Time >= 0.0) &&
-            Protection.IsValid(Entities);
+            Protection.IsValid(Entities) &&
+            Protection.IsValid(Hits);
 
         /// <summary>
         /// Constructs a server tick message for deserializers
@@ -46,7 +53,8 @@ namespace ElectrodZMultiplayer.Data.Messages
         /// </summary>
         /// <param name="time">Time</param>
         /// <param name="entityDeltas">Entities to update</param>
-        public ServerTickMessageData(double time, IEnumerable<IEntityDelta> entityDeltas) : base(Naming.GetMessageTypeNameFromMessageDataType<ServerTickMessageData>())
+        /// <param name="hits">Hits</param>
+        public ServerTickMessageData(double time, IEnumerable<IEntityDelta> entityDeltas, IEnumerable<IHit> hits) : base(Naming.GetMessageTypeNameFromMessageDataType<ServerTickMessageData>())
         {
             if (time < 0.0)
             {
@@ -58,13 +66,25 @@ namespace ElectrodZMultiplayer.Data.Messages
             }
             if (!Protection.IsValid(entityDeltas))
             {
-                throw new ArgumentException($"Entities are not valid.", nameof(entityDeltas));
+                throw new ArgumentException("Entity deltas contain invalid entity deltas.", nameof(entityDeltas));
+            }
+            if ((hits != null) && !Protection.IsValid(hits))
+            {
+                throw new ArgumentException("Hits contain invalid hits.", nameof(hits));
             }
             Time = time;
             Entities = new List<EntityData>();
             foreach (IEntityDelta entity_delta in entityDeltas)
             {
                 Entities.Add(new EntityData(entity_delta.GUID, entity_delta.EntityType, entity_delta.GameColor, entity_delta.Position, entity_delta.Rotation, entity_delta.Velocity, entity_delta.AngularVelocity, entity_delta.Actions));
+            }
+            if (hits != null)
+            {
+                foreach (IHit hit in hits)
+                {
+                    Hits = Hits ?? new List<ServerHitData>();
+                    Hits.Add(new ServerHitData(hit));
+                }
             }
         }
     }

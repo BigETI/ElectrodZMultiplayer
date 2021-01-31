@@ -380,7 +380,7 @@ namespace ElectrodZMultiplayer.Client
             AddAutomaticMessageParser<StopGameFailedMessageData>((currentPeer, message, _) => OnStopGameFailed?.Invoke(currentPeer, message.Message, message.Reason));
             AddMessageParser<ServerTickMessageData>
             (
-                (_, message, __) => AssertIsUserInLobby<ServerTickMessageData>((clientUser, clientLobby) => clientLobby.ProcessServerTickInternally(message.Time, message.Entities)),
+                (_, message, __) => AssertIsUserInLobby<ServerTickMessageData>((clientUser, clientLobby) => clientLobby.ProcessServerTickInternally(message.Time, message.Entities, message.Hits)),
                 (_, message, __) => SendServerTickFailedMessage(message, EServerTickFailedReason.Unknown),
                 MessageParseFailedEvent<ServerTickMessageData>
             );
@@ -469,8 +469,8 @@ namespace ElectrodZMultiplayer.Client
         {
             user.OnUsernameUpdated += () => OnUsernameUpdated?.Invoke(user);
             user.OnUserLobbyColorUpdated += () => OnUserLobbyColorUpdated?.Invoke(user);
-            user.OnClientTicked += (entityDeltas) => OnClientTicked?.Invoke(user, entityDeltas);
-            user.OnServerTicked += (time, entityDeltas) => OnServerTicked?.Invoke(user, time, entityDeltas);
+            user.OnClientTicked += (entityDeltas, hits) => OnClientTicked?.Invoke(user, entityDeltas, hits);
+            user.OnServerTicked += (time, entityDeltas, hits) => OnServerTicked?.Invoke(user, time, entityDeltas, hits);
         }
 
         /// <summary>
@@ -693,7 +693,8 @@ namespace ElectrodZMultiplayer.Client
         /// Sends a client tick message
         /// </summary>
         /// <param name="entities">Entities to update</param>
-        public void SendClientTickMessage(IEnumerable<IEntityDelta> entities = null) => SendMessage(new ClientTickMessageData(entities));
+        /// <param name="hits">Hits</param>
+        public void SendClientTickMessage(IEnumerable<IEntityDelta> entities = null, IEnumerable<IHit> hits = null) => SendMessage(new ClientTickMessageData(entities, hits));
 
         /// <summary>
         /// Sends an error message

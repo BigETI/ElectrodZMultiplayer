@@ -39,7 +39,8 @@ namespace ElectrodZMultiplayer.Server
         /// Invoked the client ticked event
         /// </summary>
         /// <param name="entityDeltas">Entity deltas</param>
-        void InvokeClientTickedEvent(IEnumerable<IEntityDelta> entityDeltas);
+        /// <param name="hits">Hits</param>
+        void InvokeClientTickedEvent(IEnumerable<IEntityDelta> entityDeltas, IEnumerable<IHit> hits);
 
         /// <summary>
         /// Sends a message
@@ -75,7 +76,8 @@ namespace ElectrodZMultiplayer.Server
         /// Sends a server tick message
         /// </summary>
         /// <param name="time">Time elapsed in seconds since game started</param>
-        void SendServerTickMessage(double time);
+        /// <param name="hits">Hits</param>
+        void SendServerTickMessage(double time, IEnumerable<IHit> hits);
 
         /// <summary>
         /// Sends an error message

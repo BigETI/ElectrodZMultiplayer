@@ -46,19 +46,6 @@ namespace ElectrodZMultiplayer.Server
         void OnUserLeft(IGameUser gameUser);
 
         /// <summary>
-        /// User has been spawned
-        /// </summary>
-        /// <param name="gameUser">Game user</param>
-        void OnUserSpawned(IGameUser gameUser);
-
-        /// <summary>
-        /// User has been killed
-        /// </summary>
-        /// <param name="vistim">Victim</param>
-        /// <param name="issuer">Issuer</param>
-        void OnUserKilled(IGameUser victim, IGameEntity issuer);
-
-        /// <summary>
         /// Game entity has been created
         /// </summary>
         /// <param name="gameEntity">Game entity</param>
@@ -69,6 +56,17 @@ namespace ElectrodZMultiplayer.Server
         /// </summary>
         /// <param name="gameEntity">Game entity</param>
         void OnGameEntityDestroyed(IGameEntity gameEntity);
+
+        /// <summary>
+        /// Game entity has been hit
+        /// </summary>
+        /// <param name="issuer">Issuer</param>
+        /// <param name="victim">Victim</param>
+        /// <param name="hitPosition">Hit position</param>
+        /// <param name="hitForce">Hit force</param>
+        /// <param name="damage">Damage</param>
+        /// <returns>"true" if game entity hit is valid, otherwise "false"</returns>
+        bool OnGameEntityHit(IGameEntity issuer, IGameEntity victim, Vector3 hitPosition, Vector3 hitForce, float damage);
 
         /// <summary>
         /// Game has been ticked
