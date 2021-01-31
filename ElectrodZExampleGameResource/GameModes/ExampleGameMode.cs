@@ -64,19 +64,20 @@ namespace ElectrodZExampleGameResource.GameModes
         /// </summary>
         /// <param name="issuer">Issuer</param>
         /// <param name="victim">Victim</param>
+        /// <param name="weaponName">Weapon name</param>
         /// <param name="hitPosition">Hit position</param>
         /// <param name="hitForce">Hit force</param>
         /// <param name="damage">Damage</param>
         /// <returns>"true" if game entity hit is valid, otherwise "false"</returns>
-        public bool OnGameEntityHit(IGameEntity issuer, IGameEntity victim, Vector3 hitPosition, Vector3 hitForce, float damage)
+        public bool OnGameEntityHit(IGameEntity issuer, IGameEntity victim, string weaponName, Vector3 hitPosition, Vector3 hitForce, float damage)
         {
             if (issuer == null)
             {
-                Console.WriteLine($"Victim with GUID \"{ victim.GUID }\" has beenm hit.");
+                Console.WriteLine($"Victim with GUID \"{ victim.GUID }\" has beenm hit with weapon \"{ weaponName }\".");
             }
             else
             {
-                Console.WriteLine($"Victim with GUID \"{ victim.GUID }\" has been hit by entity with GUID \"{ issuer.GUID }\".");
+                Console.WriteLine($"Victim with GUID \"{ victim.GUID }\" has been hit by entity with GUID \"{ issuer.GUID }\" with weapon \"{ weaponName }\".");
             }
             return true;
         }

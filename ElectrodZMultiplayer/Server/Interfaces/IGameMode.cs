@@ -62,11 +62,12 @@ namespace ElectrodZMultiplayer.Server
         /// </summary>
         /// <param name="issuer">Issuer</param>
         /// <param name="victim">Victim</param>
+        /// <param name="weaponName">Weapon name</param>
         /// <param name="hitPosition">Hit position</param>
         /// <param name="hitForce">Hit force</param>
         /// <param name="damage">Damage</param>
         /// <returns>"true" if game entity hit is valid, otherwise "false"</returns>
-        bool OnGameEntityHit(IGameEntity issuer, IGameEntity victim, Vector3 hitPosition, Vector3 hitForce, float damage);
+        bool OnGameEntityHit(IGameEntity issuer, IGameEntity victim, string weaponName, Vector3 hitPosition, Vector3 hitForce, float damage);
 
         /// <summary>
         /// Game has been ticked

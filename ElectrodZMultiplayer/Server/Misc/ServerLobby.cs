@@ -762,7 +762,7 @@ namespace ElectrodZMultiplayer.Server
             {
                 throw new ArgumentException($"Victim GUID \"{ victim_key }\" is invalid.", nameof(hit));
             }
-            if (CurrentlyLoadedGameMode.OnGameEntityHit(issuer, victim, hit.HitPosition, hit.HitForce, hit.Damage))
+            if (CurrentlyLoadedGameMode.OnGameEntityHit(issuer, victim, hit.WeaponName, hit.HitPosition, hit.HitForce, hit.Damage))
             {
                 currentHits.Add(hit);
             }
