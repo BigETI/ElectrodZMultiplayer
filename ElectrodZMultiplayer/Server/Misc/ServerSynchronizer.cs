@@ -872,26 +872,29 @@ namespace ElectrodZMultiplayer.Server
                                 }
                             }
                         }
-                        foreach (ClientHitData client_hit in message.Hits)
+                        if (message.Hits != null)
                         {
-                            string key = client_hit.VictimGUID.ToString();
-                            IEntity victim;
-                            if (serverLobby.Users.ContainsKey(key))
+                            foreach (ClientHitData client_hit in message.Hits)
                             {
-                                victim = serverLobby.Users[key];
+                                string key = client_hit.VictimGUID.ToString();
+                                IEntity victim;
+                                if (serverLobby.Users.ContainsKey(key))
+                                {
+                                    victim = serverLobby.Users[key];
+                                }
+                                else if (serverLobby.Entities.ContainsKey(key))
+                                {
+                                    victim = serverLobby.Entities[key];
+                                }
+                                else
+                                {
+                                    is_successful = false;
+                                    SendInvalidMessageParametersErrorMessageToPeer<ClientTickMessageData>(peer, $"Invalid victim GUID \"{ key }\".");
+                                    break;
+                                }
+                                IHit hit = new Hit(serverUser, victim, client_hit.WeaponName, new Vector3(client_hit.HitPosition.X, client_hit.HitPosition.Y, client_hit.HitPosition.Z), new Vector3(client_hit.HitForce.X, client_hit.HitForce.Y, client_hit.HitForce.Z), client_hit.Damage);
+                                hits.Add(hit);
                             }
-                            else if (serverLobby.Entities.ContainsKey(key))
-                            {
-                                victim = serverLobby.Entities[key];
-                            }
-                            else
-                            {
-                                is_successful = false;
-                                SendInvalidMessageParametersErrorMessageToPeer<ClientTickMessageData>(peer, $"Invalid victim GUID \"{ key }\".");
-                                break;
-                            }
-                            IHit hit = new Hit(serverUser, victim, client_hit.WeaponName, new Vector3(client_hit.HitPosition.X, client_hit.HitPosition.Y, client_hit.HitPosition.Z), new Vector3(client_hit.HitForce.X, client_hit.HitForce.Y, client_hit.HitForce.Z), client_hit.Damage);
-                            hits.Add(hit);
                         }
                         if (is_successful)
                         {
