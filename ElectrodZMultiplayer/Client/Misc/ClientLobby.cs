@@ -162,6 +162,21 @@ namespace ElectrodZMultiplayer.Client
         public event GameStoppedDelegate OnGameStopped;
 
         /// <summary>
+        /// This event will be invoked when starting a game has been cancelled.
+        /// </summary>
+        public event StartGameCancelledDelegate OnStartGameCancelled;
+
+        /// <summary>
+        /// This event will be invoked when restarting a game has been cancelled.
+        /// </summary>
+        public event RestartGameCancelledDelegate OnRestartGameCancelled;
+
+        /// <summary>
+        /// This event will be invoked when stopping a game has been cancelled.
+        /// </summary>
+        public event StopGameCancelledDelegate OnStopGameCancelled;
+
+        /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="client">Client</param>
@@ -364,6 +379,21 @@ namespace ElectrodZMultiplayer.Client
             CurrentGameTime = 0.0;
             OnGameStopped?.Invoke(users, results);
         }
+
+        /// <summary>
+        /// Invokes the start game cancelled event internally
+        /// </summary>
+        public void InvokeStartGameCancelledEventInternally() => OnStartGameCancelled?.Invoke();
+
+        /// <summary>
+        /// Invokes the restart game cancelled event internally
+        /// </summary>
+        public void InvokeRestartGameCancelledEventInternally() => OnRestartGameCancelled?.Invoke();
+
+        /// <summary>
+        /// Invokes the stop game cancelled event internally
+        /// </summary>
+        public void InvokeStopGameCancelledEventInternally() => OnStopGameCancelled?.Invoke();
 
         /// <summary>
         /// Updates game mode rules internally

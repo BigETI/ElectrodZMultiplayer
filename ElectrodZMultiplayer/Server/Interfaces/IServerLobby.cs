@@ -57,6 +57,16 @@ namespace ElectrodZMultiplayer.Server
         void UpdateLobbyRules(string newName = null, (IGameResource, Type)? newGameMode = null, uint? newMinimalUserCount = null, uint? newMaximalUserCount = null, bool? newStartingGameAutomaticallyState = null, IReadOnlyDictionary<string, object> newGameModeRules = null);
 
         /// <summary>
+        /// Cancels start game time
+        /// </summary>
+        void CancelStartGameTime();
+
+        /// <summary>
+        /// Cancels stop game time
+        /// </summary>
+        void CancelStopGameTime();
+
+        /// <summary>
         /// Creates a new game entity
         /// </summary>
         /// <param name="entityType">Game entity type</param>

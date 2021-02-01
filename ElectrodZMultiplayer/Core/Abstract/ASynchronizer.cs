@@ -190,6 +190,26 @@ namespace ElectrodZMultiplayer
         public abstract event StopGameFailedDelegate OnStopGameFailed;
 
         /// <summary>
+        /// This event will be invoked when starting a game has been cancelled.
+        /// </summary>
+        public abstract event LobbyStartGameCancelledDelegate OnStartGameCancelled;
+
+        /// <summary>
+        /// This event will be invoked when restarting a game has been cancelled.
+        /// </summary>
+        public abstract event LobbyRestartGameCancelledDelegate OnRestartGameCancelled;
+
+        /// <summary>
+        /// This event will be invoked when stopping a game has been cancelled.
+        /// </summary>
+        public abstract event LobbyStopGameCancelledDelegate OnStopGameCancelled;
+
+        /// <summary>
+        /// This event will be invoked when cancelling a game start, restart or stop timer has failed.
+        /// </summary>
+        public abstract event CancelStartRestartStopGameTimerFailedDelegate OnCancelStartRestartStopGameTimerFailed;
+
+        /// <summary>
         /// This event will be invoked when a client tick has been performed.
         /// </summary>
         public abstract event UserClientTickedDelegate OnClientTicked;

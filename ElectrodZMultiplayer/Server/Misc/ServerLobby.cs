@@ -209,6 +209,21 @@ namespace ElectrodZMultiplayer.Server
         public event GameModeStoppedDelegate OnGameModeStopped;
 
         /// <summary>
+        /// This event will be invoked when starting a game has been cancelled.
+        /// </summary>
+        public event StartGameCancelledDelegate OnStartGameCancelled;
+
+        /// <summary>
+        /// This event will be invoked when restarting a game has been cancelled.
+        /// </summary>
+        public event RestartGameCancelledDelegate OnRestartGameCancelled;
+
+        /// <summary>
+        /// This event will be invoked when stopping a game has been cancelled.
+        /// </summary>
+        public event StopGameCancelledDelegate OnStopGameCancelled;
+
+        /// <summary>
         /// Gets invoked when lobby has been closed
         /// </summary>
         public event LobbyClosedDelegate OnLobbyClosed;
@@ -651,6 +666,40 @@ namespace ElectrodZMultiplayer.Server
         }
 
         /// <summary>
+        /// Cancels start game time
+        /// </summary>
+        public void CancelStartGameTime()
+        {
+            if (RemainingGameStartTime > 0.0f)
+            {
+                RemainingGameStartTime = 0.0f;
+                if (CurrentlyLoadedGameMode == null)
+                {
+                    OnStartGameCancelled?.Invoke();
+                    SendMessageToAll(new StartGameCancelledMessageData());
+                }
+                else
+                {
+                    OnRestartGameCancelled?.Invoke();
+                    SendMessageToAll(new RestartGameCancelledMessageData());
+                }
+            }
+        }
+
+        /// <summary>
+        /// Cancels stop game time
+        /// </summary>
+        public void CancelStopGameTime()
+        {
+            if ((CurrentlyLoadedGameMode != null) && (RemainingGameStartTime > 0.0f))
+            {
+                RemainingGameStartTime = 0.0f;
+                OnStopGameCancelled?.Invoke();
+                SendMessageToAll(new StopGameCancelledMessageData());
+            }
+        }
+
+        /// <summary>
         /// Creates a new game entity
         /// </summary>
         /// <param name="entityType">Game entity type</param>
@@ -842,6 +891,7 @@ namespace ElectrodZMultiplayer.Server
             {
                 throw new ArgumentException("Time can't be zero or negative.");
             }
+            CancelStartGameTime();
             RemainingGameStartTime = time;
             OnGameStartRequested?.Invoke(time);
             SendMessageToAll(new GameStartRequestedMessageData(time));
@@ -857,6 +907,8 @@ namespace ElectrodZMultiplayer.Server
             {
                 throw new ArgumentException("Time can't be zero or negative.");
             }
+            CancelStartGameTime();
+            CancelStopGameTime();
             RemainingGameStartTime = time;
             OnGameRestartRequested?.Invoke(time);
             SendMessageToAll(new GameRestartRequestedMessageData(time));
@@ -872,6 +924,8 @@ namespace ElectrodZMultiplayer.Server
             {
                 throw new ArgumentException("Time can't be zero or negative.");
             }
+            CancelStartGameTime();
+            CancelStopGameTime();
             RemainingGameStopTime = time;
             OnGameStopRequested?.Invoke(time);
             SendMessageToAll(new GameStopRequestedMessageData(time));
