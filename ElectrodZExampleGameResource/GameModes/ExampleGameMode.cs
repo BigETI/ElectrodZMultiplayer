@@ -48,29 +48,6 @@ namespace ElectrodZExampleGameResource.GameModes
         public void OnUserLeft(IGameUser gameUser) => Console.WriteLine($"User \"{ gameUser.Name }\" with GUID \"{ gameUser.GUID }\" has left the game.");
 
         /// <summary>
-        /// User has been spawned
-        /// </summary>
-        /// <param name="gameUser">Game user</param>
-        public void OnUserSpawned(IGameUser gameUser) => Console.WriteLine($"User \"{ gameUser.Name }\" with GUID \"{ gameUser.GUID }\" has been spawned.");
-
-        /// <summary>
-        /// User has been killed
-        /// </summary>
-        /// <param name="vistim">Victim</param>
-        /// <param name="issuer">Issuer</param>
-        public void OnUserKilled(IGameUser victim, IGameEntity issuer)
-        {
-            if (issuer == null)
-            {
-                Console.WriteLine($"Victim \"{ victim.Name }\" with GUID \"{ victim.GUID }\" has died.");
-            }
-            else
-            {
-                Console.WriteLine($"Victim \"{ victim.Name }\" with GUID \"{ victim.GUID }\" has been killed by entity with GUID \"{ issuer.GUID }\".");
-            }
-        }
-
-        /// <summary>
         /// Game entity has been created
         /// </summary>
         /// <param name="gameEntity">Game entity</param>
@@ -81,6 +58,29 @@ namespace ElectrodZExampleGameResource.GameModes
         /// </summary>
         /// <param name="gameEntity">Game entity</param>
         public void OnGameEntityDestroyed(IGameEntity gameEntity) => Console.WriteLine($"Game entity with GUID \"{ gameEntity.GUID }\" has been destroyed.");
+
+        /// <summary>
+        /// Game entity has been hit
+        /// </summary>
+        /// <param name="issuer">Issuer</param>
+        /// <param name="victim">Victim</param>
+        /// <param name="weaponName">Weapon name</param>
+        /// <param name="hitPosition">Hit position</param>
+        /// <param name="hitForce">Hit force</param>
+        /// <param name="damage">Damage</param>
+        /// <returns>"true" if game entity hit is valid, otherwise "false"</returns>
+        public bool OnGameEntityHit(IGameEntity issuer, IGameEntity victim, string weaponName, Vector3 hitPosition, Vector3 hitForce, float damage)
+        {
+            if (issuer == null)
+            {
+                Console.WriteLine($"Victim with GUID \"{ victim.GUID }\" has been hit with weapon \"{ weaponName }\".");
+            }
+            else
+            {
+                Console.WriteLine($"Victim with GUID \"{ victim.GUID }\" has been hit by entity with GUID \"{ issuer.GUID }\" with weapon \"{ weaponName }\".");
+            }
+            return true;
+        }
 
         /// <summary>
         /// Game has been ticked

@@ -1,4 +1,5 @@
 ﻿using ElectrodZMultiplayer.Data;
+using ElectrodZMultiplayer.Data.Messages;
 using System;
 using System.Collections.Generic;
 
@@ -405,10 +406,13 @@ namespace ElectrodZMultiplayer.Client
         /// </summary>
         /// <param name="time">Time in seconds elapsed since game start</param>
         /// <param name="entityDeltas">Entity deltas</param>
-        public void ProcessServerTickInternally(double time, IEnumerable<EntityData> entityDeltas)
+        /// <param name="serverHits">Server hits</param>
+        public void ProcessServerTickInternally(double time, IEnumerable<EntityData> entityDeltas, IEnumerable<ServerHitData> serverHits)
         {
             List<IEntityDelta> entity_deltas = new List<IEntityDelta>();
             HashSet<string> remove_entity_keys = new HashSet<string>(entities.Keys);
+            List<IHit> hits = new List<IHit>();
+            bool is_successful = true;
             foreach (EntityData entity in entityDeltas)
             {
                 string key = entity.GUID.ToString();
@@ -467,10 +471,49 @@ namespace ElectrodZMultiplayer.Client
                 entities.Remove(remove_entity_key);
             }
             remove_entity_keys.Clear();
-            CurrentGameTime = time;
-            if (client.User is IInternalClientUser my_client_user)
+            foreach (ServerHitData server_hit in serverHits)
             {
-                my_client_user.InvokeServerTickedEvent(time, entity_deltas);
+                string issuer_key = server_hit.IssuerGUID.ToString();
+                string victim_key = server_hit.IssuerGUID.ToString();
+                IEntity issuer = null;
+                IEntity victim = null;
+                if (Users.ContainsKey(issuer_key))
+                {
+                    issuer = Users[issuer_key];
+                }
+                else if (Entities.ContainsKey(issuer_key))
+                {
+                    issuer = Users[issuer_key];
+                }
+                else
+                {
+                    is_successful = false;
+                    client.SendErrorMessage<ServerTickMessageData>(EErrorType.InvalidMessageParameters, $"Issuer GUID \"{ issuer_key }\" is invalid.");
+                    break;
+                }
+                if (Users.ContainsKey(victim_key))
+                {
+                    victim = Users[victim_key];
+                }
+                else if (Entities.ContainsKey(victim_key))
+                {
+                    victim = Users[victim_key];
+                }
+                else
+                {
+                    is_successful = false;
+                    client.SendErrorMessage<ServerTickMessageData>(EErrorType.InvalidMessageParameters, $"Victim GUID \"{ issuer_key }\" is invalid.");
+                    break;
+                }
+                hits.Add(new Hit(issuer, victim, server_hit.WeaponName, new Vector3(server_hit.HitPosition.X, server_hit.HitPosition.Y, server_hit.HitPosition.Z), new Vector3(server_hit.HitForce.X, server_hit.HitForce.Y, server_hit.HitForce.Z), server_hit.Damage));
+            }
+            if (is_successful)
+            {
+                CurrentGameTime = time;
+                if (client.User is IInternalClientUser my_client_user)
+                {
+                    my_client_user.InvokeServerTickedEvent(time, entity_deltas, hits);
+                }
             }
         }
 

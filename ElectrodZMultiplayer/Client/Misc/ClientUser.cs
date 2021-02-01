@@ -107,13 +107,15 @@ namespace ElectrodZMultiplayer.Client
         /// Invokes the client ticked event
         /// </summary>
         /// <param name="entityDeltas">Entity deltas</param>
-        public void InvokeClientTickedEvent(IEnumerable<IEntityDelta> entityDeltas) => OnClientTicked?.Invoke(entityDeltas);
+        /// <param name="hits">Hits</param>
+        public void InvokeClientTickedEvent(IEnumerable<IEntityDelta> entityDeltas, IEnumerable<IHit> hits) => OnClientTicked?.Invoke(entityDeltas, hits);
 
         /// <summary>
         /// Invokes the server ticked event
         /// </summary>
         /// <param name="time">Time in seconds elapsed since game start</param>
         /// <param name="entityDeltas">Entity deltas</param>
-        public void InvokeServerTickedEvent(double time, IEnumerable<IEntityDelta> entityDeltas) => OnServerTicked?.Invoke(time, entityDeltas);
+        /// <param name="hits">Hits</param>
+        public void InvokeServerTickedEvent(double time, IEnumerable<IEntityDelta> entityDeltas, IEnumerable<IHit> hits) => OnServerTicked?.Invoke(time, entityDeltas, hits);
     }
 }

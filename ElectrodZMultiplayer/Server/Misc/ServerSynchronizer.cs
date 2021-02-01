@@ -56,6 +56,11 @@ namespace ElectrodZMultiplayer.Server
         private readonly List<IEntityDelta> entityDeltas = new List<IEntityDelta>();
 
         /// <summary>
+        /// Hits
+        /// </summary>
+        private readonly List<IHit> hits = new List<IHit>();
+
+        /// <summary>
         /// Tick stopwatch
         /// </summary>
         private readonly Stopwatch tickStopwatch = new Stopwatch();
@@ -260,8 +265,8 @@ namespace ElectrodZMultiplayer.Server
                         server_user = new ServerUser(peer, this, token);
                         server_user.OnUsernameUpdated += () => OnUsernameUpdated?.Invoke(server_user);
                         server_user.OnUserLobbyColorUpdated += () => OnUserLobbyColorUpdated?.Invoke(server_user);
-                        server_user.OnClientTicked += (entityDeltas) => OnClientTicked?.Invoke(server_user, entityDeltas);
-                        server_user.OnServerTicked += (time, entityDeltas) => OnServerTicked?.Invoke(server_user, time, entityDeltas);
+                        server_user.OnClientTicked += (entityDeltas, hits) => OnClientTicked?.Invoke(server_user, entityDeltas, hits);
+                        server_user.OnServerTicked += (time, entityDeltas, hits) => OnServerTicked?.Invoke(server_user, time, entityDeltas, hits);
                         users.Add(key, server_user);
                         tokenToUserLookup.Add(token, server_user);
                         OnAuthentificationAcknowledged?.Invoke(server_user);
@@ -753,7 +758,9 @@ namespace ElectrodZMultiplayer.Server
                     peer,
                     (serverUser, serverLobby, gameMode) =>
                     {
+                        bool is_successful = true;
                         entityDeltas.Clear();
+                        hits.Clear();
                         if (message.Entities != null)
                         {
                             foreach (EntityData entity in message.Entities)
@@ -806,7 +813,35 @@ namespace ElectrodZMultiplayer.Server
                                 }
                             }
                         }
-                        serverUser.InvokeClientTickedEvent(entityDeltas);
+                        foreach (ClientHitData client_hit in message.Hits)
+                        {
+                            string key = client_hit.VictimGUID.ToString();
+                            IEntity victim;
+                            if (serverLobby.Users.ContainsKey(key))
+                            {
+                                victim = serverLobby.Users[key];
+                            }
+                            else if (serverLobby.Entities.ContainsKey(key))
+                            {
+                                victim = serverLobby.Entities[key];
+                            }
+                            else
+                            {
+                                is_successful = false;
+                                SendInvalidMessageParametersErrorMessageToPeer<ClientTickMessageData>(peer, $"Invalid victim GUID \"{ key }\".");
+                                break;
+                            }
+                            IHit hit = new Hit(serverUser, victim, client_hit.WeaponName, new Vector3(client_hit.HitPosition.X, client_hit.HitPosition.Y, client_hit.HitPosition.Z), new Vector3(client_hit.HitForce.X, client_hit.HitForce.Y, client_hit.HitForce.Z), client_hit.Damage);
+                            hits.Add(hit);
+                        }
+                        if (is_successful)
+                        {
+                            foreach (IHit hit in hits)
+                            {
+                                serverLobby.PerformHit(hit);
+                            }
+                            serverUser.InvokeClientTickedEvent(entityDeltas, hits);
+                        }
                     }
                 ),
                 (peer, message, _) =>

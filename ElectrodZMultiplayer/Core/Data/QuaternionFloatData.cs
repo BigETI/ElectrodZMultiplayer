@@ -63,5 +63,11 @@ namespace ElectrodZMultiplayer.Data
         /// </summary>
         /// <param name="quaternion">Quaternion</param>
         public static explicit operator QuaternionFloatData(Quaternion quaternion) => new QuaternionFloatData(quaternion.X, quaternion.Y, quaternion.Z, quaternion.W);
+
+        /// <summary>
+        /// Gets the string representation of this object
+        /// </summary>
+        /// <returns>String representation</returns>
+        public override string ToString() => $"(x: \"{ X }\", y: \"{ Y }\", z: \"{ Z }\", w: \"{ W }\")";
     }
 }

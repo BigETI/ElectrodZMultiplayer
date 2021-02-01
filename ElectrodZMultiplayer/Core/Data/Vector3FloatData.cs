@@ -55,5 +55,11 @@ namespace ElectrodZMultiplayer.Data
         /// </summary>
         /// <param name="vector">3D Vector</param>
         public static explicit operator Vector3FloatData(Vector3 vector) => new Vector3FloatData(vector.X, vector.Y, vector.Z);
+
+        /// <summary>
+        /// Gets the string representation of this object
+        /// </summary>
+        /// <returns>String representation</returns>
+        public override string ToString() => $"(x: \"{ X }\", y: \"{ Y }\", z: \"{ Z }\")";
     }
 }

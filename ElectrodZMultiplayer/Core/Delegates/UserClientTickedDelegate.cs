@@ -10,5 +10,6 @@ namespace ElectrodZMultiplayer
     /// </summary>
     /// <param name="user">user</param>
     /// <param name="entityDeltas">Entity deltas</param>
-    public delegate void UserClientTickedDelegate(IUser user, IEnumerable<IEntityDelta> entityDeltas);
+    /// <param name="hits">Hits</param>
+    public delegate void UserClientTickedDelegate(IUser user, IEnumerable<IEntityDelta> entityDeltas, IEnumerable<IHit> hits);
 }

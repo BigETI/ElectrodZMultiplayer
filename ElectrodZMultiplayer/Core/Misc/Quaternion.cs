@@ -89,5 +89,11 @@ namespace ElectrodZMultiplayer
             hashCode = hashCode * -1521134295 + W.GetHashCode();
             return hashCode;
         }
+
+        /// <summary>
+        /// Gets the string representation of this object
+        /// </summary>
+        /// <returns>String representation</returns>
+        public override string ToString() => $"(x: \"{ X }\", y: \"{ Y }\", z: \"{ Z }\", w: \"{ W }\")";
     }
 }

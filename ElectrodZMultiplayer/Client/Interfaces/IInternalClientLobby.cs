@@ -80,6 +80,7 @@ namespace ElectrodZMultiplayer.Client
         /// </summary>
         /// <param name="time">Time in seconds elapsed since game start</param>
         /// <param name="entityDeltas">Entity deltas</param>
-        void ProcessServerTickInternally(double time, IEnumerable<EntityData> entityDeltas);
+        /// <param name="serverHits">Server hits</param>
+        void ProcessServerTickInternally(double time, IEnumerable<EntityData> entityDeltas, IEnumerable<ServerHitData> serverHits);
     }
 }

@@ -162,7 +162,8 @@ namespace ElectrodZMultiplayer.Client
         /// Sends a client tick message
         /// </summary>
         /// <param name="entities">Entities to update</param>
-        void SendClientTickMessage(IEnumerable<IEntityDelta> entities = null);
+        /// <param name="hits">Hits</param>
+        void SendClientTickMessage(IEnumerable<IEntityDelta> entities = null, IEnumerable<IHit> hits = null);
 
         /// <summary>
         /// Sends an error message to peer

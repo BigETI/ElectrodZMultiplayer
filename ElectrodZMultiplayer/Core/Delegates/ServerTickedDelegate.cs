@@ -10,5 +10,6 @@ namespace ElectrodZMultiplayer
     /// </summary>
     /// <param name="time">Elapsed time in seconds since game start</param>
     /// <param name="entityDeltas">Entity deltas</param>>
-    public delegate void ServerTickedDelegate(double time, IEnumerable<IEntityDelta> entityDeltas);
+    /// <param name="Hits">Hits</param>>
+    public delegate void ServerTickedDelegate(double time, IEnumerable<IEntityDelta> entityDeltas, IEnumerable<IHit> hits);
 }

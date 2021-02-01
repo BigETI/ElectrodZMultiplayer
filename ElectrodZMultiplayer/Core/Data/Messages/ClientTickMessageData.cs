@@ -20,6 +20,11 @@ namespace ElectrodZMultiplayer.Data.Messages
         public List<EntityData> Entities { get; set; }
 
         /// <summary>
+        /// Hits
+        /// </summary>
+        public List<ClientHitData> Hits { get; set; }
+
+        /// <summary>
         /// Is object in a valid state
         /// </summary>
         public override bool IsValid =>
@@ -38,11 +43,16 @@ namespace ElectrodZMultiplayer.Data.Messages
         /// Constructs a client tick message
         /// </summary>
         /// <param name="entities">Entities (optional)</param>
-        public ClientTickMessageData(IEnumerable<IEntityDelta> entities = null) : base(Naming.GetMessageTypeNameFromMessageDataType<ClientTickMessageData>())
+        /// <param name="hits">Hits (optional)</param>
+        public ClientTickMessageData(IEnumerable<IEntityDelta> entities = null, IEnumerable<IHit> hits = null) : base(Naming.GetMessageTypeNameFromMessageDataType<ClientTickMessageData>())
         {
             if ((entities != null) && Protection.IsValid(entities))
             {
                 throw new ArgumentException("Entities contains invalid entities.", nameof(entities));
+            }
+            if ((hits != null) && Protection.IsValid(hits))
+            {
+                throw new ArgumentException("Hits contains invalid hits.", nameof(hits));
             }
             if (entities != null)
             {
@@ -50,6 +60,14 @@ namespace ElectrodZMultiplayer.Data.Messages
                 foreach (IEntityDelta entity in entities)
                 {
                     Entities.Add(new EntityData(entity.GUID, entity.EntityType, entity.GameColor, entity.Position, entity.Rotation, entity.Velocity, entity.AngularVelocity, entity.Actions));
+                }
+            }
+            if (hits != null)
+            {
+                Hits = new List<ClientHitData>();
+                foreach (IHit hit in hits)
+                {
+                    Hits.Add(new ClientHitData(hit));
                 }
             }
         }

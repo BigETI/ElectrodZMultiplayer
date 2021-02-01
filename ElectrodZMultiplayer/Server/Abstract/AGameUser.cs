@@ -136,8 +136,8 @@ namespace ElectrodZMultiplayer.Server
             ServerUser = serverUser;
             serverUser.OnUsernameUpdated += () => OnUsernameUpdated?.Invoke();
             serverUser.OnUserLobbyColorUpdated += () => OnUserLobbyColorUpdated?.Invoke();
-            serverUser.OnClientTicked += (entityDeltas) => OnClientTicked?.Invoke(entityDeltas);
-            serverUser.OnServerTicked += (time, entityDeltas) => OnServerTicked?.Invoke(time, entityDeltas);
+            serverUser.OnClientTicked += (entityDeltas, hits) => OnClientTicked?.Invoke(entityDeltas, hits);
+            serverUser.OnServerTicked += (time, entityDeltas, hits) => OnServerTicked?.Invoke(time, entityDeltas, hits);
         }
 
         /// <summary>
