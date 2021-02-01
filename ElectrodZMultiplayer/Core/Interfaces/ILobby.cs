@@ -77,6 +77,21 @@ namespace ElectrodZMultiplayer
         event GameStoppedDelegate OnGameStopped;
 
         /// <summary>
+        /// This event will be invoked when starting a game has been cancelled.
+        /// </summary>
+        event StartGameCancelledDelegate OnStartGameCancelled;
+
+        /// <summary>
+        /// This event will be invoked when restarting a game has been cancelled.
+        /// </summary>
+        event RestartGameCancelledDelegate OnRestartGameCancelled;
+
+        /// <summary>
+        /// This event will be invoked when stopping a game has been cancelled.
+        /// </summary>
+        event StopGameCancelledDelegate OnStopGameCancelled;
+
+        /// <summary>
         /// Gets user by GUID
         /// </summary>
         /// <param name="guid">User GUID</param>

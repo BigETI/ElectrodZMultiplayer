@@ -75,6 +75,21 @@ namespace ElectrodZMultiplayer.Client
         void InvokeGameStoppedEventInternally(IReadOnlyDictionary<string, UserWithResults> users, IReadOnlyDictionary<string, object> results);
 
         /// <summary>
+        /// Invokes the start game cancelled event internally
+        /// </summary>
+        void InvokeStartGameCancelledEventInternally();
+
+        /// <summary>
+        /// Invokes the restart game cancelled event internally
+        /// </summary>
+        void InvokeRestartGameCancelledEventInternally();
+
+        /// <summary>
+        /// Invokes the stop game cancelled event internally
+        /// </summary>
+        void InvokeStopGameCancelledEventInternally();
+
+        /// <summary>
         /// Processes server tick internally
         /// </summary>
         /// <param name="time">Time in seconds elapsed since game start</param>

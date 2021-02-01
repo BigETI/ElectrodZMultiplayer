@@ -221,6 +221,26 @@ namespace ElectrodZMultiplayer.Server
         public override event StopGameFailedDelegate OnStopGameFailed;
 
         /// <summary>
+        /// This event will be invoked when starting a game has been cancelled.
+        /// </summary>
+        public override event LobbyStartGameCancelledDelegate OnStartGameCancelled;
+
+        /// <summary>
+        /// This event will be invoked when restarting a game has been cancelled.
+        /// </summary>
+        public override event LobbyRestartGameCancelledDelegate OnRestartGameCancelled;
+
+        /// <summary>
+        /// This event will be invoked when stopping a game has been cancelled.
+        /// </summary>
+        public override event LobbyStopGameCancelledDelegate OnStopGameCancelled;
+
+        /// <summary>
+        /// This event will be invoked when cancelling a game start, restart or stop timer has failed.
+        /// </summary>
+        public override event CancelStartRestartStopGameTimerFailedDelegate OnCancelStartRestartStopGameTimerFailed;
+
+        /// <summary>
         /// This event will be invoked when a client tick has been performed.
         /// </summary>
         public override event UserClientTickedDelegate OnClientTicked;
@@ -462,6 +482,9 @@ namespace ElectrodZMultiplayer.Server
                             server_lobby.OnGameRestartRequested += (time) => OnGameRestartRequested?.Invoke(server_lobby, time);
                             server_lobby.OnGameStopped += (users, results) => OnGameStopped?.Invoke(server_lobby, users, results);
                             server_lobby.OnGameStopRequested += (time) => OnGameStopRequested?.Invoke(server_lobby, time);
+                            server_lobby.OnStartGameCancelled += () => OnStartGameCancelled?.Invoke(server_lobby);
+                            server_lobby.OnRestartGameCancelled += () => OnRestartGameCancelled?.Invoke(server_lobby);
+                            server_lobby.OnStopGameCancelled += () => OnStopGameCancelled?.Invoke(server_lobby);
                             lobbies.Add(lobby_code, server_lobby);
                             serverUser.ServerLobby = server_lobby;
                             serverUser.SetNameInternally(message.Username);
@@ -748,6 +771,42 @@ namespace ElectrodZMultiplayer.Server
                     }
                 },
                 MessageParseFailedEvent<StopGameMessageData>
+            );
+            AddAutomaticMessageParser<CancelStartRestartStopGameTimerMessageData>
+            (
+                (peer, message, json) => AssertPeerIsLobbyOwner<CancelStartRestartStopGameTimerMessageData>
+                (
+                    peer,
+                    (serverUser, serverLobby) =>
+                    {
+                        if (serverLobby.CurrentlyLoadedGameMode == null)
+                        {
+                            if (serverLobby.RemainingGameStartTime > 0.0f)
+                            {
+                                serverLobby.CancelStartGameTime();
+                            }
+                            else
+                            {
+                                SendCancelStartRestartStopGameTimerFailedMessage(peer, message, ECancelStartRestartStopGameTimerFailedReason.GameStartTimerIsNotRunning);
+                            }
+                        }
+                        else
+                        {
+                            if (serverLobby.RemainingGameStartTime > 0.0f)
+                            {
+                                serverLobby.CancelStartGameTime();
+                            }
+                            else if (serverLobby.RemainingGameStopTime > 0.0f)
+                            {
+                                serverLobby.CancelStopGameTime();
+                            }
+                            else
+                            {
+                                SendCancelStartRestartStopGameTimerFailedMessage(peer, message, ECancelStartRestartStopGameTimerFailedReason.GameRestartStopTimersAreNotRunning);
+                            }
+                        }
+                    }
+                )
             );
             AddMessageParser<ClientTickMessageData>
             (
@@ -1113,6 +1172,18 @@ namespace ElectrodZMultiplayer.Server
         {
             OnStopGameFailed?.Invoke(peer, message, reason);
             SendMessageToPeer(peer, new StopGameFailedMessageData(message, reason));
+        }
+
+        /// <summary>
+        /// Sends a cancel start, restart and stop game timer failed message
+        /// </summary>
+        /// <param name="peer">Peer</param>
+        /// <param name="message">Received message</param>
+        /// <param name="reason">Reason</param>
+        private void SendCancelStartRestartStopGameTimerFailedMessage(IPeer peer, CancelStartRestartStopGameTimerMessageData message, ECancelStartRestartStopGameTimerFailedReason reason)
+        {
+            OnCancelStartRestartStopGameTimerFailed?.Invoke(peer, message, reason);
+            SendMessageToPeer(peer, new CancelStartRestartStopGameTimerFailedMessageData(message, reason));
         }
 
         /// <summary>

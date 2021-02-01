@@ -181,6 +181,26 @@ namespace ElectrodZMultiplayer.Client
         public override event StopGameFailedDelegate OnStopGameFailed;
 
         /// <summary>
+        /// This event will be invoked when starting a game has been cancelled.
+        /// </summary>
+        public override event LobbyStartGameCancelledDelegate OnStartGameCancelled;
+
+        /// <summary>
+        /// This event will be invoked when restarting a game has been cancelled.
+        /// </summary>
+        public override event LobbyRestartGameCancelledDelegate OnRestartGameCancelled;
+
+        /// <summary>
+        /// This event will be invoked when stopping a game has been cancelled.
+        /// </summary>
+        public override event LobbyStopGameCancelledDelegate OnStopGameCancelled;
+
+        /// <summary>
+        /// This event will be invoked when cancelling a game start, restart or stop timer has failed.
+        /// </summary>
+        public override event CancelStartRestartStopGameTimerFailedDelegate OnCancelStartRestartStopGameTimerFailed;
+
+        /// <summary>
         /// This event will be invoked when a client tick has been performed.
         /// </summary>
         public override event UserClientTickedDelegate OnClientTicked;
@@ -274,6 +294,9 @@ namespace ElectrodZMultiplayer.Client
                             client_lobby.OnGameRestartRequested += (time) => OnGameRestartRequested?.Invoke(client_lobby, time);
                             client_lobby.OnGameStopped += (gameStopUsers, results) => OnGameStopped?.Invoke(client_lobby, gameStopUsers, results);
                             client_lobby.OnGameStopRequested += (time) => OnGameStopRequested?.Invoke(client_lobby, time);
+                            client_lobby.OnStartGameCancelled += () => OnStartGameCancelled?.Invoke(client_lobby);
+                            client_lobby.OnRestartGameCancelled += () => OnRestartGameCancelled?.Invoke(client_lobby);
+                            client_lobby.OnStopGameCancelled += () => OnStopGameCancelled?.Invoke(client_lobby);
                             user.ClientLobby = client_lobby;
                             foreach (IInternalClientUser client_user in user_list)
                             {
@@ -378,6 +401,10 @@ namespace ElectrodZMultiplayer.Client
                 )
             );
             AddAutomaticMessageParser<StopGameFailedMessageData>((currentPeer, message, _) => OnStopGameFailed?.Invoke(currentPeer, message.Message, message.Reason));
+            AddAutomaticMessageParser<StartGameCancelledMessageData>((currentPeer, message, _) => AssertIsUserInLobby<GameStoppedMessageData>((__, clientLobby) => clientLobby.InvokeStartGameCancelledEventInternally()));
+            AddAutomaticMessageParser<RestartGameCancelledMessageData>((currentPeer, message, _) => AssertIsUserInLobby<GameStoppedMessageData>((__, clientLobby) => clientLobby.InvokeRestartGameCancelledEventInternally()));
+            AddAutomaticMessageParser<StopGameCancelledMessageData>((currentPeer, message, _) => AssertIsUserInLobby<GameStoppedMessageData>((__, clientLobby) => clientLobby.InvokeStopGameCancelledEventInternally()));
+            AddAutomaticMessageParser<CancelStartRestartStopGameTimerFailedMessageData>((currentPeer, message, _) => OnCancelStartRestartStopGameTimerFailed?.Invoke(currentPeer, message.Message, message.Reason));
             AddMessageParser<ServerTickMessageData>
             (
                 (_, message, __) => AssertIsUserInLobby<ServerTickMessageData>((clientUser, clientLobby) => clientLobby.ProcessServerTickInternally(message.Time, message.Entities, message.Hits)),
