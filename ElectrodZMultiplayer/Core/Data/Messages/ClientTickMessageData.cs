@@ -46,11 +46,11 @@ namespace ElectrodZMultiplayer.Data.Messages
         /// <param name="hits">Hits (optional)</param>
         public ClientTickMessageData(IEnumerable<IEntityDelta> entities = null, IEnumerable<IHit> hits = null) : base(Naming.GetMessageTypeNameFromMessageDataType<ClientTickMessageData>())
         {
-            if ((entities != null) && Protection.IsValid(entities))
+            if ((entities != null) && !Protection.IsValid(entities))
             {
                 throw new ArgumentException("Entities contains invalid entities.", nameof(entities));
             }
-            if ((hits != null) && Protection.IsValid(hits))
+            if ((hits != null) && !Protection.IsValid(hits))
             {
                 throw new ArgumentException("Hits contains invalid hits.", nameof(hits));
             }

@@ -905,7 +905,7 @@ namespace ElectrodZMultiplayer.Server
                 ),
                 (peer, message, _) =>
                 {
-                    if ((message.Entities != null) && Protection.IsValid(message.Entities))
+                    if ((message.Entities != null) && !Protection.IsValid(message.Entities))
                     {
                         SendClientTickFailedMessage(peer, message, EClientTickFailedReason.InvalidEntities);
                     }
