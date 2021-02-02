@@ -58,6 +58,11 @@ namespace ElectrodZMultiplayer.Server
         public IServerSynchronizer Server { get; }
 
         /// <summary>
+        /// Game users
+        /// </summary>
+        public IReadOnlyDictionary<string, IGameUser> GameUsers => gameUsers;
+
+        /// <summary>
         /// Remaining game start time in seconds
         /// </summary>
         public double RemainingGameStartTime { get; set; }

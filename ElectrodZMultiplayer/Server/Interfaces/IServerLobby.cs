@@ -17,6 +17,11 @@ namespace ElectrodZMultiplayer.Server
         IServerSynchronizer Server { get; }
 
         /// <summary>
+        /// Game users
+        /// </summary>
+        IReadOnlyDictionary<string, IGameUser> GameUsers { get; }
+
+        /// <summary>
         /// Currently loaded game mode
         /// </summary>
         IGameMode CurrentlyLoadedGameMode { get; }

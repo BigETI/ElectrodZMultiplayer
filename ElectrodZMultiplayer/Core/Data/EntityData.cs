@@ -135,10 +135,10 @@ namespace ElectrodZMultiplayer.Data
                 entity.GUID,
                 entity.EntityType,
                 entity.GameColor,
-                new Vector3(entity.Position.X, entity.Position.Y, entity.Position.Z),
-                new Quaternion(entity.Rotation.X, entity.Rotation.Y, entity.Rotation.Z, entity.Rotation.W),
-                new Vector3(entity.Velocity.X, entity.Velocity.Y, entity.Velocity.Z),
-                new Vector3(entity.AngularVelocity.X, entity.AngularVelocity.Y, entity.AngularVelocity.Z),
+                (entity.Position == null) ? (Vector3?)null : new Vector3(entity.Position.X, entity.Position.Y, entity.Position.Z),
+                (entity.Rotation == null) ? (Quaternion?)null : new Quaternion(entity.Rotation.X, entity.Rotation.Y, entity.Rotation.Z, entity.Rotation.W),
+                (entity.Velocity == null) ? (Vector3?)null : new Vector3(entity.Velocity.X, entity.Velocity.Y, entity.Velocity.Z),
+                (entity.AngularVelocity == null) ? (Vector3?)null : new Vector3(entity.AngularVelocity.X, entity.AngularVelocity.Y, entity.AngularVelocity.Z),
                 entity.Actions
             );
         }

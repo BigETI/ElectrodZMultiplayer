@@ -884,7 +884,7 @@ namespace ElectrodZMultiplayer.Server
                                     {
                                         bool is_simulating = true;
                                         float magnitude_squared = (game_entity.Position - serverUser.Position).MagnitudeSquared;
-                                        foreach (IUser user in serverLobby.Users.Values)
+                                        foreach (IGameUser user in serverLobby.GameUsers.Values)
                                         {
                                             if ((user.GUID != serverUser.GUID) && ((game_entity.Position - user.Position).MagnitudeSquared < magnitude_squared))
                                             {
@@ -894,33 +894,12 @@ namespace ElectrodZMultiplayer.Server
                                         }
                                         if (is_simulating)
                                         {
-                                            EntityDelta entity_delta = (EntityDelta)entity;
-                                            if (entity_delta.GameColor != null)
-                                            {
-                                                game_entity.SetGameColor(entity_delta.GameColor.Value);
-                                            }
-                                            if (entity_delta.Position != null)
-                                            {
-                                                game_entity.SetPosition(entity_delta.Position.Value);
-                                            }
-                                            if (entity_delta.Rotation != null)
-                                            {
-                                                game_entity.SetRotation(entity_delta.Rotation.Value);
-                                            }
-                                            if (entity_delta.Velocity != null)
-                                            {
-                                                game_entity.SetVelocity(entity_delta.Velocity.Value);
-                                            }
-                                            if (entity_delta.AngularVelocity != null)
-                                            {
-                                                game_entity.SetAngularVelocity(entity_delta.AngularVelocity.Value);
-                                            }
-                                            if (entity_delta.Actions != null)
-                                            {
-                                                game_entity.SetActions(entity_delta.Actions);
-                                            }
-                                            entityDeltas.Add(entity_delta);
+                                            SimulateEntity(game_entity, (EntityDelta)entity);
                                         }
+                                    }
+                                    else if (serverLobby.GameUsers.ContainsKey(key))
+                                    {
+                                        SimulateEntity(serverLobby.GameUsers[key], (EntityDelta)entity);
                                     }
                                 }
                             }
@@ -1113,6 +1092,40 @@ namespace ElectrodZMultiplayer.Server
                     onPeerIsInRunningGame(serverUser, serverLobby, serverLobby.CurrentlyLoadedGameMode);
                 }
             });
+
+        /// <summary>
+        /// Simulates game entities
+        /// </summary>
+        /// <param name="gameEntity">Game entity</param>
+        /// <param name="entityDelta">Entity delta</param>
+        private void SimulateEntity(IGameEntity gameEntity, EntityDelta entityDelta)
+        {
+            if (entityDelta.GameColor != null)
+            {
+                gameEntity.SetGameColor(entityDelta.GameColor.Value);
+            }
+            if (entityDelta.Position != null)
+            {
+                gameEntity.SetPosition(entityDelta.Position.Value);
+            }
+            if (entityDelta.Rotation != null)
+            {
+                gameEntity.SetRotation(entityDelta.Rotation.Value);
+            }
+            if (entityDelta.Velocity != null)
+            {
+                gameEntity.SetVelocity(entityDelta.Velocity.Value);
+            }
+            if (entityDelta.AngularVelocity != null)
+            {
+                gameEntity.SetAngularVelocity(entityDelta.AngularVelocity.Value);
+            }
+            if (entityDelta.Actions != null)
+            {
+                gameEntity.SetActions(entityDelta.Actions);
+            }
+            entityDeltas.Add(entityDelta);
+        }
 
         /// <summary>
         /// Sends an authentification failed message
