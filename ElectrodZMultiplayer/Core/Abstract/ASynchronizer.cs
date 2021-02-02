@@ -130,9 +130,14 @@ namespace ElectrodZMultiplayer
         public abstract event ChangeUserLobbyColorFailedDelegate OnChangeUserLobbyColorFailed;
 
         /// <summary>
-        /// This event will be invoked when the lobby rules of this lobby has been updated.
+        /// This event will be invoked when the lobby owner of this lobby has been changed.
         /// </summary>
-        public abstract event LobbyLobbyRulesUpdatedDelegate OnLobbyRulesUpdated;
+        public abstract event LobbyLobbyOwnershipChangedDelegate OnLobbyOwnershipChanged;
+
+        /// <summary>
+        /// This event will be invoked when the lobby rules of this lobby has been changed.
+        /// </summary>
+        public abstract event LobbyLobbyRulesChangedDelegate OnLobbyRulesChanged;
 
         /// <summary>
         /// This event will be invoked when changing lobby rules have failed.

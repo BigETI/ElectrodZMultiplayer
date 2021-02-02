@@ -12,7 +12,13 @@ namespace ElectrodZMultiplayer.Client
     internal interface IInternalClientLobby : IClientLobby
     {
         /// <summary>
-        /// Updates game mode rules internally
+        /// Changes lobby ownership internally
+        /// </summary>
+        /// <param name="newOwner">New owner</param>
+        void ChangeLobbyOwnershipInternally(IUser newOwner);
+
+        /// <summary>
+        /// Changes lobby rules internally
         /// </summary>
         /// <param name="newLobbyCode">New lobby code</param>
         /// <param name="newName">New lobby name</param>
@@ -22,7 +28,7 @@ namespace ElectrodZMultiplayer.Client
         /// <param name="newMaximalUserCount">New maximal user count</param>
         /// <param name="newStartingGameAutomaticallyState">New starting game automatically state</param>
         /// <param name="newGameModeRules">New game mode rules</param>
-        void UpdateGameModeRulesInternally(string newLobbyCode, string newName, string newGameMode, bool newPrivateState, uint newMinimalUserCount, uint newMaximalUserCount, bool newStartingGameAutomaticallyState, IReadOnlyDictionary<string, object> newGameModeRules);
+        void ChangeLobbyRulesInternally(string newLobbyCode, string newName, string newGameMode, bool newPrivateState, uint newMinimalUserCount, uint newMaximalUserCount, bool newStartingGameAutomaticallyState, IReadOnlyDictionary<string, object> newGameModeRules);
 
         /// <summary>
         /// Adds a new user to the lobby

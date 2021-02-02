@@ -71,7 +71,7 @@ namespace ElectrodZMultiplayer.Server
         /// <summary>
         /// Owner
         /// </summary>
-        public IUser Owner { get; }
+        public IUser Owner { get; private set; }
 
         /// <summary>
         /// Users
@@ -164,9 +164,14 @@ namespace ElectrodZMultiplayer.Server
         public event UserLeftDelegate OnUserLeft;
 
         /// <summary>
-        /// This event will be invoked when the lobby rules of this lobby has been updated.
+        /// This event will be invoked when the lobby owner of this lobby has been changed.
         /// </summary>
-        public event LobbyRulesUpdatedDelegate OnLobbyRulesUpdated;
+        public event LobbyOwnershipChangedDelegate OnLobbyOwnershipChanged;
+
+        /// <summary>
+        /// This event will be invoked when the lobby rules of this lobby has been changed.
+        /// </summary>
+        public event LobbyRulesChangedDelegate OnLobbyRulesChanged;
 
         /// <summary>
         /// This event will be invoked when a game start has been requested.
@@ -618,6 +623,20 @@ namespace ElectrodZMultiplayer.Server
                 OnUserLeft?.Invoke(real_user, reason, message);
                 SendUserLeftMessage(real_user, reason, message);
                 ret = users.Remove(key);
+                if (ret && (real_user.GUID == Owner.GUID))
+                {
+                    Owner = null;
+                    foreach (IUser owner in users.Values)
+                    {
+                        Owner = owner;
+                        break;
+                    }
+                    if (Owner != null)
+                    {
+                        OnLobbyOwnershipChanged?.Invoke();
+                        SendMessageToAll(new LobbyOwnershipChangedMessageData(Owner));
+                    }
+                }
             }
             return ret;
         }
@@ -661,7 +680,7 @@ namespace ElectrodZMultiplayer.Server
                     AddGameModeRuleInternally(new_game_mode_rule.Key, new_game_mode_rule.Value);
                 }
             }
-            OnLobbyRulesUpdated?.Invoke();
+            OnLobbyRulesChanged?.Invoke();
             SendLobbyRulesChangedMessage();
         }
 

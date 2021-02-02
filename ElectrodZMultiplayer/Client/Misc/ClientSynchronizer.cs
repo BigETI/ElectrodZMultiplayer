@@ -121,9 +121,14 @@ namespace ElectrodZMultiplayer.Client
         public override event ChangeUserLobbyColorFailedDelegate OnChangeUserLobbyColorFailed;
 
         /// <summary>
-        /// This event will be invoked when the lobby rules of this lobby has been updated.
+        /// This event will be invoked when the lobby owner of this lobby has been changed.
         /// </summary>
-        public override event LobbyLobbyRulesUpdatedDelegate OnLobbyRulesUpdated;
+        public override event LobbyLobbyOwnershipChangedDelegate OnLobbyOwnershipChanged;
+
+        /// <summary>
+        /// This event will be invoked when the lobby rules of this lobby has been changed.
+        /// </summary>
+        public override event LobbyLobbyRulesChangedDelegate OnLobbyRulesChanged;
 
         /// <summary>
         /// This event will be invoked when changing lobby rules have failed.
@@ -287,7 +292,8 @@ namespace ElectrodZMultiplayer.Client
                             IInternalClientLobby client_lobby = new ClientLobby(this, message.Rules.LobbyCode, message.Rules.Name, message.Rules.GameMode, message.Rules.IsPrivate, message.Rules.MinimalUserCount, message.Rules.MaximalUserCount, message.Rules.IsStartingGameAutomatically, message.Rules.GameModeRules, users[message.OwnerGUID.ToString()], users);
                             client_lobby.OnUserJoined += (user) => OnUserJoined?.Invoke(client_lobby, user);
                             client_lobby.OnUserLeft += (user, reason, leaveMessage) => OnUserLeft?.Invoke(client_lobby, user, reason, leaveMessage);
-                            client_lobby.OnLobbyRulesUpdated += () => OnLobbyRulesUpdated?.Invoke(client_lobby);
+                            client_lobby.OnLobbyOwnershipChanged += () => OnLobbyOwnershipChanged?.Invoke(client_lobby);
+                            client_lobby.OnLobbyRulesChanged += () => OnLobbyRulesChanged?.Invoke(client_lobby);
                             client_lobby.OnGameStarted += () => OnGameStarted?.Invoke(client_lobby);
                             client_lobby.OnGameStartRequested += (time) => OnGameStartRequested?.Invoke(client_lobby, time);
                             client_lobby.OnGameRestarted += () => OnGameRestarted?.Invoke(client_lobby);
@@ -321,7 +327,7 @@ namespace ElectrodZMultiplayer.Client
                     (clientUser, clientLobby) =>
                     {
                         LobbyRulesData rules = message.Rules;
-                        clientLobby.UpdateGameModeRulesInternally
+                        clientLobby.ChangeLobbyRulesInternally
                         (
                             rules.LobbyCode,
                             rules.Name,
@@ -365,6 +371,7 @@ namespace ElectrodZMultiplayer.Client
                     }
                 )
             );
+            AddAutomaticMessageParser<LobbyOwnershipChangedMessageData>((_, message, __) => AssertTargetLobbyUser<LobbyOwnershipChangedMessageData>(message.NewOwnerGUID, (clientUser, clientLobby, targetUser) => clientLobby.ChangeLobbyOwnershipInternally(targetUser)));
             AddAutomaticMessageParser<UsernameChangedMessageData>((_, message, __) => AssertTargetLobbyUser<UsernameChangedMessageData>(message.GUID, (clientUser, clientLobby, targetUser) => targetUser.SetNameInternally(message.NewUsername)));
             AddAutomaticMessageParser<ChangeUsernameFailedMessageData>((currentPeer, message, _) => OnChangeUsernameFailed?.Invoke(currentPeer, message.Message, message.Reason));
             AddAutomaticMessageParser<UserLobbyColorChangedMessageData>((_, message, __) => AssertTargetLobbyUser<UserLobbyColorChangedMessageData>(message.GUID, (clientUser, clientLobby, targetUser) => targetUser.SetLobbyColorInternally(message.NewLobbyColor)));

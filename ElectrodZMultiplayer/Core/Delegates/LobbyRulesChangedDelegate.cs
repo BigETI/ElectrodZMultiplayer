@@ -4,7 +4,7 @@
 namespace ElectrodZMultiplayer
 {
     /// <summary>
-    /// Used to signal lobby rules being updated
+    /// Used to signal lobby rules being changed
     /// </summary>
-    public delegate void LobbyRulesUpdatedDelegate();
+    public delegate void LobbyRulesChangedDelegate();
 }

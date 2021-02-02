@@ -161,9 +161,14 @@ namespace ElectrodZMultiplayer.Server
         public override event ChangeUserLobbyColorFailedDelegate OnChangeUserLobbyColorFailed;
 
         /// <summary>
-        /// This event will be invoked when the lobby rules of this lobby has been updated.
+        /// This event will be invoked when the lobby owner of this lobby has been changed.
         /// </summary>
-        public override event LobbyLobbyRulesUpdatedDelegate OnLobbyRulesUpdated;
+        public override event LobbyLobbyOwnershipChangedDelegate OnLobbyOwnershipChanged;
+
+        /// <summary>
+        /// This event will be invoked when the lobby rules of this lobby has been changed.
+        /// </summary>
+        public override event LobbyLobbyRulesChangedDelegate OnLobbyRulesChanged;
 
         /// <summary>
         /// This event will be invoked when changing lobby rules have failed.
@@ -476,7 +481,8 @@ namespace ElectrodZMultiplayer.Server
                             IInternalServerLobby server_lobby = new ServerLobby(lobby_code, message.LobbyName, availableGameModeTypes[message.GameMode], message.IsPrivate ?? Defaults.isLobbyPrivate, message.MinimalUserCount ?? Defaults.minimalUserCount, message.MaximalUserCount ?? Defaults.maximalUserCount, message.IsStartingGameAutomatically ?? Defaults.isStartingGameAutomatically, message.GameModeRules, this, serverUser);
                             server_lobby.OnUserJoined += (user) => OnUserJoined?.Invoke(server_lobby, user);
                             server_lobby.OnUserLeft += (user, reason, leaveMessage) => OnUserLeft?.Invoke(server_lobby, user, reason, leaveMessage);
-                            server_lobby.OnLobbyRulesUpdated += () => OnLobbyRulesUpdated?.Invoke(server_lobby);
+                            server_lobby.OnLobbyOwnershipChanged += () => OnLobbyOwnershipChanged?.Invoke(server_lobby);
+                            server_lobby.OnLobbyRulesChanged += () => OnLobbyRulesChanged?.Invoke(server_lobby);
                             server_lobby.OnGameStarted += () => OnGameStarted?.Invoke(server_lobby);
                             server_lobby.OnGameStartRequested += (time) => OnGameStartRequested?.Invoke(server_lobby, time);
                             server_lobby.OnGameRestarted += () => OnGameRestarted?.Invoke(server_lobby);
