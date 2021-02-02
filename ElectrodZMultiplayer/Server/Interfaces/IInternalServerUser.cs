@@ -36,7 +36,12 @@ namespace ElectrodZMultiplayer.Server
         void SetLobbyColorInternally(Color lobbyColor);
 
         /// <summary>
-        /// Invoked the client ticked event
+        /// Invokes the client game loading process finished event
+        /// </summary>
+        void InvokeClientGameLoadingProcessFinishedEvent();
+
+        /// <summary>
+        /// Invokes the client ticked event
         /// </summary>
         /// <param name="entityDeltas">Entity deltas</param>
         /// <param name="hits">Hits</param>

@@ -202,6 +202,11 @@ namespace ElectrodZMultiplayer
         event CancelStartRestartStopGameTimerFailedDelegate OnCancelStartRestartStopGameTimerFailed;
 
         /// <summary>
+        /// This event will be invoked when the user finished loading their game.
+        /// </summary>
+        event UserGameLoadingFinishedDelegate OnGameLoadingFinished;
+
+        /// <summary>
         /// This event will be invoked when a client tick has been performed.
         /// </summary>
         event UserClientTickedDelegate OnClientTicked;

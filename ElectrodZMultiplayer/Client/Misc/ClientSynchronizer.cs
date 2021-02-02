@@ -206,6 +206,11 @@ namespace ElectrodZMultiplayer.Client
         public override event CancelStartRestartStopGameTimerFailedDelegate OnCancelStartRestartStopGameTimerFailed;
 
         /// <summary>
+        /// This event will be invoked when the user finished loading their game.
+        /// </summary>
+        public override event UserGameLoadingFinishedDelegate OnGameLoadingFinished;
+
+        /// <summary>
         /// This event will be invoked when a client tick has been performed.
         /// </summary>
         public override event UserClientTickedDelegate OnClientTicked;
@@ -413,6 +418,7 @@ namespace ElectrodZMultiplayer.Client
             AddAutomaticMessageParser<RestartGameCancelledMessageData>((currentPeer, message, _) => AssertIsUserInLobby<GameStoppedMessageData>((__, clientLobby) => clientLobby.InvokeRestartGameCancelledEventInternally()));
             AddAutomaticMessageParser<StopGameCancelledMessageData>((currentPeer, message, _) => AssertIsUserInLobby<GameStoppedMessageData>((__, clientLobby) => clientLobby.InvokeStopGameCancelledEventInternally()));
             AddAutomaticMessageParser<CancelStartRestartStopGameTimerFailedMessageData>((currentPeer, message, _) => OnCancelStartRestartStopGameTimerFailed?.Invoke(currentPeer, message.Message, message.Reason));
+            AddAutomaticMessageParser<ServerGameLoadingProcessFinishedMessageData>((currentPeer, message, _) => AssertTargetLobbyUser<ServerGameLoadingProcessFinishedMessageData>(message.UserGUID, (__, ___, targetUser) => targetUser.InvokeServerGameLoadingProcessFinishedEvent()));
             AddMessageParser<ServerTickMessageData>
             (
                 (_, message, __) => AssertIsUserInLobby<ServerTickMessageData>((clientUser, clientLobby) => clientLobby.ProcessServerTickInternally(message.Time, message.Entities, message.Hits)),
@@ -504,6 +510,7 @@ namespace ElectrodZMultiplayer.Client
         {
             user.OnUsernameUpdated += () => OnUsernameUpdated?.Invoke(user);
             user.OnUserLobbyColorUpdated += () => OnUserLobbyColorUpdated?.Invoke(user);
+            user.OnGameLoadingFinished += () => OnGameLoadingFinished?.Invoke(user);
             user.OnClientTicked += (entityDeltas, hits) => OnClientTicked?.Invoke(user, entityDeltas, hits);
             user.OnServerTicked += (time, entityDeltas, hits) => OnServerTicked?.Invoke(user, time, entityDeltas, hits);
         }
@@ -726,6 +733,11 @@ namespace ElectrodZMultiplayer.Client
         /// </summary>
         /// <param name="time">Time to stop game in seconds</param>
         public void SendStopGameMessage(double time) => SendMessage(new StopGameMessageData(time));
+
+        /// <summary>
+        /// Sends a client game loading finished message
+        /// </summary>
+        public void SendClientGameLoadingProcessFinishedMessage() => SendMessage(new ClientGameLoadingProcessFinishedMessageData());
 
         /// <summary>
         /// Sends a client tick message

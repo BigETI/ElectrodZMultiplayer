@@ -74,6 +74,11 @@ namespace ElectrodZMultiplayer.Server
         public event UserLobbyColorUpdatedDelegate OnUserLobbyColorUpdated;
 
         /// <summary>
+        /// This event will be invoked when the user finished loading their game.
+        /// </summary>
+        public event GameLoadingFinishedDelegate OnGameLoadingFinished;
+
+        /// <summary>
         /// This event will be invoked when a client tick has been performed.
         /// </summary>
         public event ClientTickedDelegate OnClientTicked;
@@ -159,6 +164,11 @@ namespace ElectrodZMultiplayer.Server
         /// </summary>
         /// <param name="lobbyColor">Lobby color</param>
         public void SetLobbyColorInternally(Color lobbyColor) => LobbyColor = lobbyColor;
+
+        /// <summary>
+        /// Invokes the client game loading process finished event
+        /// </summary>
+        public void InvokeClientGameLoadingProcessFinishedEvent() => OnGameLoadingFinished?.Invoke();
 
         /// <summary>
         /// Invoked the client ticked event

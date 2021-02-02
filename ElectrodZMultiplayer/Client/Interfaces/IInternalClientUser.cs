@@ -29,6 +29,11 @@ namespace ElectrodZMultiplayer.Client
         void SetLobbyColorInternally(Color lobbyColor);
 
         /// <summary>
+        /// Invokes the server game loading process finished event
+        /// </summary>
+        void InvokeServerGameLoadingProcessFinishedEvent();
+
+        /// <summary>
         /// Invokes the server ticked event
         /// </summary>
         /// <param name="time">Time in seconds elapsed since game start</param>
