@@ -38,7 +38,7 @@ namespace ElectrodZMultiplayer.Data.Messages
             base.IsValid &&
             (Time >= 0.0) &&
             Protection.IsValid(Entities) &&
-            Protection.IsValid(Hits);
+            ((Hits == null) || Protection.IsValid(Hits));
 
         /// <summary>
         /// Constructs a server tick message for deserializers
