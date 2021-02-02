@@ -535,7 +535,21 @@ namespace ElectrodZMultiplayer.Server
                 },
                 MessageParseFailedEvent<CreateAndJoinLobbyMessageData>
             );
-            AddMessageParser<QuitLobbyMessageData>((peer, message, json) => AssertPeerIsInLobby<QuitLobbyMessageData>(peer, (serverUser, serverLobby) => serverLobby.RemoveUser(serverUser, EDisconnectionReason.Quit, "User has left the lobby.")), (peer, message, _) => SendMessageToPeer(peer, new QuitLobbyFailedMessageData(message, EQuitLobbyFailedReason.Unknown)), MessageParseFailedEvent<QuitLobbyMessageData>);
+            AddMessageParser<QuitLobbyMessageData>
+            (
+                (peer, message, json) => AssertPeerIsInLobby<QuitLobbyMessageData>
+                (
+                    peer,
+                    (serverUser, serverLobby) =>
+                    {
+                        if (serverLobby.RemoveUser(serverUser, EDisconnectionReason.Quit, "User has left the lobby.") && (serverLobby.UserCount == 0U))
+                        {
+                            RemoveServerLobby(serverLobby);
+                        }
+                    }
+                ),
+                (peer, message, _) => SendMessageToPeer(peer, new QuitLobbyFailedMessageData(message, EQuitLobbyFailedReason.Unknown)), MessageParseFailedEvent<QuitLobbyMessageData>
+            );
             AddMessageParser<ChangeUsernameMessageData>
             (
                 (peer, message, json) => AssertPeerIsInLobby<ChangeUsernameMessageData>(peer, (serverUser, serverLobby) => serverUser.UpdateUsername(message.NewUsername.Trim())),
@@ -637,7 +651,14 @@ namespace ElectrodZMultiplayer.Server
                             }
                             else if (serverLobby.LobbyCode == user.Lobby.LobbyCode)
                             {
-                                if (!serverLobby.RemoveUser(user, EDisconnectionReason.Kicked, message.Reason))
+                                if (serverLobby.RemoveUser(user, EDisconnectionReason.Kicked, message.Reason))
+                                {
+                                    if (serverLobby.UserCount == 0U)
+                                    {
+                                        RemoveServerLobby(serverLobby);
+                                    }
+                                }
+                                else
                                 {
                                     SendKickUserFailedMessage(peer, message, EKickUserFailedReason.FailedExecution);
                                 }
@@ -928,7 +949,10 @@ namespace ElectrodZMultiplayer.Server
                     IUser user = users[key];
                     if (user.Lobby is IServerLobby server_lobby)
                     {
-                        server_lobby.RemoveUser(user, EDisconnectionReason.Disconnected, "User has been disconnected.");
+                        if (server_lobby.RemoveUser(user, EDisconnectionReason.Disconnected, "User has been disconnected.") && (server_lobby.UserCount == 0U))
+                        {
+                            RemoveServerLobby(server_lobby);
+                        }
                     }
                 }
             };
@@ -1374,6 +1398,24 @@ namespace ElectrodZMultiplayer.Server
                 ret = gameResources.Remove(key);
             }
             return ret;
+        }
+
+        /// <summary>
+        /// Removes server lobby
+        /// </summary>
+        /// <param name="serverLobby">Server lobby</param>
+        /// <returns>"true" if server lobby was successfully removed, otherwise "false"</returns>
+        public bool RemoveServerLobby(IServerLobby serverLobby)
+        {
+            if (serverLobby == null)
+            {
+                throw new ArgumentNullException(nameof(serverLobby));
+            }
+            if (!serverLobby.IsValid)
+            {
+                throw new ArgumentException("Server lobby is not valid.", nameof(serverLobby));
+            }
+            return lobbies.Remove(serverLobby.LobbyCode);
         }
 
         /// <summary>
