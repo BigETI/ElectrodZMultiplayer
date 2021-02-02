@@ -482,6 +482,7 @@ namespace ElectrodZMultiplayer.Server
                 }
                 gameUsers.Add(game_user.GUID.ToString(), game_user);
                 CurrentlyLoadedGameMode.OnUserJoined(game_user);
+                SendMessageToAll(new ServerGameLoadingProcessFinishedMessageData(game_user));
                 ret = true;
             }
             return ret;
