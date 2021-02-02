@@ -90,6 +90,13 @@ namespace ElectrodZMultiplayer.Server
         void ClearGameModeRulesInternally();
 
         /// <summary>
+        /// Adds a game user internally
+        /// </summary>
+        /// <param name="serverUser">Server user</param>
+        /// <returns>"true" if game user was added successfully, otherwise "false"</returns>
+        bool AddGameUserInternally(IServerUser serverUser);
+
+        /// <summary>
         /// Starts a new game mode instance 
         /// </summary>
         void StartNewGameModeInstance();

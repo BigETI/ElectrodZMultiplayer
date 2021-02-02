@@ -159,6 +159,11 @@ namespace ElectrodZMultiplayer.Client
         void SendStopGameMessage(double time);
 
         /// <summary>
+        /// Sends a client game loading finished message
+        /// </summary>
+        void SendClientGameLoadingProcessFinishedMessage();
+
+        /// <summary>
         /// Sends a client tick message
         /// </summary>
         /// <param name="entities">Entities to update</param>

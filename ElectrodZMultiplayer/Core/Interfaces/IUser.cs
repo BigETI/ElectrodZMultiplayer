@@ -36,6 +36,11 @@ namespace ElectrodZMultiplayer
         event UserLobbyColorUpdatedDelegate OnUserLobbyColorUpdated;
 
         /// <summary>
+        /// This event will be invoked when the user finished loading their game.
+        /// </summary>
+        event GameLoadingFinishedDelegate OnGameLoadingFinished;
+
+        /// <summary>
         /// This event will be invoked when a client tick has been performed.
         /// </summary>
         event ClientTickedDelegate OnClientTicked;

@@ -454,6 +454,40 @@ namespace ElectrodZMultiplayer.Server
         public void ClearGameModeRulesInternally() => gameModeRules.Clear();
 
         /// <summary>
+        /// Adds a game user internally
+        /// </summary>
+        /// <param name="serverUser">Server user</param>
+        /// <returns>"true" if game user was added successfully, otherwise "false"</returns>
+        public bool AddGameUserInternally(IServerUser serverUser)
+        {
+            if (serverUser == null)
+            {
+                throw new ArgumentNullException(nameof(serverUser));
+            }
+            if (!serverUser.IsValid)
+            {
+                throw new ArgumentException("Server user is not valid.", nameof(serverUser));
+            }
+            bool ret = false;
+            if ((CurrentlyLoadedGameMode != null) && (gameUserFactory != null))
+            {
+                IGameUser game_user = gameUserFactory.CreateNewGameUser(serverUser);
+                if (game_user == null)
+                {
+                    throw new InvalidOperationException("Failed to create a new game user from game user factory.");
+                }
+                if (game_user.GUID != serverUser.GUID)
+                {
+                    throw new InvalidOperationException("Game user GUID does not match user GUID.");
+                }
+                gameUsers.Add(game_user.GUID.ToString(), game_user);
+                CurrentlyLoadedGameMode.OnUserJoined(game_user);
+                ret = true;
+            }
+            return ret;
+        }
+
+        /// <summary>
         /// Starts a new game mode instance 
         /// </summary>
         public void StartNewGameModeInstance()
@@ -472,23 +506,27 @@ namespace ElectrodZMultiplayer.Server
             CurrentlyLoadedGameMode = (IGameMode)Activator.CreateInstance(gameModeType.Item2);
             CurrentlyLoadedGameMode.OnInitialized(gameModeType.Item1, this);
             OnGameModeStarted?.Invoke(CurrentlyLoadedGameMode);
-            foreach (KeyValuePair<string, IUser> user in users)
-            {
-                if (user.Value is IServerUser server_user)
-                {
-                    IGameUser game_user = gameUserFactory.CreateNewGameUser(server_user);
-                    if (game_user == null)
-                    {
-                        throw new InvalidOperationException("Failed to create a new game user from game user factory.");
-                    }
-                    if (game_user.GUID != user.Value.GUID)
-                    {
-                        throw new InvalidOperationException("Game user GUID does not match user GUID.");
-                    }
-                    gameUsers.Add(user.Key, game_user);
-                    CurrentlyLoadedGameMode.OnUserJoined(game_user);
-                }
-            }
+
+            // TODO: Create game user when game of an user has been loaded.
+
+            //foreach (KeyValuePair<string, IUser> user in users)
+            //{
+            //    if (user.Value is IServerUser server_user)
+            //    {
+            //        IGameUser game_user = gameUserFactory.CreateNewGameUser(server_user);
+            //        if (game_user == null)
+            //        {
+            //            throw new InvalidOperationException("Failed to create a new game user from game user factory.");
+            //        }
+            //        if (game_user.GUID != user.Value.GUID)
+            //        {
+            //            throw new InvalidOperationException("Game user GUID does not match user GUID.");
+            //        }
+            //        gameUsers.Add(user.Key, game_user);
+            //        CurrentlyLoadedGameMode.OnUserJoined(game_user);
+            //    }
+            //}
+
             RemainingGameStartTime = 0.0;
             if (was_running)
             {
@@ -564,20 +602,24 @@ namespace ElectrodZMultiplayer.Server
             if (!users.ContainsKey(key))
             {
                 users.Add(key, user);
-                if ((CurrentlyLoadedGameMode != null) && (gameUserFactory != null))
-                {
-                    IGameUser game_user = gameUserFactory.CreateNewGameUser(user);
-                    if (game_user == null)
-                    {
-                        throw new InvalidOperationException("Failed to create a new game user from game user factory.");
-                    }
-                    if (game_user.GUID != user.GUID)
-                    {
-                        throw new InvalidOperationException("Game user GUID does not match user GUID.");
-                    }
-                    gameUsers.Add(key, game_user);
-                    CurrentlyLoadedGameMode.OnUserJoined(game_user);
-                }
+
+                // TODO: Create game user when game of an user has been loaded.
+
+                //if ((CurrentlyLoadedGameMode != null) && (gameUserFactory != null))
+                //{
+                //    IGameUser game_user = gameUserFactory.CreateNewGameUser(user);
+                //    if (game_user == null)
+                //    {
+                //        throw new InvalidOperationException("Failed to create a new game user from game user factory.");
+                //    }
+                //    if (game_user.GUID != user.GUID)
+                //    {
+                //        throw new InvalidOperationException("Game user GUID does not match user GUID.");
+                //    }
+                //    gameUsers.Add(key, game_user);
+                //    CurrentlyLoadedGameMode.OnUserJoined(game_user);
+                //}
+
                 OnUserJoined?.Invoke(user);
                 SendUserJoinedMessage(user);
                 ret = true;
@@ -1012,9 +1054,10 @@ namespace ElectrodZMultiplayer.Server
                 CurrentlyLoadedGameMode?.OnGameTicked(deltaTime);
                 IHit[] current_hits = currentHits.ToArray();
                 currentHits.Clear();
-                foreach (IUser user in users.Values)
+                foreach (IGameUser game_user in gameUsers.Values)
                 {
-                    if (user is IInternalServerUser server_user)
+                    string key = game_user.GUID.ToString();
+                    if (users.ContainsKey(key) && (users[key] is IInternalServerUser server_user))
                     {
                         server_user.SendServerTickMessage(CurrentGameTime, current_hits);
                     }

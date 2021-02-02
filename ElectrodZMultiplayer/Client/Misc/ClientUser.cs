@@ -43,6 +43,11 @@ namespace ElectrodZMultiplayer.Client
         public event UserLobbyColorUpdatedDelegate OnUserLobbyColorUpdated;
 
         /// <summary>
+        /// This event will be invoked when the user finished loading their game.
+        /// </summary>
+        public event GameLoadingFinishedDelegate OnGameLoadingFinished;
+
+        /// <summary>
         /// This event will be invoked when a client tick has been performed.
         /// </summary>
         public event ClientTickedDelegate OnClientTicked;
@@ -109,6 +114,11 @@ namespace ElectrodZMultiplayer.Client
         /// <param name="entityDeltas">Entity deltas</param>
         /// <param name="hits">Hits</param>
         public void InvokeClientTickedEvent(IEnumerable<IEntityDelta> entityDeltas, IEnumerable<IHit> hits) => OnClientTicked?.Invoke(entityDeltas, hits);
+
+        /// <summary>
+        /// Invokes the server game loading process finished event
+        /// </summary>
+        public void InvokeServerGameLoadingProcessFinishedEvent() => OnGameLoadingFinished?.Invoke();
 
         /// <summary>
         /// Invokes the server ticked event

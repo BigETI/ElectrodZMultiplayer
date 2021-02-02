@@ -110,6 +110,11 @@ namespace ElectrodZMultiplayer.Server
         public event UserLobbyColorUpdatedDelegate OnUserLobbyColorUpdated;
 
         /// <summary>
+        /// This event will be invoked when the user finished loading their game.
+        /// </summary>
+        public event GameLoadingFinishedDelegate OnGameLoadingFinished;
+
+        /// <summary>
         /// This event will be invoked when a client tick has been performed.
         /// </summary>
         public event ClientTickedDelegate OnClientTicked;
@@ -136,6 +141,7 @@ namespace ElectrodZMultiplayer.Server
             ServerUser = serverUser;
             serverUser.OnUsernameUpdated += () => OnUsernameUpdated?.Invoke();
             serverUser.OnUserLobbyColorUpdated += () => OnUserLobbyColorUpdated?.Invoke();
+            serverUser.OnGameLoadingFinished += () => OnGameLoadingFinished?.Invoke();
             serverUser.OnClientTicked += (entityDeltas, hits) => OnClientTicked?.Invoke(entityDeltas, hits);
             serverUser.OnServerTicked += (time, entityDeltas, hits) => OnServerTicked?.Invoke(time, entityDeltas, hits);
         }

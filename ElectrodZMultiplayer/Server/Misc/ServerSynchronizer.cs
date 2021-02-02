@@ -246,6 +246,11 @@ namespace ElectrodZMultiplayer.Server
         public override event CancelStartRestartStopGameTimerFailedDelegate OnCancelStartRestartStopGameTimerFailed;
 
         /// <summary>
+        /// This event will be invoked when the user finished loading their game.
+        /// </summary>
+        public override event UserGameLoadingFinishedDelegate OnGameLoadingFinished;
+
+        /// <summary>
         /// This event will be invoked when a client tick has been performed.
         /// </summary>
         public override event UserClientTickedDelegate OnClientTicked;
@@ -290,6 +295,7 @@ namespace ElectrodZMultiplayer.Server
                         server_user = new ServerUser(peer, this, token);
                         server_user.OnUsernameUpdated += () => OnUsernameUpdated?.Invoke(server_user);
                         server_user.OnUserLobbyColorUpdated += () => OnUserLobbyColorUpdated?.Invoke(server_user);
+                        server_user.OnGameLoadingFinished += () => OnGameLoadingFinished?.Invoke(server_user);
                         server_user.OnClientTicked += (entityDeltas, hits) => OnClientTicked?.Invoke(server_user, entityDeltas, hits);
                         server_user.OnServerTicked += (time, entityDeltas, hits) => OnServerTicked?.Invoke(server_user, time, entityDeltas, hits);
                         users.Add(key, server_user);
@@ -836,9 +842,29 @@ namespace ElectrodZMultiplayer.Server
                     }
                 )
             );
+            AddMessageParser<ClientGameLoadingProcessFinishedMessageData>
+            (
+                (peer, message, _) => AssertPeerIsInRunningGame<ClientGameLoadingProcessFinishedMessageData>
+                (
+                    peer,
+                    (serverUser, serverLobby, gameMode) =>
+                    {
+                        if (serverLobby.AddGameUserInternally(serverUser))
+                        {
+                            serverUser.InvokeClientGameLoadingProcessFinishedEvent();
+                        }
+                        else
+                        {
+                            SendMessageToPeer(peer, new ClientGameLoadingProcessFinishedFailedMessageData(message, EClientGameLoadingProcessFinishedFailedReason.Unknown));
+                        }
+                    }
+                ),
+                (peer, message, _) => SendMessageToPeer(peer, new ClientGameLoadingProcessFinishedFailedMessageData(message, EClientGameLoadingProcessFinishedFailedReason.Unknown)),
+                MessageParseFailedEvent<ClientGameLoadingProcessFinishedMessageData>
+            );
             AddMessageParser<ClientTickMessageData>
             (
-                (peer, message, json) =>
+                (peer, message, _) =>
                 AssertPeerIsInRunningGame<ClientTickMessageData>
                 (
                     peer,
