@@ -70,9 +70,6 @@ namespace ElectrodZMultiplayer.Data
             (GUID != Guid.Empty) &&
             ((EntityType == null) || !string.IsNullOrWhiteSpace(EntityType)) &&
             ((GameColor == null) || (GameColor != EGameColor.Invalid)) &&
-            ((Position == null) || (Position != null)) &&
-            ((Rotation == null) || (Rotation != null)) &&
-            ((AngularVelocity == null) || (AngularVelocity != null)) &&
             ((Actions == null) || !Actions.Contains(EGameAction.Invalid));
 
         /// <summary>
