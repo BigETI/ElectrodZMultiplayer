@@ -250,6 +250,7 @@ namespace ElectrodZMultiplayer.Client
                     {
                         Token = message.Token;
                         user = new ClientUser(message.GUID);
+                        RegisterUserEvents(user);
                         OnAuthentificationAcknowledged?.Invoke(User);
                     }
                 }
