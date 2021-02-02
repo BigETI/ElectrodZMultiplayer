@@ -735,6 +735,11 @@ namespace ElectrodZMultiplayer.Client
         public void SendStopGameMessage(double time) => SendMessage(new StopGameMessageData(time));
 
         /// <summary>
+        /// Sends a start, restart and stop game timer message to peer
+        /// </summary>
+        public void SendCancelStartRestartStopGameTimerMessage() => SendMessage(new CancelStartRestartStopGameTimerMessageData());
+
+        /// <summary>
         /// Sends a client game loading finished message
         /// </summary>
         public void SendClientGameLoadingProcessFinishedMessage() => SendMessage(new ClientGameLoadingProcessFinishedMessageData());
