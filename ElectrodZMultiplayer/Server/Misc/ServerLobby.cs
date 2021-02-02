@@ -507,27 +507,6 @@ namespace ElectrodZMultiplayer.Server
             CurrentlyLoadedGameMode = (IGameMode)Activator.CreateInstance(gameModeType.Item2);
             CurrentlyLoadedGameMode.OnInitialized(gameModeType.Item1, this);
             OnGameModeStarted?.Invoke(CurrentlyLoadedGameMode);
-
-            // TODO: Create game user when game of an user has been loaded.
-
-            //foreach (KeyValuePair<string, IUser> user in users)
-            //{
-            //    if (user.Value is IServerUser server_user)
-            //    {
-            //        IGameUser game_user = gameUserFactory.CreateNewGameUser(server_user);
-            //        if (game_user == null)
-            //        {
-            //            throw new InvalidOperationException("Failed to create a new game user from game user factory.");
-            //        }
-            //        if (game_user.GUID != user.Value.GUID)
-            //        {
-            //            throw new InvalidOperationException("Game user GUID does not match user GUID.");
-            //        }
-            //        gameUsers.Add(user.Key, game_user);
-            //        CurrentlyLoadedGameMode.OnUserJoined(game_user);
-            //    }
-            //}
-
             RemainingGameStartTime = 0.0;
             if (was_running)
             {
@@ -603,24 +582,6 @@ namespace ElectrodZMultiplayer.Server
             if (!users.ContainsKey(key))
             {
                 users.Add(key, user);
-
-                // TODO: Create game user when game of an user has been loaded.
-
-                //if ((CurrentlyLoadedGameMode != null) && (gameUserFactory != null))
-                //{
-                //    IGameUser game_user = gameUserFactory.CreateNewGameUser(user);
-                //    if (game_user == null)
-                //    {
-                //        throw new InvalidOperationException("Failed to create a new game user from game user factory.");
-                //    }
-                //    if (game_user.GUID != user.GUID)
-                //    {
-                //        throw new InvalidOperationException("Game user GUID does not match user GUID.");
-                //    }
-                //    gameUsers.Add(key, game_user);
-                //    CurrentlyLoadedGameMode.OnUserJoined(game_user);
-                //}
-
                 OnUserJoined?.Invoke(user);
                 SendUserJoinedMessage(user);
                 ret = true;
