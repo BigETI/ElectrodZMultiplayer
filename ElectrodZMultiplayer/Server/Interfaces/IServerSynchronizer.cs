@@ -117,6 +117,13 @@ namespace ElectrodZMultiplayer.Server
         bool RemoveGameResource(Type gameResourceType);
 
         /// <summary>
+        /// Removes server lobby
+        /// </summary>
+        /// <param name="serverLobby">Server lobby</param>
+        /// <returns>"true" if server lobby was successfully removed, otherwise "false"</returns>
+        bool RemoveServerLobby(IServerLobby serverLobby);
+
+        /// <summary>
         /// Processes all events appeared since last call
         /// </summary>
         void ProcessEvents();

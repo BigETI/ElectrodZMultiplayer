@@ -41,7 +41,7 @@ namespace ElectrodZMultiplayer.Client
         /// <summary>
         /// Lobby owner
         /// </summary>
-        public IUser Owner { get; }
+        public IUser Owner { get; private set; }
 
         /// <summary>
         /// Users
@@ -127,9 +127,14 @@ namespace ElectrodZMultiplayer.Client
         public event UserLeftDelegate OnUserLeft;
 
         /// <summary>
-        /// This event will be invoked when the lobby rules of this lobby has been updated.
+        /// This event will be invoked when the lobby owner of this lobby has been changed.
         /// </summary>
-        public event LobbyRulesUpdatedDelegate OnLobbyRulesUpdated;
+        public event LobbyOwnershipChangedDelegate OnLobbyOwnershipChanged;
+
+        /// <summary>
+        /// This event will be invoked when the lobby rules of this lobby has been changed.
+        /// </summary>
+        public event LobbyRulesChangedDelegate OnLobbyRulesChanged;
 
         /// <summary>
         /// This event will be invoked when a game start has been requested.
@@ -396,7 +401,29 @@ namespace ElectrodZMultiplayer.Client
         public void InvokeStopGameCancelledEventInternally() => OnStopGameCancelled?.Invoke();
 
         /// <summary>
-        /// Updates game mode rules internally
+        /// Changes lobby ownership internally
+        /// </summary>
+        /// <param name="newOwner">New owner</param>
+        public void ChangeLobbyOwnershipInternally(IUser newOwner)
+        {
+            if (newOwner == null)
+            {
+                throw new ArgumentNullException(nameof(newOwner));
+            }
+            if (!newOwner.IsValid)
+            {
+                throw new ArgumentException("New owner is invalid.", nameof(newOwner));
+            }
+            string key = newOwner.GUID.ToString();
+            if (users.ContainsKey(key))
+            {
+                Owner = users[key];
+                OnLobbyOwnershipChanged?.Invoke();
+            }
+        }
+
+        /// <summary>
+        /// Changes lobby rules internally
         /// </summary>
         /// <param name="newLobbyCode">New lobby code</param>
         /// <param name="newName">New lobby name</param>
@@ -406,7 +433,7 @@ namespace ElectrodZMultiplayer.Client
         /// <param name="newMaximalUserCount">New maximal user count</param>
         /// <param name="newStartingGameAutomaticallyState">New starting game automatically state</param>
         /// <param name="newGameModeRules">New game mode rules</param>
-        public void UpdateGameModeRulesInternally(string newLobbyCode, string newName, string newGameMode, bool newPrivateState, uint newMinimalUserCount, uint newMaximalUserCount, bool newStartingGameAutomaticallyState, IReadOnlyDictionary<string, object> newGameModeRules)
+        public void ChangeLobbyRulesInternally(string newLobbyCode, string newName, string newGameMode, bool newPrivateState, uint newMinimalUserCount, uint newMaximalUserCount, bool newStartingGameAutomaticallyState, IReadOnlyDictionary<string, object> newGameModeRules)
         {
             if (string.IsNullOrWhiteSpace(newGameMode))
             {
@@ -428,7 +455,7 @@ namespace ElectrodZMultiplayer.Client
             {
                 gameModeRules.Add(game_mode_rule.Key, game_mode_rule.Value);
             }
-            OnLobbyRulesUpdated?.Invoke();
+            OnLobbyRulesChanged?.Invoke();
         }
 
         /// <summary>
