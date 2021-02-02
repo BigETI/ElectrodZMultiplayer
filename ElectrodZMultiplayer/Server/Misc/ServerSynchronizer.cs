@@ -960,6 +960,7 @@ namespace ElectrodZMultiplayer.Server
                             RemoveServerLobby(server_lobby);
                         }
                     }
+                    users.Remove(key);
                 }
             };
             tickStopwatch.Start();

@@ -209,7 +209,7 @@ namespace ElectrodZServer
         /// <param name="arguments">Arguments</param>
         private static void UsersConsoleCommmandExecutedEvent(IReadOnlyList<string> arguments)
         {
-            bool no_user_left = true;
+            bool are_no_user_left = true;
             if (arguments.Count > 0)
             {
                 string lobby_guid = arguments[0];
@@ -218,7 +218,7 @@ namespace ElectrodZServer
                     ILobby lobby = server.Lobbies[lobby_guid];
                     if (lobby.UserCount > 0U)
                     {
-                        no_user_left = false;
+                        are_no_user_left = false;
                         WriteOutputLogLine($"\tUsers in lobby \"{ lobby.Name }\" with lobby code \"{ lobby.LobbyCode }\":");
                         foreach (IUser user in lobby.Users.Values)
                         {
@@ -237,10 +237,10 @@ namespace ElectrodZServer
                 {
                     if (lobby.UserCount > 0U)
                     {
-                        if (no_user_left)
+                        if (are_no_user_left)
                         {
                             WriteOutputLogLine("Users: ");
-                            no_user_left = false;
+                            are_no_user_left = false;
                         }
                         WriteOutputLogLine($"\tIn lobby \"{ lobby.Name }\" with lobby code \"{ lobby.LobbyCode }\":");
                         foreach (IUser user in lobby.Users.Values)
@@ -249,8 +249,26 @@ namespace ElectrodZServer
                         }
                     }
                 }
+                bool are_all_in_lobby = true;
+                foreach (IUser user in server.Users.Values)
+                {
+                    if (user.Lobby == null)
+                    {
+                        if (are_no_user_left)
+                        {
+                            WriteOutputLogLine("Users: ");
+                            are_no_user_left = false;
+                        }
+                        if (are_all_in_lobby)
+                        {
+                            WriteOutputLogLine("\tNot in any lobby right now:");
+                            are_all_in_lobby = false;
+                        }
+                        WriteOutputLogLine($"\t\t\"{ user.Name }\" : \"{ user.GUID }\"");
+                    }
+                }
             }
-            if (no_user_left)
+            if (are_no_user_left)
             {
                 WriteOutputLogLine("There are no users.");
             }
