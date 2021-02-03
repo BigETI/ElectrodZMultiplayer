@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using ElectrodZMultiplayer.JSONConverters;
+using Newtonsoft.Json;
 using System;
 
 /// <summary>
@@ -16,12 +17,14 @@ namespace ElectrodZMultiplayer.Data
         /// Issuer GUID
         /// </summary>
         [JsonProperty("issuerGUID")]
-        public Guid IssuerGUID { get; set; }
+        [JsonConverter(typeof(GUIDJSONConverter))]
+        public Guid? IssuerGUID { get; set; }
 
         /// <summary>
         /// Victim GUID
         /// </summary>
         [JsonProperty("victimGUID")]
+        [JsonConverter(typeof(GUIDJSONConverter))]
         public Guid VictimGUID { get; set; }
 
         /// <summary>
@@ -52,6 +55,7 @@ namespace ElectrodZMultiplayer.Data
         /// Is object in a valid state
         /// </summary>
         public bool IsValid =>
+            ((IssuerGUID == null) || (IssuerGUID != Guid.Empty)) &&
             (VictimGUID != Guid.Empty) &&
             !string.IsNullOrWhiteSpace(WeaponName) &&
             (HitPosition != null) &&
@@ -69,7 +73,7 @@ namespace ElectrodZMultiplayer.Data
         /// <summary>
         /// Constructs server hit data
         /// </summary>
-        /// <param name="entities">Entities (optional)</param>
+        /// <param name="hit">Hit</param>
         public ServerHitData(IHit hit)
         {
             if (hit == null)
@@ -80,7 +84,7 @@ namespace ElectrodZMultiplayer.Data
             {
                 throw new ArgumentException("Hit is not valid.", nameof(hit));
             }
-            IssuerGUID = hit.Issuer.GUID;
+            IssuerGUID = (hit.Issuer == null) ? (Guid?)null : hit.Issuer.GUID;
             VictimGUID = hit.Victim.GUID;
             WeaponName = hit.WeaponName;
             HitPosition = (Vector3FloatData)hit.HitPosition;

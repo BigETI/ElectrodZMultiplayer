@@ -750,7 +750,23 @@ namespace ElectrodZMultiplayer.Client
         /// </summary>
         /// <param name="entities">Entities to update</param>
         /// <param name="hits">Hits</param>
-        public void SendClientTickMessage(IEnumerable<IEntityDelta> entities = null, IEnumerable<IHit> hits = null) => SendMessage(new ClientTickMessageData(entities, hits));
+        public void SendClientTickMessage(IEnumerable<IEntityDelta> entities = null, IEnumerable<IHit> hits = null)
+        {
+            List<IHit> actual_hits = null;
+            if (hits != null)
+            {
+                foreach (IHit hit in hits)
+                {
+                    if ((hit.Issuer != null) && (hit.Issuer.GUID != User.GUID))
+                    {
+                        throw new ArgumentException("Hits can't contain issuers other than your user.");
+                    }
+                    actual_hits = actual_hits ?? new List<IHit>();
+                    actual_hits.Add((hit.Issuer == null) ? hit : new Hit(hit.Victim, hit.WeaponName, hit.HitPosition, hit.HitForce, hit.Damage));
+                }
+            }
+            SendMessage(new ClientTickMessageData(entities, actual_hits));
+        }
 
         /// <summary>
         /// Sends an error message

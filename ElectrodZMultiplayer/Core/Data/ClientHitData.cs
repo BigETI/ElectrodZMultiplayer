@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using ElectrodZMultiplayer.JSONConverters;
+using Newtonsoft.Json;
 using System;
 
 /// <summary>
@@ -16,6 +17,7 @@ namespace ElectrodZMultiplayer.Data
         /// Victim GUID
         /// </summary>
         [JsonProperty("victimGUID")]
+        [JsonConverter(typeof(GUIDJSONConverter))]
         public Guid VictimGUID { get; set; }
 
         /// <summary>
@@ -63,7 +65,7 @@ namespace ElectrodZMultiplayer.Data
         /// <summary>
         /// Constructs client hit data
         /// </summary>
-        /// <param name="entities">Entities (optional)</param>
+        /// <param name="hit">Hit</param>
         public ClientHitData(IHit hit)
         {
             if (hit == null)

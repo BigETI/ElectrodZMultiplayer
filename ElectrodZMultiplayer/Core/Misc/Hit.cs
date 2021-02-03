@@ -44,17 +44,51 @@ namespace ElectrodZMultiplayer
         /// Is object in a valid state
         /// </summary>
         public bool IsValid =>
-            (Issuer != null) &&
-            Issuer.IsValid &&
+            ((Issuer == null) || Issuer.IsValid) &&
             (Victim != null) &&
             Victim.IsValid &&
             !string.IsNullOrWhiteSpace(WeaponName) &&
             (Damage >= 0.0f);
 
         /// <summary>
-        /// Construicts a hit
+        /// Constructs a hit
         /// </summary>
-        /// <param name="hitEntity">Hit entity</param>
+        /// <param name="victim">Victim</param>
+        /// <param name="weaponName">Weapon name</param>
+        /// <param name="hitPosition">Hit position</param>
+        /// <param name="hitForce">Hit force</param>
+        /// <param name="damage">Damage</param>
+        public Hit(IEntity victim, string weaponName, Vector3 hitPosition, Vector3 hitForce, float damage)
+        {
+            if (victim == null)
+            {
+                throw new ArgumentNullException(nameof(victim));
+            }
+            if (!victim.IsValid)
+            {
+                throw new ArgumentException("Issuer is not valid.", nameof(victim));
+            }
+            if (string.IsNullOrWhiteSpace(weaponName))
+            {
+                throw new ArgumentNullException(nameof(weaponName));
+            }
+            if (damage < 0.0f)
+            {
+                throw new ArgumentException("Damage can't be negative.", nameof(damage));
+            }
+            Issuer = null;
+            Victim = victim;
+            WeaponName = weaponName;
+            HitPosition = hitPosition;
+            HitForce = hitForce;
+            Damage = damage;
+        }
+
+        /// <summary>
+        /// Constructs a hit
+        /// </summary>
+        /// <param name="issuer">Issuer</param>
+        /// <param name="victim">Victim</param>
         /// <param name="weaponName">Weapon name</param>
         /// <param name="hitPosition">Hit position</param>
         /// <param name="hitForce">Hit force</param>

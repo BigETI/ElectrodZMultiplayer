@@ -818,25 +818,28 @@ namespace ElectrodZMultiplayer.Server
             {
                 throw new InvalidOperationException("Game mode is not running yet.");
             }
-            string issuer_key = hit.Issuer.GUID.ToString();
-            string victim_key = hit.Victim.GUID.ToString();
-            IGameEntity issuer;
+            IGameEntity issuer = null;
             IGameEntity victim;
-            if (gameUsers.ContainsKey(issuer_key))
+            string victim_key = hit.Victim.GUID.ToString();
+            if (hit.Issuer != null)
             {
-                issuer = gameUsers[issuer_key];
-            }
-            else if (entities.ContainsKey(issuer_key) && entities[issuer_key] is IGameEntity game_entity)
-            {
-                issuer = game_entity;
-            }
-            else
-            {
-                throw new ArgumentException($"Issuer GUID \"{ issuer_key }\" is invalid.", nameof(hit));
+                string issuer_key = hit.Issuer.GUID.ToString();
+                if (gameUsers.ContainsKey(issuer_key))
+                {
+                    issuer = gameUsers[issuer_key];
+                }
+                else if (entities.ContainsKey(issuer_key) && entities[issuer_key] is IGameEntity game_entity)
+                {
+                    issuer = game_entity;
+                }
+                else
+                {
+                    throw new ArgumentException($"Issuer GUID \"{ issuer_key }\" is invalid.", nameof(hit));
+                }
             }
             if (gameUsers.ContainsKey(victim_key))
             {
-                victim = gameUsers[issuer_key];
+                victim = gameUsers[victim_key];
             }
             else if (entities.ContainsKey(victim_key) && entities[victim_key] is IGameEntity game_entity)
             {
