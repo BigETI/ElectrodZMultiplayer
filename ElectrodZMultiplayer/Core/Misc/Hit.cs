@@ -8,7 +8,7 @@ namespace ElectrodZMultiplayer
     /// <summary>
     /// A structure that describes a hit
     /// </summary>
-    internal readonly struct Hit : IHit
+    public readonly struct Hit : IHit
     {
         /// <summary>
         /// Issuer
@@ -40,6 +40,9 @@ namespace ElectrodZMultiplayer
         /// </summary>
         public float Damage { get; }
 
+        /// <summary>
+        /// Is object in a valid state
+        /// </summary>
         public bool IsValid =>
             (Issuer != null) &&
             Issuer.IsValid &&
