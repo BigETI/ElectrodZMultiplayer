@@ -22,6 +22,7 @@ namespace ElectrodZMultiplayer.Data.Messages
         /// <summary>
         /// Hits
         /// </summary>
+        [JsonProperty("hits")]
         public List<ClientHitData> Hits { get; set; }
 
         /// <summary>
