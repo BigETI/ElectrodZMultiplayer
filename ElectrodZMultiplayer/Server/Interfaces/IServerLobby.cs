@@ -72,6 +72,17 @@ namespace ElectrodZMultiplayer.Server
         void CancelStopGameTime();
 
         /// <summary>
+        /// Starts a new game mode instance 
+        /// </summary>
+        void StartNewGameModeInstance();
+
+        /// <summary>
+        /// Stops the currently running game mode instance
+        /// </summary>
+        /// <returns>"true" if a running game mode instance has been stopped, otherwise "false"</returns>
+        bool StopGameModeInstance();
+
+        /// <summary>
         /// Creates a new game entity
         /// </summary>
         /// <param name="entityType">Game entity type</param>

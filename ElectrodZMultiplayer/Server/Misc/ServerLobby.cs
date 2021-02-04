@@ -494,80 +494,6 @@ namespace ElectrodZMultiplayer.Server
         }
 
         /// <summary>
-        /// Starts a new game mode instance 
-        /// </summary>
-        public void StartNewGameModeInstance()
-        {
-            bool was_running = StopGameModeInstance();
-            gameUserFactory = gameModeType.Item1.CreateNewGameUserFactory();
-            if (gameUserFactory == null)
-            {
-                throw new InvalidOperationException("Failed to create a new game user factory.");
-            }
-            gameEntityFactory = gameModeType.Item1.CreateNewGameEntityFactory();
-            if (gameEntityFactory == null)
-            {
-                throw new InvalidOperationException("Failed to create a new game entity factory.");
-            }
-            CurrentlyLoadedGameMode = (IGameMode)Activator.CreateInstance(gameModeType.Item2);
-            CurrentlyLoadedGameMode.OnInitialized(gameModeType.Item1, this);
-            OnGameModeStarted?.Invoke(CurrentlyLoadedGameMode);
-            RemainingGameStartTime = 0.0;
-            if (was_running)
-            {
-                OnGameRestarted?.Invoke();
-                SendMessageToAll(new GameRestartedMessageData());
-            }
-            else
-            {
-                OnGameStarted?.Invoke();
-                SendMessageToAll(new GameStartedMessageData());
-            }
-        }
-
-        /// <summary>
-        /// Stops the currently running game mode instance
-        /// </summary>
-        /// <returns>"true" if a running game mode instance has been stopped, otherwise "false"</returns>
-        public bool StopGameModeInstance()
-        {
-            bool ret = false;
-            if (CurrentlyLoadedGameMode != null)
-            {
-                List<KeyValuePair<string, IEntity>> remove_entities = new List<KeyValuePair<string, IEntity>>(entities);
-                foreach (KeyValuePair<string, IEntity> remove_entity in remove_entities)
-                {
-                    if (remove_entity.Value is IGameEntity game_entity)
-                    {
-                        CurrentlyLoadedGameMode.OnGameEntityDestroyed(game_entity);
-                    }
-                    entities.Remove(remove_entity.Key);
-                }
-                remove_entities.Clear();
-                entities.Clear();
-                List<KeyValuePair<string, IGameUser>> remove_users = new List<KeyValuePair<string, IGameUser>>(gameUsers);
-                foreach (KeyValuePair<string, IGameUser> remove_user in remove_users)
-                {
-                    if (gameUsers.ContainsKey(remove_user.Key))
-                    {
-                        CurrentlyLoadedGameMode.OnUserLeft(remove_user.Value);
-                        gameUsers.Remove(remove_user.Key);
-                    }
-                }
-                remove_users.Clear();
-                gameUsers.Clear();
-                OnGameModeStopped?.Invoke(CurrentlyLoadedGameMode);
-                OnGameStopped?.Invoke(CurrentlyLoadedGameMode.UserResults, CurrentlyLoadedGameMode.Results);
-                CurrentlyLoadedGameMode.OnClosed();
-                gameUserFactory = null;
-                gameEntityFactory = null;
-                CurrentlyLoadedGameMode = null;
-                ret = true;
-            }
-            return ret;
-        }
-
-        /// <summary>
         /// Adds the specified user
         /// </summary>
         /// <param name="user">User</param>
@@ -712,6 +638,80 @@ namespace ElectrodZMultiplayer.Server
                     SendMessageToAll(new RestartGameCancelledMessageData());
                 }
             }
+        }
+
+        /// <summary>
+        /// Starts a new game mode instance 
+        /// </summary>
+        public void StartNewGameModeInstance()
+        {
+            bool was_running = StopGameModeInstance();
+            gameUserFactory = gameModeType.Item1.CreateNewGameUserFactory();
+            if (gameUserFactory == null)
+            {
+                throw new InvalidOperationException("Failed to create a new game user factory.");
+            }
+            gameEntityFactory = gameModeType.Item1.CreateNewGameEntityFactory();
+            if (gameEntityFactory == null)
+            {
+                throw new InvalidOperationException("Failed to create a new game entity factory.");
+            }
+            CurrentlyLoadedGameMode = (IGameMode)Activator.CreateInstance(gameModeType.Item2);
+            CurrentlyLoadedGameMode.OnInitialized(gameModeType.Item1, this);
+            OnGameModeStarted?.Invoke(CurrentlyLoadedGameMode);
+            RemainingGameStartTime = 0.0;
+            if (was_running)
+            {
+                OnGameRestarted?.Invoke();
+                SendMessageToAll(new GameRestartedMessageData());
+            }
+            else
+            {
+                OnGameStarted?.Invoke();
+                SendMessageToAll(new GameStartedMessageData());
+            }
+        }
+
+        /// <summary>
+        /// Stops the currently running game mode instance
+        /// </summary>
+        /// <returns>"true" if a running game mode instance has been stopped, otherwise "false"</returns>
+        public bool StopGameModeInstance()
+        {
+            bool ret = false;
+            if (CurrentlyLoadedGameMode != null)
+            {
+                List<KeyValuePair<string, IEntity>> remove_entities = new List<KeyValuePair<string, IEntity>>(entities);
+                foreach (KeyValuePair<string, IEntity> remove_entity in remove_entities)
+                {
+                    if (remove_entity.Value is IGameEntity game_entity)
+                    {
+                        CurrentlyLoadedGameMode.OnGameEntityDestroyed(game_entity);
+                    }
+                    entities.Remove(remove_entity.Key);
+                }
+                remove_entities.Clear();
+                entities.Clear();
+                List<KeyValuePair<string, IGameUser>> remove_users = new List<KeyValuePair<string, IGameUser>>(gameUsers);
+                foreach (KeyValuePair<string, IGameUser> remove_user in remove_users)
+                {
+                    if (gameUsers.ContainsKey(remove_user.Key))
+                    {
+                        CurrentlyLoadedGameMode.OnUserLeft(remove_user.Value);
+                        gameUsers.Remove(remove_user.Key);
+                    }
+                }
+                remove_users.Clear();
+                gameUsers.Clear();
+                OnGameModeStopped?.Invoke(CurrentlyLoadedGameMode);
+                OnGameStopped?.Invoke(CurrentlyLoadedGameMode.UserResults, CurrentlyLoadedGameMode.Results);
+                CurrentlyLoadedGameMode.OnClosed();
+                gameUserFactory = null;
+                gameEntityFactory = null;
+                CurrentlyLoadedGameMode = null;
+                ret = true;
+            }
+            return ret;
         }
 
         /// <summary>
