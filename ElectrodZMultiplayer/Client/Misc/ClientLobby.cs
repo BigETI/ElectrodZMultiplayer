@@ -533,7 +533,7 @@ namespace ElectrodZMultiplayer.Client
                 foreach (ServerHitData server_hit in serverHits)
                 {
                     string issuer_key = server_hit.IssuerGUID.ToString();
-                    string victim_key = server_hit.IssuerGUID.ToString();
+                    string victim_key = server_hit.VictimGUID.ToString();
                     IEntity issuer = null;
                     IEntity victim = null;
                     if (Users.ContainsKey(issuer_key))
@@ -561,7 +561,7 @@ namespace ElectrodZMultiplayer.Client
                     else
                     {
                         is_successful = false;
-                        client.SendErrorMessage<ServerTickMessageData>(EErrorType.InvalidMessageParameters, $"Victim GUID \"{ issuer_key }\" is invalid.");
+                        client.SendErrorMessage<ServerTickMessageData>(EErrorType.InvalidMessageParameters, $"Victim GUID \"{ victim_key }\" is invalid.");
                         break;
                     }
                     hits = hits ?? new List<IHit>();
