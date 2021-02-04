@@ -64,9 +64,13 @@ namespace ElectrodZMultiplayer.Data.Messages
             }
             if (hits != null)
             {
-                Hits = new List<ClientHitData>();
                 foreach (IHit hit in hits)
                 {
+                    if (hit.Issuer != null)
+                    {
+                        throw new ArgumentException("Hits can't specify issuers", nameof(hits));
+                    }
+                    Hits = Hits ?? new List<ClientHitData>();
                     Hits.Add(new ClientHitData(hit));
                 }
             }

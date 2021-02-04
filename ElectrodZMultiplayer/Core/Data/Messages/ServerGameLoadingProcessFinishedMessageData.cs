@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using ElectrodZMultiplayer.JSONConverters;
+using Newtonsoft.Json;
 using System;
 
 /// <summary>
@@ -16,6 +17,7 @@ namespace ElectrodZMultiplayer.Data.Messages
         /// User GUID
         /// </summary>
         [JsonProperty("userGUID")]
+        [JsonConverter(typeof(GUIDJSONConverter))]
         public Guid UserGUID { get; set; }
 
         /// <summary>
