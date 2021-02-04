@@ -58,6 +58,6 @@ namespace ElectrodZMultiplayer
         /// </summary>
         /// <param name="actions">Game actions</param>
         /// <returns>Number of actions added</returns>
-        uint SetActionsInternally(IEnumerable<EGameAction> actions);
+        uint SetActionsInternally(IEnumerable<string> actions);
     }
 }

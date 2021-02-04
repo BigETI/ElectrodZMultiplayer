@@ -15,7 +15,7 @@ namespace ElectrodZMultiplayer
         /// <summary>
         /// Current game actions
         /// </summary>
-        private readonly HashSet<EGameAction> actions = new HashSet<EGameAction>();
+        private readonly HashSet<string> actions = new HashSet<string>();
 
         /// <summary>
         /// Entity GUID
@@ -55,7 +55,7 @@ namespace ElectrodZMultiplayer
         /// <summary>
         /// Current game actions
         /// </summary>
-        public IEnumerable<EGameAction> Actions => actions;
+        public IEnumerable<string> Actions => actions;
 
         /// <summary>
         /// Is object in a valid state
@@ -128,7 +128,7 @@ namespace ElectrodZMultiplayer
             Quaternion? rotation = null;
             Vector3? velocity = null;
             Vector3? angular_velocity = null;
-            IEnumerable<EGameAction> actions = null;
+            IEnumerable<string> actions = null;
             if (baseEntity != patchEntity)
             {
                 if (baseEntity.EntityType != patchEntity.EntityType)
@@ -166,7 +166,7 @@ namespace ElectrodZMultiplayer
                     ret = true;
                     angular_velocity = patchEntity.AngularVelocity;
                 }
-                foreach (EGameAction action in baseEntity.Actions)
+                foreach (string action in baseEntity.Actions)
                 {
                     if (!Protection.IsContained(patchEntity.Actions, (patch_entity_action) => patch_entity_action == action))
                     {
@@ -176,7 +176,7 @@ namespace ElectrodZMultiplayer
                 }
                 if (actions == null)
                 {
-                    foreach (EGameAction action in patchEntity.Actions)
+                    foreach (string action in patchEntity.Actions)
                     {
                         if (!Protection.IsContained(baseEntity.Actions, (base_entity_action) => base_entity_action == action))
                         {
@@ -201,7 +201,7 @@ namespace ElectrodZMultiplayer
         /// <param name="velocity">Velocity</param>
         /// <param name="angularVelocity">Angular velocity</param>
         /// <param name="actions">Game actions</param>
-        public Entity(Guid guid, string entityType, EGameColor gameColor, Vector3 position, Quaternion rotation, Vector3 velocity, Vector3 angularVelocity, IEnumerable<EGameAction> actions)
+        public Entity(Guid guid, string entityType, EGameColor gameColor, Vector3 position, Quaternion rotation, Vector3 velocity, Vector3 angularVelocity, IEnumerable<string> actions)
         {
             if (guid == Guid.Empty)
             {
@@ -219,7 +219,7 @@ namespace ElectrodZMultiplayer
             {
                 throw new ArgumentNullException(nameof(actions));
             }
-            if (Protection.IsContained(actions, (action) => action == EGameAction.Invalid))
+            if (Protection.IsContained(actions, (action) => action == null))
             {
                 throw new ArgumentException($"\"{ nameof(actions) }\" contains invalid game actions.", nameof(guid));
             }
@@ -300,19 +300,19 @@ namespace ElectrodZMultiplayer
         /// </summary>
         /// <param name="actions">Game actions</param>
         /// <returns>Number of actions added</returns>
-        public uint SetActionsInternally(IEnumerable<EGameAction> actions)
+        public uint SetActionsInternally(IEnumerable<string> actions)
         {
             if (actions == null)
             {
                 throw new ArgumentNullException(nameof(actions));
             }
-            if (Protection.IsContained(actions, (action) => action == EGameAction.Invalid))
+            if (Protection.IsContained(actions, (action) => action == null))
             {
-                throw new ArgumentException("Game actions contain invalid invalid actions.");
+                throw new ArgumentException("Game actions contain null.");
             }
             uint ret = 0U;
             this.actions.Clear();
-            foreach (EGameAction action in actions)
+            foreach (string action in actions)
             {
                 ret += this.actions.Add(action) ? 1U : 0U;
             }
@@ -333,7 +333,7 @@ namespace ElectrodZMultiplayer
             {
                 throw new ArgumentException("Entity is not valid.", nameof(entity));
             }
-            return new Entity(entity.GUID, entity.EntityType, (entity.GameColor == null) ? EGameColor.Default : entity.GameColor.Value, (entity.Position == null) ? Vector3.Zero : new Vector3(entity.Position.X, entity.Position.Y, entity.Position.Z), (entity.Rotation == null) ? Quaternion.Identity : new Quaternion(entity.Rotation.X, entity.Rotation.Y, entity.Rotation.Z, entity.Rotation.W), (entity.Velocity == null) ? Vector3.Zero : new Vector3(entity.Velocity.X, entity.Velocity.Y, entity.Velocity.Z), (entity.AngularVelocity == null) ? Vector3.Zero : new Vector3(entity.AngularVelocity.X, entity.AngularVelocity.Y, entity.AngularVelocity.Z), entity.Actions ?? (IEnumerable<EGameAction>)Array.Empty<EGameAction>());
+            return new Entity(entity.GUID, entity.EntityType, (entity.GameColor == null) ? EGameColor.Default : entity.GameColor.Value, (entity.Position == null) ? Vector3.Zero : new Vector3(entity.Position.X, entity.Position.Y, entity.Position.Z), (entity.Rotation == null) ? Quaternion.Identity : new Quaternion(entity.Rotation.X, entity.Rotation.Y, entity.Rotation.Z, entity.Rotation.W), (entity.Velocity == null) ? Vector3.Zero : new Vector3(entity.Velocity.X, entity.Velocity.Y, entity.Velocity.Z), (entity.AngularVelocity == null) ? Vector3.Zero : new Vector3(entity.AngularVelocity.X, entity.AngularVelocity.Y, entity.AngularVelocity.Z), entity.Actions ?? (IEnumerable<string>)Array.Empty<string>());
         }
     }
 }

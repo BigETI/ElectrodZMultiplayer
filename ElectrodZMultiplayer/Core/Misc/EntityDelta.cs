@@ -49,12 +49,12 @@ namespace ElectrodZMultiplayer
         /// <summary>
         /// Current game actions (optional)
         /// </summary>
-        public IEnumerable<EGameAction> Actions { get; }
+        public IEnumerable<string> Actions { get; }
 
         public bool IsValid =>
             (GUID != Guid.Empty) &&
             ((GameColor == null) || GameColor.Value != EGameColor.Invalid) &&
-            ((Actions == null) || !Protection.IsContained(Actions, (action) => action == EGameAction.Invalid));
+            ((Actions == null) || !Protection.IsContained(Actions, (action) => action == null));
 
         /// <summary>
         /// COnstructs an entity delta
@@ -67,7 +67,7 @@ namespace ElectrodZMultiplayer
         /// <param name="velocity">Velocity</param>
         /// <param name="angularVelocity">Angular velocity</param>
         /// <param name="actions">Actions</param>
-        public EntityDelta(Guid guid, string entityType = null, EGameColor? gameColor = null, Vector3? position = null, Quaternion? rotation = null, Vector3? velocity = null, Vector3? angularVelocity = null, IEnumerable<EGameAction> actions = null)
+        public EntityDelta(Guid guid, string entityType = null, EGameColor? gameColor = null, Vector3? position = null, Quaternion? rotation = null, Vector3? velocity = null, Vector3? angularVelocity = null, IEnumerable<string> actions = null)
         {
             if (guid == Guid.Empty)
             {
@@ -111,12 +111,12 @@ namespace ElectrodZMultiplayer
             {
                 throw new ArgumentException($"Base entity delta GUID \"{ baseEntityDelta.GUID }\" does not match patch entity delta GUID \"{ patchEntityDelta.GUID }\".", nameof(patchEntityDelta));
             }
-            HashSet<EGameAction> actions = (baseEntityDelta.Actions == null) ? null : new HashSet<EGameAction>(baseEntityDelta.Actions);
+            HashSet<string> actions = (baseEntityDelta.Actions == null) ? null : new HashSet<string>(baseEntityDelta.Actions);
             if (patchEntityDelta.Actions != null)
             {
                 if (actions == null)
                 {
-                    actions = new HashSet<EGameAction>(patchEntityDelta.Actions);
+                    actions = new HashSet<string>(patchEntityDelta.Actions);
                 }
                 else
                 {

@@ -61,7 +61,7 @@ namespace ElectrodZMultiplayer.Data
         /// Current game actions (optional)
         /// </summary>
         [JsonProperty("actions")]
-        public List<EGameAction> Actions { get; set; }
+        public List<string> Actions { get; set; }
 
         /// <summary>
         /// Is object in a valid state
@@ -70,7 +70,7 @@ namespace ElectrodZMultiplayer.Data
             (GUID != Guid.Empty) &&
             ((EntityType == null) || !string.IsNullOrWhiteSpace(EntityType)) &&
             ((GameColor == null) || (GameColor != EGameColor.Invalid)) &&
-            ((Actions == null) || !Actions.Contains(EGameAction.Invalid));
+            ((Actions == null) || !Actions.Contains(null));
 
         /// <summary>
         /// Constructs entity data for deserializers
@@ -91,7 +91,7 @@ namespace ElectrodZMultiplayer.Data
         /// <param name="velocity">Current velocity (optional)</param>
         /// <param name="angularVelocity">Current angular velocity (optional)</param>
         /// <param name="actions">Current game actions (optional)</param>
-        public EntityData(Guid guid, string entityType, EGameColor? color, Vector3? position, Quaternion? rotation, Vector3? velocity, Vector3? angularVelocity, IEnumerable<EGameAction> actions)
+        public EntityData(Guid guid, string entityType, EGameColor? color, Vector3? position, Quaternion? rotation, Vector3? velocity, Vector3? angularVelocity, IEnumerable<string> actions)
         {
             if (guid == Guid.Empty)
             {
@@ -105,7 +105,7 @@ namespace ElectrodZMultiplayer.Data
             {
                 throw new ArgumentException("Game color can't be invalid.", nameof(color));
             }
-            if ((actions != null) && Protection.IsContained(actions, (action) => action == EGameAction.Invalid))
+            if ((actions != null) && Protection.IsContained(actions, (action) => action == null))
             {
                 throw new ArgumentException($"\"{ nameof(actions) }\" contains invalid game actions");
             }
@@ -117,7 +117,7 @@ namespace ElectrodZMultiplayer.Data
             Velocity = (velocity == null) ? null : (Vector3FloatData)velocity;
             AngularVelocity = (angularVelocity == null) ? null : (Vector3FloatData)angularVelocity;
             GameColor = color;
-            Actions = (actions == null) ? null : new List<EGameAction>(actions ?? throw new ArgumentNullException(nameof(actions)));
+            Actions = (actions == null) ? null : new List<string>(actions ?? throw new ArgumentNullException(nameof(actions)));
         }
 
         /// <summary>

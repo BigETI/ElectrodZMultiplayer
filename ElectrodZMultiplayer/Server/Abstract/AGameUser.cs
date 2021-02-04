@@ -90,7 +90,7 @@ namespace ElectrodZMultiplayer.Server
         /// <summary>
         /// User actions
         /// </summary>
-        public virtual IEnumerable<EGameAction> Actions => ServerUser.Actions;
+        public virtual IEnumerable<string> Actions => ServerUser.Actions;
 
         /// <summary>
         /// Is object in a valid state
@@ -205,6 +205,6 @@ namespace ElectrodZMultiplayer.Server
         /// </summary>
         /// <param name="newActions">New game actions</param>
         /// <returns>Number of game actions set</returns>
-        public virtual uint SetActions(IEnumerable<EGameAction> newActions) => ServerUser.SetActions(newActions);
+        public virtual uint SetActions(IEnumerable<string> newActions) => ServerUser.SetActions(newActions);
     }
 }
