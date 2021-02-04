@@ -45,6 +45,6 @@ namespace ElectrodZMultiplayer.Server
         /// </summary>
         /// <param name="newActions">New game entity game actions</param>
         /// <returns>Number of actions set</returns>
-        uint SetActions(IEnumerable<EGameAction> newActions);
+        uint SetActions(IEnumerable<string> newActions);
     }
 }

@@ -49,6 +49,6 @@ namespace ElectrodZMultiplayer
         /// <summary>
         /// Current game actions
         /// </summary>
-        IEnumerable<EGameAction> Actions { get; }
+        IEnumerable<string> Actions { get; }
     }
 }

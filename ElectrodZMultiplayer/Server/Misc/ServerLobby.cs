@@ -738,7 +738,7 @@ namespace ElectrodZMultiplayer.Server
         /// <param name="angularVelocity">Game entity angular valocity (optional)</param>
         /// <param name="actions">Game entity game actions (optional)</param>
         /// <returns>Game entity</returns>
-        public IGameEntity CreateNewGameEntity(string entityType, EGameColor? gameColor = null, Vector3? position = null, Quaternion? rotation = null, Vector3? velocity = null, Vector3? angularVelocity = null, IEnumerable<EGameAction> actions = null)
+        public IGameEntity CreateNewGameEntity(string entityType, EGameColor? gameColor = null, Vector3? position = null, Quaternion? rotation = null, Vector3? velocity = null, Vector3? angularVelocity = null, IEnumerable<string> actions = null)
         {
             if (CurrentlyLoadedGameMode == null)
             {

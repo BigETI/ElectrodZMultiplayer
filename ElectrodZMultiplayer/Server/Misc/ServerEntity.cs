@@ -32,7 +32,7 @@ namespace ElectrodZMultiplayer.Server
         /// <param name="velocity">Velocity</param>
         /// <param name="angularVelocity">Angular velocity</param>
         /// <param name="actions">Game actions</param>
-        public ServerEntity(Guid guid, string entityType, EGameColor gameColor, Vector3 position, Quaternion rotation, Vector3 velocity, Vector3 angularVelocity, IEnumerable<EGameAction> actions) : base(guid, entityType, gameColor, position, rotation, velocity, angularVelocity, actions)
+        public ServerEntity(Guid guid, string entityType, EGameColor gameColor, Vector3 position, Quaternion rotation, Vector3 velocity, Vector3 angularVelocity, IEnumerable<string> actions) : base(guid, entityType, gameColor, position, rotation, velocity, angularVelocity, actions)
         {
             // ...
         }
@@ -72,6 +72,6 @@ namespace ElectrodZMultiplayer.Server
         /// </summary>
         /// <param name="newActions">New game entity game actions</param>
         /// <returns>Number of actions set</returns>
-        public uint SetActions(IEnumerable<EGameAction> newActions) => SetActionsInternally(newActions);
+        public uint SetActions(IEnumerable<string> newActions) => SetActionsInternally(newActions);
     }
 }

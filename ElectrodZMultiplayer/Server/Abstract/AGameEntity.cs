@@ -54,7 +54,7 @@ namespace ElectrodZMultiplayer.Server
         /// <summary>
         /// Game entity game actions
         /// </summary>
-        public virtual IEnumerable<EGameAction> Actions => ServerEntity.Actions;
+        public virtual IEnumerable<string> Actions => ServerEntity.Actions;
 
         /// <summary>
         /// Is object in a valid state
@@ -85,7 +85,7 @@ namespace ElectrodZMultiplayer.Server
         /// </summary>
         /// <param name="newActions">New game actions</param>
         /// <returns>Number of game actions set</returns>
-        public virtual uint SetActions(IEnumerable<EGameAction> newActions) => ServerEntity.SetActions(newActions);
+        public virtual uint SetActions(IEnumerable<string> newActions) => ServerEntity.SetActions(newActions);
 
         /// <summary>
         /// Sets the new game color
