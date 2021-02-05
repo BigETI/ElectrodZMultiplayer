@@ -227,6 +227,36 @@ namespace ElectrodZMultiplayer
         event ServerTickFailedDelegate OnServerTickFailed;
 
         /// <summary>
+        /// This event will be invoked when an user entity has been created.
+        /// </summary>
+        event LobbyUserEntityCreatedDelegate OnUserEntityCreated;
+
+        /// <summary>
+        /// This event will be invoked when an user entity has been updated.
+        /// </summary>
+        event LobbyUserEntityUpdatedDelegate OnUserEntityUpdated;
+
+        /// <summary>
+        /// This event will be invoked when an user entity has been destroyed.
+        /// </summary>
+        event LobbyUserEntityDestroyedDelegate OnUserEntityDestroyed;
+
+        /// <summary>
+        /// This event will be invoked when an entity has been created.
+        /// </summary>
+        event LobbyEntityCreatedDelegate OnEntityCreated;
+
+        /// <summary>
+        /// This event will be invoked when an entity has been updated.
+        /// </summary>
+        event LobbyEntityUpdatedDelegate OnEntityUpdated;
+
+        /// <summary>
+        /// This event will be invoked when an entity has been destroyed.
+        /// </summary>
+        event LobbyEntityDestroyedDelegate OnEntityDestroyed;
+
+        /// <summary>
         /// Add connector
         /// </summary>
         /// <param name="connector">Connector</param>

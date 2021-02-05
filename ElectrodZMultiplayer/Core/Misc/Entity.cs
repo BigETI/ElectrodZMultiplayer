@@ -63,7 +63,9 @@ namespace ElectrodZMultiplayer
         /// <returns>"true" if valid, otherwise "false"</returns>
         public bool IsValid =>
             (GUID != Guid.Empty) &&
-            (GameColor != EGameColor.Invalid);
+            !string.IsNullOrWhiteSpace(EntityType) &&
+            (GameColor != EGameColor.Invalid) &&
+            Protection.IsValid(Actions);
 
         /// <summary>
         /// Constructs an entity object
@@ -82,6 +84,48 @@ namespace ElectrodZMultiplayer
             }
             GUID = guid;
             EntityType = entityType;
+        }
+
+        /// <summary>
+        /// Constructs an entity object
+        /// </summary>
+        /// <param name="guid">Entity GUID</param>
+        /// <param name="entityType">Entity type</param>
+        /// <param name="gameColor">Game color</param>
+        /// <param name="position">Position</param>
+        /// <param name="rotation">Rotation</param>
+        /// <param name="velocity">Velocity</param>
+        /// <param name="angularVelocity">Angular velocity</param>
+        /// <param name="actions">Game actions</param>
+        public Entity(Guid guid, string entityType, EGameColor gameColor, Vector3 position, Quaternion rotation, Vector3 velocity, Vector3 angularVelocity, IEnumerable<string> actions)
+        {
+            if (guid == Guid.Empty)
+            {
+                throw new ArgumentException("Entity GUID can't be empty.", nameof(guid));
+            }
+            if (string.IsNullOrWhiteSpace(entityType))
+            {
+                throw new ArgumentNullException(nameof(entityType));
+            }
+            if (gameColor == EGameColor.Invalid)
+            {
+                throw new ArgumentException("Game color can't be invalid.", nameof(gameColor));
+            }
+            if (actions == null)
+            {
+                throw new ArgumentNullException(nameof(actions));
+            }
+            if (Protection.IsContained(actions, (action) => action == null))
+            {
+                throw new ArgumentException($"\"{ nameof(actions) }\" contains invalid game actions.", nameof(guid));
+            }
+            GUID = guid;
+            EntityType = entityType;
+            GameColor = gameColor;
+            Position = position;
+            Rotation = rotation;
+            Velocity = velocity;
+            AngularVelocity = angularVelocity;
         }
 
         /// <summary>
@@ -191,48 +235,6 @@ namespace ElectrodZMultiplayer
         }
 
         /// <summary>
-        /// Constructs an entity object
-        /// </summary>
-        /// <param name="guid">Entity GUID</param>
-        /// <param name="entityType">Entity type</param>
-        /// <param name="gameColor">Game color</param>
-        /// <param name="position">Position</param>
-        /// <param name="rotation">Rotation</param>
-        /// <param name="velocity">Velocity</param>
-        /// <param name="angularVelocity">Angular velocity</param>
-        /// <param name="actions">Game actions</param>
-        public Entity(Guid guid, string entityType, EGameColor gameColor, Vector3 position, Quaternion rotation, Vector3 velocity, Vector3 angularVelocity, IEnumerable<string> actions)
-        {
-            if (guid == Guid.Empty)
-            {
-                throw new ArgumentException("Entity GUID can't be empty.", nameof(guid));
-            }
-            if (string.IsNullOrWhiteSpace(entityType))
-            {
-                throw new ArgumentNullException(nameof(entityType));
-            }
-            if (gameColor == EGameColor.Invalid)
-            {
-                throw new ArgumentException("Game color can't be invalid.", nameof(gameColor));
-            }
-            if (actions == null)
-            {
-                throw new ArgumentNullException(nameof(actions));
-            }
-            if (Protection.IsContained(actions, (action) => action == null))
-            {
-                throw new ArgumentException($"\"{ nameof(actions) }\" contains invalid game actions.", nameof(guid));
-            }
-            GUID = guid;
-            EntityType = entityType;
-            GameColor = gameColor;
-            Position = position;
-            Rotation = rotation;
-            Velocity = velocity;
-            AngularVelocity = angularVelocity;
-        }
-
-        /// <summary>
         /// Sets a new entity GUID internally
         /// </summary>
         /// <param name="guid">New entity GUID</param>
@@ -332,6 +334,10 @@ namespace ElectrodZMultiplayer
             if (!entity.IsValid)
             {
                 throw new ArgumentException("Entity is not valid.", nameof(entity));
+            }
+            if (string.IsNullOrWhiteSpace(entity.EntityType))
+            {
+                throw new ArgumentException("Entity type can't be empty.", nameof(entity));
             }
             return new Entity(entity.GUID, entity.EntityType, (entity.GameColor == null) ? EGameColor.Default : entity.GameColor.Value, (entity.Position == null) ? Vector3.Zero : new Vector3(entity.Position.X, entity.Position.Y, entity.Position.Z), (entity.Rotation == null) ? Quaternion.Identity : new Quaternion(entity.Rotation.X, entity.Rotation.Y, entity.Rotation.Z, entity.Rotation.W), (entity.Velocity == null) ? Vector3.Zero : new Vector3(entity.Velocity.X, entity.Velocity.Y, entity.Velocity.Z), (entity.AngularVelocity == null) ? Vector3.Zero : new Vector3(entity.AngularVelocity.X, entity.AngularVelocity.Y, entity.AngularVelocity.Z), entity.Actions ?? (IEnumerable<string>)Array.Empty<string>());
         }

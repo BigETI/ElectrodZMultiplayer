@@ -97,6 +97,36 @@ namespace ElectrodZMultiplayer
         event StopGameCancelledDelegate OnStopGameCancelled;
 
         /// <summary>
+        /// This event will be invoked when an user entity has been created.
+        /// </summary>
+        event UserEntityCreatedDelegate OnUserEntityCreated;
+
+        /// <summary>
+        /// This event will be invoked when an user entity has been updated.
+        /// </summary>
+        event UserEntityUpdatedDelegate OnUserEntityUpdated;
+
+        /// <summary>
+        /// This event will be invoked when an user entity has been destroyed.
+        /// </summary>
+        event UserEntityDestroyedDelegate OnUserEntityDestroyed;
+
+        /// <summary>
+        /// This event will be invoked when an entity has been created.
+        /// </summary>
+        event EntityCreatedDelegate OnEntityCreated;
+
+        /// <summary>
+        /// This event will be invoked when an entity has been updated.
+        /// </summary>
+        event EntityUpdatedDelegate OnEntityUpdated;
+
+        /// <summary>
+        /// This event will be invoked when an entity has been destroyed.
+        /// </summary>
+        event EntityDestroyedDelegate OnEntityDestroyed;
+
+        /// <summary>
         /// Gets user by GUID
         /// </summary>
         /// <param name="guid">User GUID</param>

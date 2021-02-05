@@ -240,6 +240,36 @@ namespace ElectrodZMultiplayer
         public abstract event ServerTickFailedDelegate OnServerTickFailed;
 
         /// <summary>
+        /// This event will be invoked when an user entity has been created.
+        /// </summary>
+        public abstract event LobbyUserEntityCreatedDelegate OnUserEntityCreated;
+
+        /// <summary>
+        /// This event will be invoked when an user entity has been updated.
+        /// </summary>
+        public abstract event LobbyUserEntityUpdatedDelegate OnUserEntityUpdated;
+
+        /// <summary>
+        /// This event will be invoked when an user entity has been destroyed.
+        /// </summary>
+        public abstract event LobbyUserEntityDestroyedDelegate OnUserEntityDestroyed;
+
+        /// <summary>
+        /// This event will be invoked when an entity has been created.
+        /// </summary>
+        public abstract event LobbyEntityCreatedDelegate OnEntityCreated;
+
+        /// <summary>
+        /// This event will be invoked when an entity has been updated.
+        /// </summary>
+        public abstract event LobbyEntityUpdatedDelegate OnEntityUpdated;
+
+        /// <summary>
+        /// This event will be invoked when an entity has been destroyed.
+        /// </summary>
+        public abstract event LobbyEntityDestroyedDelegate OnEntityDestroyed;
+
+        /// <summary>
         /// Constructs a generalised synchronizer object
         /// </summary>
         public ASynchronizer() =>

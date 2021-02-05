@@ -34,6 +34,11 @@ namespace ElectrodZMultiplayer.Client
         private readonly Dictionary<string, object> gameModeRules = new Dictionary<string, object>();
 
         /// <summary>
+        /// Loaded users
+        /// </summary>
+        private readonly Dictionary<string, IUser> loadedUsers = new Dictionary<string, IUser>();
+
+        /// <summary>
         /// Client
         /// </summary>
         public IClientSynchronizer Client => client;
@@ -182,6 +187,36 @@ namespace ElectrodZMultiplayer.Client
         public event StopGameCancelledDelegate OnStopGameCancelled;
 
         /// <summary>
+        /// This event will be invoked when an user entity has been created.
+        /// </summary>
+        public event UserEntityCreatedDelegate OnUserEntityCreated;
+
+        /// <summary>
+        /// This event will be invoked when an user entity has been updated.
+        /// </summary>
+        public event UserEntityUpdatedDelegate OnUserEntityUpdated;
+
+        /// <summary>
+        /// This event will be invoked when an user entity has been destroyed.
+        /// </summary>
+        public event UserEntityDestroyedDelegate OnUserEntityDestroyed;
+
+        /// <summary>
+        /// This event will be invoked when an entity has been created.
+        /// </summary>
+        public event EntityCreatedDelegate OnEntityCreated;
+
+        /// <summary>
+        /// This event will be invoked when an entity has been updated.
+        /// </summary>
+        public event EntityUpdatedDelegate OnEntityUpdated;
+
+        /// <summary>
+        /// This event will be invoked when an entity has been destroyed.
+        /// </summary>
+        public event EntityDestroyedDelegate OnEntityDestroyed;
+
+        /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="client">Client</param>
@@ -235,7 +270,107 @@ namespace ElectrodZMultiplayer.Client
                 {
                     throw new ArgumentException($"Value of key \"{ user.Key }\" is null.");
                 }
+                RegisterUserEvents(user.Value);
                 this.users.Add(user.Key, user.Value);
+            }
+        }
+
+        /// <summary>
+        /// Registers user events
+        /// </summary>
+        /// <param name="user">User</param>
+        private void RegisterUserEvents(IUser user)
+        {
+            user.OnGameLoadingFinished += () =>
+            {
+                AddLoadedUser(user);
+            };
+        }
+
+        /// <summary>
+        /// Adds loaded user
+        /// </summary>
+        /// <param name="user">User</param>
+        private void AddLoadedUser(IUser user)
+        {
+            string key = user.GUID.ToString();
+            if (!loadedUsers.ContainsKey(key))
+            {
+                loadedUsers.Add(key, user);
+                OnUserEntityCreated?.Invoke(user);
+            }
+        }
+
+        /// <summary>
+        /// Removes loaded user
+        /// </summary>
+        /// <param name="key">Key</param>
+        private void RemoveLoadedUser(string key)
+        {
+            if (loadedUsers.ContainsKey(key))
+            {
+                OnUserEntityDestroyed?.Invoke(loadedUsers[key]);
+                loadedUsers.Remove(key);
+            }
+        }
+
+        /// <summary>
+        /// Adds the specified entity
+        /// </summary>
+        /// <param name="entity">Entity</param>
+        private void AddEntity(IEntity entity)
+        {
+            string key = entity.GUID.ToString();
+            if (!entities.ContainsKey(key))
+            {
+                entities.Add(key, entity);
+                OnEntityCreated?.Invoke(entity);
+            }
+        }
+
+        /// <summary>
+        /// Removes the specified entity
+        /// </summary>
+        /// <param name="key">Key</param>
+        private void RemoveEntity(string key)
+        {
+            if (entities.ContainsKey(key))
+            {
+                OnEntityDestroyed?.Invoke(entities[key]);
+                entities.Remove(key);
+            }
+        }
+
+        /// <summary>
+        /// Applies entity data to entity
+        /// </summary>
+        /// <param name="entityData">Entity data</param>
+        /// <param name="entity">Entity</param>
+        private static void ApplyEntityDataToEntity(EntityData entityData, IInternalEntity entity)
+        {
+            if (!string.IsNullOrWhiteSpace(entityData.EntityType))
+            {
+                entity.SetEntityTypeInternally(entityData.EntityType);
+            }
+            if (entityData.Position != null)
+            {
+                entity.SetPositionInternally(new Vector3(entityData.Position.X, entityData.Position.Y, entityData.Position.Z));
+            }
+            if (entityData.Rotation != null)
+            {
+                entity.SetRotationInternally(new Quaternion(entityData.Rotation.X, entityData.Rotation.Y, entityData.Rotation.Z, entityData.Rotation.W));
+            }
+            if (entityData.Velocity != null)
+            {
+                entity.SetVelocityInternally(new Vector3(entityData.Velocity.X, entityData.Velocity.Y, entityData.Velocity.Z));
+            }
+            if (entityData.AngularVelocity != null)
+            {
+                entity.SetAngularVelocityInternally(new Vector3(entityData.AngularVelocity.X, entityData.AngularVelocity.Y, entityData.AngularVelocity.Z));
+            }
+            if (entityData.Actions != null)
+            {
+                entity.SetActionsInternally(entityData.Actions);
             }
         }
 
@@ -300,7 +435,7 @@ namespace ElectrodZMultiplayer.Client
         /// <summary>
         /// Adds a new user to the lobby
         /// </summary>
-        /// <param name="user"></param>
+        /// <param name="user">User</param>
         /// <returns>"true" if user was successfully added, otherwise "false"</returns>
         public bool AddUserInternally(IUser user)
         {
@@ -312,6 +447,7 @@ namespace ElectrodZMultiplayer.Client
             string key = user.GUID.ToString();
             if (!users.ContainsKey(key))
             {
+                RegisterUserEvents(user);
                 users.Add(key, user);
                 OnUserJoined?.Invoke(user);
                 ret = true;
@@ -325,13 +461,14 @@ namespace ElectrodZMultiplayer.Client
         /// <param name="user">User</param>
         /// <param name="reason">Reason</param>
         /// <param name="message">Message</param>
-        /// <returns>"true" if user was successfully removed, othewrwise </returns>
+        /// <returns>"true" if user was successfully removed, otherwise "false"</returns>
         public bool RemoveUserInternally(IUser user, EDisconnectionReason reason, string message)
         {
             bool ret = false;
             string key = user.GUID.ToString();
             if (users.ContainsKey(key))
             {
+                RemoveLoadedUser(key);
                 OnUserLeft?.Invoke(user, reason, message);
                 ret = users.Remove(key);
             }
@@ -370,8 +507,22 @@ namespace ElectrodZMultiplayer.Client
         /// </summary>
         public void InvokeGameRestartedEventInternally()
         {
+            List<string> remove_entity_keys = new List<string>(entities.Keys);
             CurrentGameTime = 0.0;
+            foreach (IUser user in loadedUsers.Values)
+            {
+                OnUserEntityDestroyed?.Invoke(user);
+            }
+            foreach (string entity_key in remove_entity_keys)
+            {
+                RemoveEntity(entity_key);
+            }
+            remove_entity_keys.Clear();
             OnGameRestarted?.Invoke();
+            foreach (IUser user in loadedUsers.Values)
+            {
+                OnUserEntityCreated?.Invoke(user);
+            }
         }
 
         /// <summary>
@@ -381,7 +532,19 @@ namespace ElectrodZMultiplayer.Client
         /// <param name="results">Results</param>
         public void InvokeGameStoppedEventInternally(IReadOnlyDictionary<string, UserWithResults> users, IReadOnlyDictionary<string, object> results)
         {
+            List<string> remove_loaded_user_keys = new List<string>(loadedUsers.Keys);
+            List<string> remove_entity_keys = new List<string>(entities.Keys);
             CurrentGameTime = 0.0;
+            foreach (string loaded_user_key in remove_loaded_user_keys)
+            {
+                RemoveLoadedUser(loaded_user_key);
+            }
+            remove_loaded_user_keys.Clear();
+            foreach (string entity_key in remove_entity_keys)
+            {
+                RemoveEntity(entity_key);
+            }
+            remove_entity_keys.Clear();
             OnGameStopped?.Invoke(users, results);
         }
 
@@ -470,62 +633,48 @@ namespace ElectrodZMultiplayer.Client
             HashSet<string> remove_entity_keys = new HashSet<string>(entities.Keys);
             List<IHit> hits = null;
             bool is_successful = true;
+            remove_entity_keys.UnionWith(loadedUsers.Keys);
             foreach (EntityData entity in entityDeltas)
             {
                 string key = entity.GUID.ToString();
-                if (users.ContainsKey(key))
+                if (loadedUsers.ContainsKey(key))
                 {
                     remove_entity_keys.Remove(key);
-                    if (users[key] is IInternalClientUser client_user)
+                    if (loadedUsers[key] is IInternalClientUser internal_user)
                     {
-                        if (entity.EntityType != null)
-                        {
-                            client_user.SetEntityTypeInternally(entity.EntityType);
-                        }
-                        if (entity.Position != null)
-                        {
-                            client_user.SetPositionInternally(new Vector3(entity.Position.X, entity.Position.Y, entity.Position.Z));
-                        }
-                        if (entity.Rotation != null)
-                        {
-                            client_user.SetRotationInternally(new Quaternion(entity.Rotation.X, entity.Rotation.Y, entity.Rotation.Z, entity.Rotation.W));
-                        }
-                        if (entity.Velocity != null)
-                        {
-                            client_user.SetVelocityInternally(new Vector3(entity.Velocity.X, entity.Velocity.Y, entity.Velocity.Z));
-                        }
-                        if (entity.AngularVelocity != null)
-                        {
-                            client_user.SetAngularVelocityInternally(new Vector3(entity.AngularVelocity.X, entity.AngularVelocity.Y, entity.AngularVelocity.Z));
-                        }
-                        if (entity.Actions != null)
-                        {
-                            client_user.SetActionsInternally(entity.Actions);
-                        }
+                        ApplyEntityDataToEntity(entity, internal_user);
+                        OnUserEntityUpdated?.Invoke(internal_user);
                     }
                 }
                 else if (entities.ContainsKey(key))
                 {
                     remove_entity_keys.Remove(key);
+                    if (entities[key] is IInternalEntity internal_entity)
+                    {
+                        ApplyEntityDataToEntity(entity, internal_entity);
+                        OnEntityUpdated?.Invoke(internal_entity);
+                    }
                 }
-                entity_deltas.Add
-                (
-                    new EntityDelta
-                    (
-                        entity.GUID,
-                        entity.EntityType,
-                        entity.GameColor,
-                        (entity.Position == null) ? (Vector3?)null : new Vector3(entity.Position.X, entity.Position.Y, entity.Position.Z),
-                        (entity.Rotation == null) ? (Quaternion?)null : new Quaternion(entity.Rotation.X, entity.Rotation.Y, entity.Rotation.Z, entity.Rotation.W),
-                        (entity.Velocity == null) ? (Vector3?)null : new Vector3(entity.Velocity.X, entity.Velocity.Y, entity.Velocity.Z),
-                        (entity.AngularVelocity == null) ? (Vector3?)null : new Vector3(entity.AngularVelocity.X, entity.AngularVelocity.Y, entity.AngularVelocity.Z),
-                        entity.Actions
-                    )
-                );
+                else if (string.IsNullOrWhiteSpace(entity.EntityType))
+                {
+                    Console.Error.WriteLine($"Entity with GUID \"{ entity.GUID }\" could not be instantiated, because no entity type was received.");
+                }
+                else
+                {
+                    AddEntity((Entity)entity);
+                }
+                entity_deltas.Add((EntityDelta)entity);
             }
             foreach (string remove_entity_key in remove_entity_keys)
             {
-                entities.Remove(remove_entity_key);
+                if (loadedUsers.ContainsKey(remove_entity_key))
+                {
+                    RemoveLoadedUser(remove_entity_key);
+                }
+                else
+                {
+                    RemoveEntity(remove_entity_key);
+                }
             }
             remove_entity_keys.Clear();
             if (serverHits != null)
