@@ -231,6 +231,36 @@ namespace ElectrodZMultiplayer.Client
         public override event ServerTickFailedDelegate OnServerTickFailed;
 
         /// <summary>
+        /// This event will be invoked when an user entity has been created.
+        /// </summary>
+        public override event LobbyUserEntityCreatedDelegate OnUserEntityCreated;
+
+        /// <summary>
+        /// This event will be invoked when an user entity has been updated.
+        /// </summary>
+        public override event LobbyUserEntityUpdatedDelegate OnUserEntityUpdated;
+
+        /// <summary>
+        /// This event will be invoked when an user entity has been destroyed.
+        /// </summary>
+        public override event LobbyUserEntityDestroyedDelegate OnUserEntityDestroyed;
+
+        /// <summary>
+        /// This event will be invoked when an entity has been created.
+        /// </summary>
+        public override event LobbyEntityCreatedDelegate OnEntityCreated;
+
+        /// <summary>
+        /// This event will be invoked when an entity has been updated.
+        /// </summary>
+        public override event LobbyEntityUpdatedDelegate OnEntityUpdated;
+
+        /// <summary>
+        /// This event will be invoked when an entity has been destroyed.
+        /// </summary>
+        public override event LobbyEntityDestroyedDelegate OnEntityDestroyed;
+
+        /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="peer">Peer</param>
@@ -309,6 +339,12 @@ namespace ElectrodZMultiplayer.Client
                             client_lobby.OnStartGameCancelled += () => OnStartGameCancelled?.Invoke(client_lobby);
                             client_lobby.OnRestartGameCancelled += () => OnRestartGameCancelled?.Invoke(client_lobby);
                             client_lobby.OnStopGameCancelled += () => OnStopGameCancelled?.Invoke(client_lobby);
+                            client_lobby.OnUserEntityCreated += (user) => OnUserEntityCreated?.Invoke(client_lobby, user);
+                            client_lobby.OnUserEntityUpdated += (user) => OnUserEntityUpdated?.Invoke(client_lobby, user);
+                            client_lobby.OnUserEntityDestroyed += (user) => OnUserEntityDestroyed?.Invoke(client_lobby, user);
+                            client_lobby.OnEntityCreated += (entity) => OnEntityCreated?.Invoke(client_lobby, entity);
+                            client_lobby.OnEntityUpdated += (entity) => OnEntityUpdated?.Invoke(client_lobby, entity);
+                            client_lobby.OnEntityDestroyed += (entity) => OnEntityDestroyed?.Invoke(client_lobby, entity);
                             user.ClientLobby = client_lobby;
                             foreach (IInternalClientUser client_user in user_list)
                             {

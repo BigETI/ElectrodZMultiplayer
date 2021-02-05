@@ -130,6 +130,10 @@ namespace ElectrodZMultiplayer.Data
             {
                 throw new ArgumentNullException(nameof(entity));
             }
+            if (!entity.IsValid)
+            {
+                throw new ArgumentException("Entity is not valid.", nameof(entity));
+            }
             return new EntityDelta
             (
                 entity.GUID,

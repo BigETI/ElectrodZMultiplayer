@@ -234,6 +234,36 @@ namespace ElectrodZMultiplayer.Server
         public event StopGameCancelledDelegate OnStopGameCancelled;
 
         /// <summary>
+        /// This event will be invoked when an user entity has been created.
+        /// </summary>
+        public event UserEntityCreatedDelegate OnUserEntityCreated;
+
+        /// <summary>
+        /// This event will be invoked when an user entity has been updated.
+        /// </summary>
+        public event UserEntityUpdatedDelegate OnUserEntityUpdated;
+
+        /// <summary>
+        /// This event will be invoked when an user entity has been destroyed.
+        /// </summary>
+        public event UserEntityDestroyedDelegate OnUserEntityDestroyed;
+
+        /// <summary>
+        /// This event will be invoked when an entity has been created.
+        /// </summary>
+        public event EntityCreatedDelegate OnEntityCreated;
+
+        /// <summary>
+        /// This event will be invoked when an entity has been updated.
+        /// </summary>
+        public event EntityUpdatedDelegate OnEntityUpdated;
+
+        /// <summary>
+        /// This event will be invoked when an entity has been destroyed.
+        /// </summary>
+        public event EntityDestroyedDelegate OnEntityDestroyed;
+
+        /// <summary>
         /// Gets invoked when lobby has been closed
         /// </summary>
         public event LobbyClosedDelegate OnLobbyClosed;
@@ -486,6 +516,7 @@ namespace ElectrodZMultiplayer.Server
                     throw new InvalidOperationException("Game user GUID does not match user GUID.");
                 }
                 gameUsers.Add(game_user.GUID.ToString(), game_user);
+                OnUserEntityCreated?.Invoke(game_user);
                 CurrentlyLoadedGameMode.OnUserJoined(game_user);
                 SendMessageToAll(new ServerGameLoadingProcessFinishedMessageData(game_user));
                 ret = true;
@@ -545,7 +576,9 @@ namespace ElectrodZMultiplayer.Server
             string key = user.GUID.ToString();
             if (gameUsers.ContainsKey(key))
             {
-                CurrentlyLoadedGameMode?.OnUserLeft(gameUsers[key]);
+                IGameUser game_user = gameUsers[key];
+                CurrentlyLoadedGameMode?.OnUserLeft(game_user);
+                OnUserEntityDestroyed?.Invoke(game_user);
                 gameUsers.Remove(key);
             }
             if (users.ContainsKey(key))
@@ -684,11 +717,7 @@ namespace ElectrodZMultiplayer.Server
                 List<KeyValuePair<string, IEntity>> remove_entities = new List<KeyValuePair<string, IEntity>>(entities);
                 foreach (KeyValuePair<string, IEntity> remove_entity in remove_entities)
                 {
-                    if (remove_entity.Value is IGameEntity game_entity)
-                    {
-                        CurrentlyLoadedGameMode.OnGameEntityDestroyed(game_entity);
-                    }
-                    entities.Remove(remove_entity.Key);
+                    RemoveEntity(remove_entity.Value);
                 }
                 remove_entities.Clear();
                 entities.Clear();
@@ -698,6 +727,7 @@ namespace ElectrodZMultiplayer.Server
                     if (gameUsers.ContainsKey(remove_user.Key))
                     {
                         CurrentlyLoadedGameMode.OnUserLeft(remove_user.Value);
+                        OnUserEntityDestroyed?.Invoke(remove_user.Value);
                         gameUsers.Remove(remove_user.Key);
                     }
                 }
@@ -764,7 +794,9 @@ namespace ElectrodZMultiplayer.Server
                 throw new InvalidOperationException($"Game entity of GUID \"{ key }\" already exists.");
             }
             entities.Add(key, ret);
+            OnEntityCreated?.Invoke(ret);
             CurrentlyLoadedGameMode.OnGameEntityCreated(ret);
+            OnEntityCreated?.Invoke(ret);
             return ret;
         }
 
@@ -791,9 +823,11 @@ namespace ElectrodZMultiplayer.Server
             string key = entity.GUID.ToString();
             if (entities.ContainsKey(key))
             {
-                if (entities[key] is IGameEntity game_entity)
+                IEntity current_entity = entities[key];
+                if (current_entity is IGameEntity game_entity)
                 {
                     CurrentlyLoadedGameMode.OnGameEntityDestroyed(game_entity);
+                    OnEntityDestroyed?.Invoke(current_entity);
                 }
                 ret = entities.Remove(key);
             }
@@ -1024,11 +1058,16 @@ namespace ElectrodZMultiplayer.Server
                 CurrentlyLoadedGameMode?.OnGameTicked(deltaTime);
                 IHit[] current_hits = currentHits.ToArray();
                 currentHits.Clear();
+                foreach (IEntity entity in entities.Values)
+                {
+                    OnEntityUpdated?.Invoke(entity);
+                }
                 foreach (IGameUser game_user in gameUsers.Values)
                 {
                     string key = game_user.GUID.ToString();
                     if (users.ContainsKey(key) && (users[key] is IInternalServerUser server_user))
                     {
+                        OnUserEntityUpdated?.Invoke(game_user);
                         server_user.SendServerTickMessage(CurrentGameTime, current_hits);
                     }
                 }

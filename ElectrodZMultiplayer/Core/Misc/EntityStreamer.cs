@@ -40,7 +40,7 @@ namespace ElectrodZMultiplayer
         /// Gets the delta for the specified entity
         /// </summary>
         /// <param name="entity">Entity</param>
-        /// <returns></returns>
+        /// <returns>Entity delta</returns>
         private IEntityDelta GetEntityDelta(IEntity entity)
         {
             IEntityDelta ret;
@@ -50,7 +50,7 @@ namespace ElectrodZMultiplayer
                 (Entity, IEntityDelta) base_entity = entities[key];
                 if (Entity.TryGetDelta(base_entity.Item1, entity, out ret))
                 {
-                    if (ret.EntityType != null)
+                    if (!string.IsNullOrWhiteSpace(ret.EntityType))
                     {
                         base_entity.Item1.SetEntityTypeInternally(ret.EntityType);
                     }
