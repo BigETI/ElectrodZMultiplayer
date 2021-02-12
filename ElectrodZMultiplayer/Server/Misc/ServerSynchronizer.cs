@@ -933,7 +933,7 @@ namespace ElectrodZMultiplayer.Server
                                             SimulateEntity(game_entity, (EntityDelta)entity);
                                         }
                                     }
-                                    else if (serverLobby.GameUsers.ContainsKey(key))
+                                    else if ((serverUser.GUID == entity.GUID) && serverLobby.GameUsers.ContainsKey(key))
                                     {
                                         SimulateEntity(serverLobby.GameUsers[key], (EntityDelta)entity);
                                     }
@@ -1138,27 +1138,27 @@ namespace ElectrodZMultiplayer.Server
         {
             if (entityDelta.GameColor != null)
             {
-                gameEntity.SetGameColor(entityDelta.GameColor.Value);
+                gameEntity.SetGameColor(entityDelta.GameColor.Value, true);
             }
             if (entityDelta.Position != null)
             {
-                gameEntity.SetPosition(entityDelta.Position.Value);
+                gameEntity.SetPosition(entityDelta.Position.Value, true);
             }
             if (entityDelta.Rotation != null)
             {
-                gameEntity.SetRotation(entityDelta.Rotation.Value);
+                gameEntity.SetRotation(entityDelta.Rotation.Value, true);
             }
             if (entityDelta.Velocity != null)
             {
-                gameEntity.SetVelocity(entityDelta.Velocity.Value);
+                gameEntity.SetVelocity(entityDelta.Velocity.Value, true);
             }
             if (entityDelta.AngularVelocity != null)
             {
-                gameEntity.SetAngularVelocity(entityDelta.AngularVelocity.Value);
+                gameEntity.SetAngularVelocity(entityDelta.AngularVelocity.Value, true);
             }
             if (entityDelta.Actions != null)
             {
-                gameEntity.SetActions(entityDelta.Actions);
+                gameEntity.SetActions(entityDelta.Actions, true);
             }
             entityDeltas.Add(entityDelta);
         }
