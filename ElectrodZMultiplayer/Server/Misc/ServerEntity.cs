@@ -91,7 +91,11 @@ namespace ElectrodZMultiplayer.Server
             }
             if (isValueFromClient)
             {
-                if (!IsClientGameColorSet)
+                if (IsClientGameColorSet)
+                {
+                    SetGameColorInternally(newGameColor);
+                }
+                else
                 {
                     IsClientGameColorSet = GameColor == newGameColor;
                 }
@@ -118,7 +122,11 @@ namespace ElectrodZMultiplayer.Server
         {
             if (isValueFromClient)
             {
-                if (!IsClientPositionSet)
+                if (IsClientPositionSet)
+                {
+                    SetPositionInternally(newPosition);
+                }
+                else
                 {
                     IsClientPositionSet = (Position - newPosition).MagnitudeSquared <= clientErrorMarginSquared;
                 }
@@ -146,7 +154,11 @@ namespace ElectrodZMultiplayer.Server
             if (isValueFromClient)
             {
                 Quaternion delta = new Quaternion(Rotation.X - newRotation.X, Rotation.Y - newRotation.Y, Rotation.Z - newRotation.Z, Rotation.W - newRotation.W);
-                if (!IsClientRotationSet)
+                if (IsClientRotationSet)
+                {
+                    SetRotationInternally(newRotation);
+                }
+                else
                 {
                     IsClientRotationSet = ((delta.X * delta.X) + (delta.Y * delta.Y) + (delta.Z * delta.Z) + (delta.W * delta.W)) <= clientErrorMarginSquared;
                 }
@@ -173,7 +185,11 @@ namespace ElectrodZMultiplayer.Server
         {
             if (isValueFromClient)
             {
-                if (!IsClientVelocitySet)
+                if (IsClientVelocitySet)
+                {
+                    SetVelocityInternally(newVelocity);
+                }
+                else
                 {
                     IsClientVelocitySet = (Velocity - newVelocity).MagnitudeSquared <= clientErrorMarginSquared;
                 }
@@ -200,7 +216,11 @@ namespace ElectrodZMultiplayer.Server
         {
             if (isValueFromClient)
             {
-                if (!IsClientAngularVelocitySet)
+                if (IsClientAngularVelocitySet)
+                {
+                    SetAngularVelocityInternally(newAngularVelocity);
+                }
+                else
                 {
                     IsClientAngularVelocitySet = (AngularVelocity - newAngularVelocity).MagnitudeSquared <= clientErrorMarginSquared;
                 }
@@ -234,7 +254,11 @@ namespace ElectrodZMultiplayer.Server
             uint ret = 0U;
             if (isValueFromClient)
             {
-                if (!AreClientActionsSet)
+                if (AreClientActionsSet)
+                {
+                    ret = SetActionsInternally(newActions);
+                }
+                else
                 {
                     if (Actions is HashSet<string> actions)
                     {
