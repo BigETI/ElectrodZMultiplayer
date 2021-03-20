@@ -93,6 +93,36 @@ namespace ElectrodZMultiplayer.Server
         public virtual IEnumerable<string> Actions => ServerUser.Actions;
 
         /// <summary>
+        /// Is client game color set
+        /// </summary>
+        public bool IsClientGameColorSet => ServerUser.IsClientGameColorSet;
+
+        /// <summary>
+        /// Is client position set
+        /// </summary>
+        public bool IsClientPositionSet => ServerUser.IsClientPositionSet;
+
+        /// <summary>
+        /// Is client rotation set
+        /// </summary>
+        public bool IsClientRotationSet => ServerUser.IsClientRotationSet;
+
+        /// <summary>
+        /// Is client velocity set
+        /// </summary>
+        public bool IsClientVelocitySet => ServerUser.IsClientVelocitySet;
+
+        /// <summary>
+        /// Is client angular velocity set
+        /// </summary>
+        public bool IsClientAngularVelocitySet => ServerUser.IsClientAngularVelocitySet;
+
+        /// <summary>
+        /// Are client game actions set
+        /// </summary>
+        public bool AreClientActionsSet => ServerUser.AreClientActionsSet;
+
+        /// <summary>
         /// Is object in a valid state
         /// </summary>
         public virtual bool IsValid =>
@@ -177,10 +207,24 @@ namespace ElectrodZMultiplayer.Server
         public virtual void SetGameColor(EGameColor newGameColor) => ServerUser.SetGameColor(newGameColor);
 
         /// <summary>
+        /// Sets the new game color
+        /// </summary>
+        /// <param name="newGameColor">New game entity game color</param>
+        /// <param name="isValueFromClient">Is value from client</param>
+        public virtual void SetGameColor(EGameColor newGameColor, bool isValueFromClient) => ServerUser.SetGameColor(newGameColor, isValueFromClient);
+
+        /// <summary>
         /// Set the new position
         /// </summary>
         /// <param name="newPosition">New position</param>
         public virtual void SetPosition(Vector3 newPosition) => ServerUser.SetPosition(newPosition);
+
+        /// <summary>
+        /// Sets the new position
+        /// </summary>
+        /// <param name="newPosition">New game entity position</param>
+        /// <param name="isValueFromClient">Is value from client</param>
+        public virtual void SetPosition(Vector3 newPosition, bool isValueFromClient) => ServerUser.SetPosition(newPosition, isValueFromClient);
 
         /// <summary>
         /// Sets the new rotation
@@ -189,10 +233,24 @@ namespace ElectrodZMultiplayer.Server
         public virtual void SetRotation(Quaternion newRotation) => ServerUser.SetRotation(newRotation);
 
         /// <summary>
+        /// Sets the new rotation
+        /// </summary>
+        /// <param name="newRotation">New game entity rotation</param>
+        /// <param name="isValueFromClient">Is value from client</param>
+        public virtual void SetRotation(Quaternion newRotation, bool isValueFromClient) => ServerUser.SetRotation(newRotation, isValueFromClient);
+
+        /// <summary>
         /// Sets the new velocity
         /// </summary>
         /// <param name="newVelocity">New velocity</param>
         public virtual void SetVelocity(Vector3 newVelocity) => ServerUser.SetVelocity(newVelocity);
+
+        /// <summary>
+        /// Sets the new velocity
+        /// </summary>
+        /// <param name="newVelocity">New game entity velocity</param>
+        /// <param name="isValueFromClient">Is value from client</param>
+        public virtual void SetVelocity(Vector3 newVelocity, bool isValueFromClient) => ServerUser.SetVelocity(newVelocity, isValueFromClient);
 
         /// <summary>
         /// Sets the new angular velocity
@@ -201,10 +259,25 @@ namespace ElectrodZMultiplayer.Server
         public virtual void SetAngularVelocity(Vector3 newAngularVelocity) => ServerUser.SetAngularVelocity(newAngularVelocity);
 
         /// <summary>
+        /// Sets the new angular velocity of game entity
+        /// </summary>
+        /// <param name="newAngularVelocity">New game entity angular velocity</param>
+        /// <param name="isValueFromClient">Is value from client</param>
+        public virtual void SetAngularVelocity(Vector3 newAngularVelocity, bool isValueFromClient) => ServerUser.SetAngularVelocity(newAngularVelocity, isValueFromClient);
+
+        /// <summary>
         /// Sets the new game actions
         /// </summary>
         /// <param name="newActions">New game actions</param>
         /// <returns>Number of game actions set</returns>
         public virtual uint SetActions(IEnumerable<string> newActions) => ServerUser.SetActions(newActions);
+
+        /// <summary>
+        /// Sets the new game actions of game entity
+        /// </summary>
+        /// <param name="newActions">New game entity game actions</param>
+        /// <param name="isValueFromClient">Is value from client</param>
+        /// <returns>Number of actions set</returns>
+        public virtual uint SetActions(IEnumerable<string> newActions, bool isValueFromClient) => ServerUser.SetActions(newActions, isValueFromClient);
     }
 }
