@@ -686,24 +686,27 @@ namespace ElectrodZServer
                                 {
                                     stopwatch.Restart();
                                     server.ProcessEvents();
-                                    while (Console.KeyAvailable)
+                                    if (!Console.IsInputRedirected)
                                     {
-                                        console_key_information = Console.ReadKey();
-                                        if (console_key_information.KeyChar != '\0')
+                                        while (Console.KeyAvailable)
                                         {
-                                            if (console_key_information.Key == ConsoleKey.Enter)
+                                            console_key_information = Console.ReadKey();
+                                            if (console_key_information.KeyChar != '\0')
                                             {
-                                                string input = input_string_builder.ToString();
-                                                WriteOutputLogLine(input);
-                                                if (!consoleCommands.ParseCommand(input))
+                                                if (console_key_information.Key == ConsoleKey.Enter)
                                                 {
-                                                    WriteErrorLogLine("Failed to execute command.");
+                                                    string input = input_string_builder.ToString();
+                                                    WriteOutputLogLine(input);
+                                                    if (!consoleCommands.ParseCommand(input))
+                                                    {
+                                                        WriteErrorLogLine("Failed to execute command.");
+                                                    }
+                                                    input_string_builder.Clear();
                                                 }
-                                                input_string_builder.Clear();
-                                            }
-                                            else
-                                            {
-                                                input_string_builder.Append(console_key_information.KeyChar);
+                                                else
+                                                {
+                                                    input_string_builder.Append(console_key_information.KeyChar);
+                                                }
                                             }
                                         }
                                     }
