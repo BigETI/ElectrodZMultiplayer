@@ -51,6 +51,14 @@ namespace ElectrodZMultiplayer
         /// </summary>
         public IEnumerable<string> Actions { get; }
 
+        /// <summary>
+        /// Is resynchronization requested
+        /// </summary>
+        public bool? IsResyncRequested { get; }
+
+        /// <summary>
+        /// Is object in a valid state
+        /// </summary>
         public bool IsValid =>
             (GUID != Guid.Empty) &&
             ((GameColor == null) || GameColor.Value != EGameColor.Invalid) &&
@@ -67,7 +75,8 @@ namespace ElectrodZMultiplayer
         /// <param name="velocity">Velocity</param>
         /// <param name="angularVelocity">Angular velocity</param>
         /// <param name="actions">Actions</param>
-        public EntityDelta(Guid guid, string entityType = null, EGameColor? gameColor = null, Vector3? position = null, Quaternion? rotation = null, Vector3? velocity = null, Vector3? angularVelocity = null, IEnumerable<string> actions = null)
+        /// <param name="isResyncRequested">Is resynchronization requested</param>
+        public EntityDelta(Guid guid, string entityType = null, EGameColor? gameColor = null, Vector3? position = null, Quaternion? rotation = null, Vector3? velocity = null, Vector3? angularVelocity = null, IEnumerable<string> actions = null, bool? isResyncRequested = null)
         {
             if (guid == Guid.Empty)
             {
@@ -81,6 +90,7 @@ namespace ElectrodZMultiplayer
             Velocity = velocity;
             AngularVelocity = angularVelocity;
             Actions = actions;
+            IsResyncRequested = isResyncRequested;
         }
 
         /// <summary>
@@ -132,7 +142,8 @@ namespace ElectrodZMultiplayer
                 patchEntityDelta.Rotation ?? baseEntityDelta.Rotation,
                 patchEntityDelta.Velocity ?? baseEntityDelta.Velocity,
                 patchEntityDelta.AngularVelocity ?? baseEntityDelta.AngularVelocity,
-                actions
+                actions,
+                patchEntityDelta.IsResyncRequested ?? baseEntityDelta.IsResyncRequested
             );
         }
     }

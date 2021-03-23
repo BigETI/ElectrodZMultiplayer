@@ -767,8 +767,9 @@ namespace ElectrodZMultiplayer.Server
         /// <param name="velocity">Game entity velocity (optional)</param>
         /// <param name="angularVelocity">Game entity angular valocity (optional)</param>
         /// <param name="actions">Game entity game actions (optional)</param>
+        /// <param name="isResyncRequested">Is resynchronization requested (optional)</param>
         /// <returns>Game entity</returns>
-        public IGameEntity CreateNewGameEntity(string entityType, EGameColor? gameColor = null, Vector3? position = null, Quaternion? rotation = null, Vector3? velocity = null, Vector3? angularVelocity = null, IEnumerable<string> actions = null)
+        public IGameEntity CreateNewGameEntity(string entityType, EGameColor? gameColor = null, Vector3? position = null, Quaternion? rotation = null, Vector3? velocity = null, Vector3? angularVelocity = null, IEnumerable<string> actions = null, bool? isResyncRequested = null)
         {
             if (CurrentlyLoadedGameMode == null)
             {
@@ -778,7 +779,7 @@ namespace ElectrodZMultiplayer.Server
             {
                 throw new NullReferenceException("Game entity factory is null.");
             }
-            IServerEntity server_entity = new ServerEntity(Guid.NewGuid(), entityType, (gameColor == null) ? EGameColor.Default : gameColor.Value, (position == null) ? Vector3.Zero : position.Value, (rotation == null) ? Quaternion.Identity : rotation.Value, (velocity == null) ? Vector3.Zero : velocity.Value, (angularVelocity == null) ? Vector3.Zero : angularVelocity.Value, actions);
+            IServerEntity server_entity = new ServerEntity(Guid.NewGuid(), entityType, gameColor ?? EGameColor.Default, position ?? Vector3.Zero, rotation ?? Quaternion.Identity, velocity ?? Vector3.Zero, angularVelocity ?? Vector3.Zero, actions, isResyncRequested ?? false);
             IGameEntity ret = gameEntityFactory.CreateNewGameEntity(server_entity);
             if (ret == null)
             {
