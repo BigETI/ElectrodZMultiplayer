@@ -13,6 +13,16 @@ namespace ElectrodZMultiplayer.Server
     internal class ServerLobby : IInternalServerLobby
     {
         /// <summary>
+        /// Empty user results
+        /// </summary>
+        private static readonly IReadOnlyDictionary<string, UserWithResults> emptyUserResults = new Dictionary<string, UserWithResults>();
+
+        /// <summary>
+        /// Empty results
+        /// </summary>
+        private static readonly IReadOnlyDictionary<string, object> emptyResults = new Dictionary<string, object>();
+
+        /// <summary>
         /// Game mode rules
         /// </summary>
         private readonly Dictionary<string, object> gameModeRules = new Dictionary<string, object>();
@@ -734,7 +744,16 @@ namespace ElectrodZMultiplayer.Server
                 remove_users.Clear();
                 gameUsers.Clear();
                 OnGameModeStopped?.Invoke(CurrentlyLoadedGameMode);
-                OnGameStopped?.Invoke(CurrentlyLoadedGameMode.UserResults, CurrentlyLoadedGameMode.Results);
+                IReadOnlyDictionary<string, UserWithResults> user_results = CurrentlyLoadedGameMode.UserResults ?? emptyUserResults;
+                IReadOnlyDictionary<string, object> results = CurrentlyLoadedGameMode.Results ?? emptyResults;
+                OnGameStopped?.Invoke(user_results, results);
+                List<(IUser, IReadOnlyDictionary<string, object>)> users_result_list = new List<(IUser, IReadOnlyDictionary<string, object>)>();
+                foreach (UserWithResults user_with_results in user_results.Values)
+                {
+                    users_result_list.Add((user_with_results.User, user_with_results.Results));
+                }
+                SendMessageToAll(new GameStoppedMessageData(users_result_list, results));
+                users_result_list.Clear();
                 CurrentlyLoadedGameMode.OnClosed();
                 gameUserFactory = null;
                 gameEntityFactory = null;
