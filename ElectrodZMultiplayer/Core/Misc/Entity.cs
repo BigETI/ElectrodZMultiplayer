@@ -60,7 +60,7 @@ namespace ElectrodZMultiplayer
         /// <summary>
         /// Is resynchronization requested
         /// </summary>
-        public virtual bool IsResyncRequested { get; }
+        public virtual bool IsResyncRequested { get; private set; }
 
         /// <summary>
         /// Is object in a valid state
@@ -334,6 +334,12 @@ namespace ElectrodZMultiplayer
             }
             return ret;
         }
+
+        /// <summary>
+        /// Sets the resynchronization requested state internally
+        /// </summary>
+        /// <param name="isResyncRequested">Is resynchronization requested</param>
+        public void SetResyncRequestedStateInternally(bool isResyncRequested) => IsResyncRequested = isResyncRequested;
 
         /// <summary>
         /// Casts the specified entity data to an entity object

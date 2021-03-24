@@ -372,6 +372,10 @@ namespace ElectrodZMultiplayer.Client
             {
                 entity.SetActionsInternally(entityData.Actions);
             }
+            if (entityData.IsResyncRequested != null)
+            {
+                entity.SetResyncRequestedStateInternally(entityData.IsResyncRequested.Value);
+            }
         }
 
         /// <summary>
