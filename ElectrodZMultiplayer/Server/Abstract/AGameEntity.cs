@@ -57,6 +57,11 @@ namespace ElectrodZMultiplayer.Server
         public virtual IEnumerable<string> Actions => ServerEntity.Actions;
 
         /// <summary>
+        /// Is resynchronization requested
+        /// </summary>
+        public bool IsResyncRequested => ServerEntity.IsResyncRequested;
+
+        /// <summary>
         /// Is client game color set
         /// </summary>
         public bool IsClientGameColorSet => ServerEntity.IsClientGameColorSet;

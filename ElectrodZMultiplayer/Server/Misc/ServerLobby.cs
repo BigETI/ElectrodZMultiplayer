@@ -13,6 +13,16 @@ namespace ElectrodZMultiplayer.Server
     internal class ServerLobby : IInternalServerLobby
     {
         /// <summary>
+        /// Empty user results
+        /// </summary>
+        private static readonly IReadOnlyDictionary<string, UserWithResults> emptyUserResults = new Dictionary<string, UserWithResults>();
+
+        /// <summary>
+        /// Empty results
+        /// </summary>
+        private static readonly IReadOnlyDictionary<string, object> emptyResults = new Dictionary<string, object>();
+
+        /// <summary>
         /// Game mode rules
         /// </summary>
         private readonly Dictionary<string, object> gameModeRules = new Dictionary<string, object>();
@@ -734,7 +744,16 @@ namespace ElectrodZMultiplayer.Server
                 remove_users.Clear();
                 gameUsers.Clear();
                 OnGameModeStopped?.Invoke(CurrentlyLoadedGameMode);
-                OnGameStopped?.Invoke(CurrentlyLoadedGameMode.UserResults, CurrentlyLoadedGameMode.Results);
+                IReadOnlyDictionary<string, UserWithResults> user_results = CurrentlyLoadedGameMode.UserResults ?? emptyUserResults;
+                IReadOnlyDictionary<string, object> results = CurrentlyLoadedGameMode.Results ?? emptyResults;
+                OnGameStopped?.Invoke(user_results, results);
+                List<(IUser, IReadOnlyDictionary<string, object>)> users_result_list = new List<(IUser, IReadOnlyDictionary<string, object>)>();
+                foreach (UserWithResults user_with_results in user_results.Values)
+                {
+                    users_result_list.Add((user_with_results.User, user_with_results.Results));
+                }
+                SendMessageToAll(new GameStoppedMessageData(users_result_list, results));
+                users_result_list.Clear();
                 CurrentlyLoadedGameMode.OnClosed();
                 gameUserFactory = null;
                 gameEntityFactory = null;
@@ -767,8 +786,9 @@ namespace ElectrodZMultiplayer.Server
         /// <param name="velocity">Game entity velocity (optional)</param>
         /// <param name="angularVelocity">Game entity angular valocity (optional)</param>
         /// <param name="actions">Game entity game actions (optional)</param>
+        /// <param name="isResyncRequested">Is resynchronization requested (optional)</param>
         /// <returns>Game entity</returns>
-        public IGameEntity CreateNewGameEntity(string entityType, EGameColor? gameColor = null, Vector3? position = null, Quaternion? rotation = null, Vector3? velocity = null, Vector3? angularVelocity = null, IEnumerable<string> actions = null)
+        public IGameEntity CreateNewGameEntity(string entityType, EGameColor? gameColor = null, Vector3? position = null, Quaternion? rotation = null, Vector3? velocity = null, Vector3? angularVelocity = null, IEnumerable<string> actions = null, bool? isResyncRequested = null)
         {
             if (CurrentlyLoadedGameMode == null)
             {
@@ -778,7 +798,7 @@ namespace ElectrodZMultiplayer.Server
             {
                 throw new NullReferenceException("Game entity factory is null.");
             }
-            IServerEntity server_entity = new ServerEntity(Guid.NewGuid(), entityType, (gameColor == null) ? EGameColor.Default : gameColor.Value, (position == null) ? Vector3.Zero : position.Value, (rotation == null) ? Quaternion.Identity : rotation.Value, (velocity == null) ? Vector3.Zero : velocity.Value, (angularVelocity == null) ? Vector3.Zero : angularVelocity.Value, actions);
+            IServerEntity server_entity = new ServerEntity(Guid.NewGuid(), entityType, gameColor ?? EGameColor.Default, position ?? Vector3.Zero, rotation ?? Quaternion.Identity, velocity ?? Vector3.Zero, angularVelocity ?? Vector3.Zero, actions, isResyncRequested ?? false);
             IGameEntity ret = gameEntityFactory.CreateNewGameEntity(server_entity);
             if (ret == null)
             {

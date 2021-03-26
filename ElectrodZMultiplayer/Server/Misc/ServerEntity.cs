@@ -47,6 +47,17 @@ namespace ElectrodZMultiplayer.Server
         public bool AreClientActionsSet { get; private set; } = true;
 
         /// <summary>
+        /// Is resynchronization requested
+        /// </summary>
+        public override bool IsResyncRequested =>
+            !IsClientGameColorSet ||
+            !IsClientPositionSet ||
+            !IsClientRotationSet ||
+            !IsClientVelocitySet ||
+            !IsClientAngularVelocitySet ||
+            !AreClientActionsSet;
+
+        /// <summary>
         /// Constructs a server entity object
         /// </summary>
         /// <param name="guid">Entity GUID</param>
@@ -67,7 +78,8 @@ namespace ElectrodZMultiplayer.Server
         /// <param name="velocity">Velocity</param>
         /// <param name="angularVelocity">Angular velocity</param>
         /// <param name="actions">Game actions</param>
-        public ServerEntity(Guid guid, string entityType, EGameColor gameColor, Vector3 position, Quaternion rotation, Vector3 velocity, Vector3 angularVelocity, IEnumerable<string> actions) : base(guid, entityType, gameColor, position, rotation, velocity, angularVelocity, actions)
+        /// <param name="isResyncRequested">Is resynchronization requested</param>
+        public ServerEntity(Guid guid, string entityType, EGameColor gameColor, Vector3 position, Quaternion rotation, Vector3 velocity, Vector3 angularVelocity, IEnumerable<string> actions, bool isResyncRequested) : base(guid, entityType, gameColor, position, rotation, velocity, angularVelocity, actions, isResyncRequested)
         {
             // ...
         }

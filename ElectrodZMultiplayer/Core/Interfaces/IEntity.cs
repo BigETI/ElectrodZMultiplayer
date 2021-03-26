@@ -50,5 +50,10 @@ namespace ElectrodZMultiplayer
         /// Current game actions
         /// </summary>
         IEnumerable<string> Actions { get; }
+
+        /// <summary>
+        /// Is resynchronization requested
+        /// </summary>
+        bool IsResyncRequested { get; }
     }
 }

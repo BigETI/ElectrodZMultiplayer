@@ -58,6 +58,11 @@ namespace ElectrodZMultiplayer
         public IEnumerable<string> Actions => actions;
 
         /// <summary>
+        /// Is resynchronization requested
+        /// </summary>
+        public virtual bool IsResyncRequested { get; private set; }
+
+        /// <summary>
         /// Is object in a valid state
         /// </summary>
         /// <returns>"true" if valid, otherwise "false"</returns>
@@ -97,7 +102,8 @@ namespace ElectrodZMultiplayer
         /// <param name="velocity">Velocity</param>
         /// <param name="angularVelocity">Angular velocity</param>
         /// <param name="actions">Game actions</param>
-        public Entity(Guid guid, string entityType, EGameColor gameColor, Vector3 position, Quaternion rotation, Vector3 velocity, Vector3 angularVelocity, IEnumerable<string> actions)
+        /// <param name="isResyncRequested">Is resynchronization requested</param>
+        public Entity(Guid guid, string entityType, EGameColor gameColor, Vector3 position, Quaternion rotation, Vector3 velocity, Vector3 angularVelocity, IEnumerable<string> actions, bool isResyncRequested)
         {
             if (guid == Guid.Empty)
             {
@@ -126,6 +132,8 @@ namespace ElectrodZMultiplayer
             Rotation = rotation;
             Velocity = velocity;
             AngularVelocity = angularVelocity;
+            this.actions.UnionWith(actions);
+            IsResyncRequested = isResyncRequested;
         }
 
         /// <summary>
@@ -173,6 +181,7 @@ namespace ElectrodZMultiplayer
             Vector3? velocity = null;
             Vector3? angular_velocity = null;
             IEnumerable<string> actions = null;
+            bool? is_resync_requested = null;
             if (baseEntity != patchEntity)
             {
                 if (baseEntity.EntityType != patchEntity.EntityType)
@@ -218,6 +227,11 @@ namespace ElectrodZMultiplayer
                         break;
                     }
                 }
+                if (baseEntity.IsResyncRequested != patchEntity.IsResyncRequested)
+                {
+                    ret = true;
+                    is_resync_requested = patchEntity.IsResyncRequested;
+                }
                 if (actions == null)
                 {
                     foreach (string action in patchEntity.Actions)
@@ -230,7 +244,7 @@ namespace ElectrodZMultiplayer
                     }
                 }
             }
-            entityDelta = ret ? (IEntityDelta)new EntityDelta(baseEntity.GUID, entity_type, game_color, position, rotation, velocity, angular_velocity, actions) : null;
+            entityDelta = ret ? (IEntityDelta)new EntityDelta(baseEntity.GUID, entity_type, game_color, position, rotation, velocity, angular_velocity, actions, is_resync_requested) : null;
             return ret;
         }
 
@@ -322,6 +336,12 @@ namespace ElectrodZMultiplayer
         }
 
         /// <summary>
+        /// Sets the resynchronization requested state internally
+        /// </summary>
+        /// <param name="isResyncRequested">Is resynchronization requested</param>
+        public void SetResyncRequestedStateInternally(bool isResyncRequested) => IsResyncRequested = isResyncRequested;
+
+        /// <summary>
         /// Casts the specified entity data to an entity object
         /// </summary>
         /// <param name="entity">Entity data</param>
@@ -339,7 +359,7 @@ namespace ElectrodZMultiplayer
             {
                 throw new ArgumentException("Entity type can't be empty.", nameof(entity));
             }
-            return new Entity(entity.GUID, entity.EntityType, (entity.GameColor == null) ? EGameColor.Default : entity.GameColor.Value, (entity.Position == null) ? Vector3.Zero : new Vector3(entity.Position.X, entity.Position.Y, entity.Position.Z), (entity.Rotation == null) ? Quaternion.Identity : new Quaternion(entity.Rotation.X, entity.Rotation.Y, entity.Rotation.Z, entity.Rotation.W), (entity.Velocity == null) ? Vector3.Zero : new Vector3(entity.Velocity.X, entity.Velocity.Y, entity.Velocity.Z), (entity.AngularVelocity == null) ? Vector3.Zero : new Vector3(entity.AngularVelocity.X, entity.AngularVelocity.Y, entity.AngularVelocity.Z), entity.Actions ?? (IEnumerable<string>)Array.Empty<string>());
+            return new Entity(entity.GUID, entity.EntityType, (entity.GameColor == null) ? EGameColor.Default : entity.GameColor.Value, (entity.Position == null) ? Vector3.Zero : new Vector3(entity.Position.X, entity.Position.Y, entity.Position.Z), (entity.Rotation == null) ? Quaternion.Identity : new Quaternion(entity.Rotation.X, entity.Rotation.Y, entity.Rotation.Z, entity.Rotation.W), (entity.Velocity == null) ? Vector3.Zero : new Vector3(entity.Velocity.X, entity.Velocity.Y, entity.Velocity.Z), (entity.AngularVelocity == null) ? Vector3.Zero : new Vector3(entity.AngularVelocity.X, entity.AngularVelocity.Y, entity.AngularVelocity.Z), entity.Actions ?? (IEnumerable<string>)Array.Empty<string>(), entity.IsResyncRequested ?? false);
         }
     }
 }

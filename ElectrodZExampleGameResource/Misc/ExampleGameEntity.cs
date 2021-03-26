@@ -16,7 +16,7 @@ namespace ElectrodZExampleGameResource
         /// <summary>
         /// Constructs an example game entity
         /// </summary>
-        /// <param name="serverEntity"></param>
+        /// <param name="serverEntity">Server entity</param>
         public ExampleGameEntity(IServerEntity serverEntity) : base(serverEntity)
         {
             // ...

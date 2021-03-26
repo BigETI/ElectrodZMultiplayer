@@ -92,8 +92,9 @@ namespace ElectrodZMultiplayer.Server
         /// <param name="velocity">Game entity velocity (optional)</param>
         /// <param name="angularVelocity">Game entity angular valocity (optional)</param>
         /// <param name="actions">Game entity game actions (optional)</param>
+        /// <param name="isResyncRequested">Is resynchronization requested (optional)</param>
         /// <returns>Game entity</returns>
-        IGameEntity CreateNewGameEntity(string entityType, EGameColor? gameColor = null, Vector3? position = null, Quaternion? rotation = null, Vector3? velocity = null, Vector3? angularVelocity = null, IEnumerable<string> actions = null);
+        IGameEntity CreateNewGameEntity(string entityType, EGameColor? gameColor = null, Vector3? position = null, Quaternion? rotation = null, Vector3? velocity = null, Vector3? angularVelocity = null, IEnumerable<string> actions = null, bool? isResyncRequested = null);
 
         /// <summary>
         /// Removes the specified entity

@@ -64,6 +64,12 @@ namespace ElectrodZMultiplayer.Data
         public List<string> Actions { get; set; }
 
         /// <summary>
+        /// Is resynchronization requested
+        /// </summary>
+        [JsonProperty("isResyncRequested")]
+        public bool? IsResyncRequested { get; set; }
+
+        /// <summary>
         /// Is object in a valid state
         /// </summary>
         public bool IsValid =>
@@ -91,7 +97,8 @@ namespace ElectrodZMultiplayer.Data
         /// <param name="velocity">Current velocity (optional)</param>
         /// <param name="angularVelocity">Current angular velocity (optional)</param>
         /// <param name="actions">Current game actions (optional)</param>
-        public EntityData(Guid guid, string entityType, EGameColor? color, Vector3? position, Quaternion? rotation, Vector3? velocity, Vector3? angularVelocity, IEnumerable<string> actions)
+        /// <param name="isResyncRequested">Is resynchronization requested (optional)</param>
+        public EntityData(Guid guid, string entityType, EGameColor? color, Vector3? position, Quaternion? rotation, Vector3? velocity, Vector3? angularVelocity, IEnumerable<string> actions, bool? isResyncRequested)
         {
             if (guid == Guid.Empty)
             {
@@ -118,6 +125,7 @@ namespace ElectrodZMultiplayer.Data
             AngularVelocity = (angularVelocity == null) ? null : (Vector3FloatData)angularVelocity;
             GameColor = color;
             Actions = (actions == null) ? null : new List<string>(actions ?? throw new ArgumentNullException(nameof(actions)));
+            IsResyncRequested = isResyncRequested;
         }
 
         /// <summary>
@@ -143,7 +151,8 @@ namespace ElectrodZMultiplayer.Data
                 (entity.Rotation == null) ? (Quaternion?)null : new Quaternion(entity.Rotation.X, entity.Rotation.Y, entity.Rotation.Z, entity.Rotation.W),
                 (entity.Velocity == null) ? (Vector3?)null : new Vector3(entity.Velocity.X, entity.Velocity.Y, entity.Velocity.Z),
                 (entity.AngularVelocity == null) ? (Vector3?)null : new Vector3(entity.AngularVelocity.X, entity.AngularVelocity.Y, entity.AngularVelocity.Z),
-                entity.Actions
+                entity.Actions,
+                entity.IsResyncRequested
             );
         }
     }

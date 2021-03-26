@@ -59,5 +59,11 @@ namespace ElectrodZMultiplayer
         /// <param name="actions">Game actions</param>
         /// <returns>Number of actions added</returns>
         uint SetActionsInternally(IEnumerable<string> actions);
+
+        /// <summary>
+        /// Sets the resynchronization requested state internally
+        /// </summary>
+        /// <param name="isResyncRequested">Is resynchronization requested</param>
+        void SetResyncRequestedStateInternally(bool isResyncRequested);
     }
 }
