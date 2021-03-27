@@ -76,7 +76,7 @@ namespace ElectrodZMultiplayer.Data.Messages
             Entities = new List<EntityData>();
             foreach (IEntityDelta entity_delta in entityDeltas)
             {
-                Entities.Add(new EntityData(entity_delta.GUID, entity_delta.EntityType, entity_delta.GameColor, entity_delta.Position, entity_delta.Rotation, entity_delta.Velocity, entity_delta.AngularVelocity, entity_delta.Actions, entity_delta.IsResyncRequested));
+                Entities.Add(new EntityData(entity_delta.GUID, entity_delta.EntityType, entity_delta.GameColor, entity_delta.IsSpectating, entity_delta.Position, entity_delta.Rotation, entity_delta.Velocity, entity_delta.AngularVelocity, entity_delta.Actions, entity_delta.IsResyncRequested));
             }
             if (hits != null)
             {

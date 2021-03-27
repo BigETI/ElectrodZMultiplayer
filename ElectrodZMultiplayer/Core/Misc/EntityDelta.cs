@@ -27,6 +27,11 @@ namespace ElectrodZMultiplayer
         public EGameColor? GameColor { get; }
 
         /// <summary>
+        /// Is spectating (optional)
+        /// </summary>
+        public bool? IsSpectating { get; }
+
+        /// <summary>
         /// Current position (optional)
         /// </summary>
         public Vector3? Position { get; }
@@ -70,13 +75,14 @@ namespace ElectrodZMultiplayer
         /// <param name="guid">GUID</param>
         /// <param name="entityType">Entity type</param>
         /// <param name="gameColor">Game color</param>
+        /// <param name="isSpectating">Is spectating</param>
         /// <param name="position">Position</param>
         /// <param name="rotation">Rotation</param>
         /// <param name="velocity">Velocity</param>
         /// <param name="angularVelocity">Angular velocity</param>
         /// <param name="actions">Actions</param>
         /// <param name="isResyncRequested">Is resynchronization requested</param>
-        public EntityDelta(Guid guid, string entityType = null, EGameColor? gameColor = null, Vector3? position = null, Quaternion? rotation = null, Vector3? velocity = null, Vector3? angularVelocity = null, IEnumerable<string> actions = null, bool? isResyncRequested = null)
+        public EntityDelta(Guid guid, string entityType = null, EGameColor? gameColor = null, bool? isSpectating = null, Vector3? position = null, Quaternion? rotation = null, Vector3? velocity = null, Vector3? angularVelocity = null, IEnumerable<string> actions = null, bool? isResyncRequested = null)
         {
             if (guid == Guid.Empty)
             {
@@ -85,6 +91,7 @@ namespace ElectrodZMultiplayer
             GUID = guid;
             EntityType = entityType;
             GameColor = gameColor;
+            IsSpectating = isSpectating;
             Position = position;
             Rotation = rotation;
             Velocity = velocity;
@@ -138,6 +145,7 @@ namespace ElectrodZMultiplayer
                 baseEntityDelta.GUID,
                 patchEntityDelta.EntityType ?? baseEntityDelta.EntityType,
                 patchEntityDelta.GameColor ?? baseEntityDelta.GameColor,
+                patchEntityDelta.IsSpectating ?? baseEntityDelta.IsSpectating,
                 patchEntityDelta.Position ?? baseEntityDelta.Position,
                 patchEntityDelta.Rotation ?? baseEntityDelta.Rotation,
                 patchEntityDelta.Velocity ?? baseEntityDelta.Velocity,

@@ -34,6 +34,12 @@ namespace ElectrodZMultiplayer.Data
         public EGameColor? GameColor { get; set; }
 
         /// <summary>
+        /// Is spectating (optional)
+        /// </summary>
+        [JsonProperty("isSpectating")]
+        public bool? IsSpectating { get; set; }
+
+        /// <summary>
         /// Current position (optional)
         /// </summary>
         [JsonProperty("position")]
@@ -92,13 +98,14 @@ namespace ElectrodZMultiplayer.Data
         /// <param name="guid">Entity GUID</param>
         /// <param name="entityType">Current entity type (optional)</param>
         /// <param name="color">Current game color (optional)</param>
+        /// <param name="isSpectating">Is spectating (optional)</param>
         /// <param name="position">Current position (optional)</param>
         /// <param name="rotation">Current rotation (optional)</param>
         /// <param name="velocity">Current velocity (optional)</param>
         /// <param name="angularVelocity">Current angular velocity (optional)</param>
         /// <param name="actions">Current game actions (optional)</param>
         /// <param name="isResyncRequested">Is resynchronization requested (optional)</param>
-        public EntityData(Guid guid, string entityType, EGameColor? color, Vector3? position, Quaternion? rotation, Vector3? velocity, Vector3? angularVelocity, IEnumerable<string> actions, bool? isResyncRequested)
+        public EntityData(Guid guid, string entityType, EGameColor? color, bool? isSpectating, Vector3? position, Quaternion? rotation, Vector3? velocity, Vector3? angularVelocity, IEnumerable<string> actions, bool? isResyncRequested)
         {
             if (guid == Guid.Empty)
             {
@@ -119,6 +126,7 @@ namespace ElectrodZMultiplayer.Data
             GUID = guid;
             EntityType = entityType;
             GameColor = color;
+            IsSpectating = isSpectating;
             Position = (position == null) ? null : (Vector3FloatData)position;
             Rotation = (rotation == null) ? null : (QuaternionFloatData)rotation;
             Velocity = (velocity == null) ? null : (Vector3FloatData)velocity;
@@ -147,6 +155,7 @@ namespace ElectrodZMultiplayer.Data
                 entity.GUID,
                 entity.EntityType,
                 entity.GameColor,
+                entity.IsSpectating,
                 (entity.Position == null) ? (Vector3?)null : new Vector3(entity.Position.X, entity.Position.Y, entity.Position.Z),
                 (entity.Rotation == null) ? (Quaternion?)null : new Quaternion(entity.Rotation.X, entity.Rotation.Y, entity.Rotation.Z, entity.Rotation.W),
                 (entity.Velocity == null) ? (Vector3?)null : new Vector3(entity.Velocity.X, entity.Velocity.Y, entity.Velocity.Z),

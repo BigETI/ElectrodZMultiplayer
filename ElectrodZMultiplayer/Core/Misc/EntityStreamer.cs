@@ -58,6 +58,10 @@ namespace ElectrodZMultiplayer
                     {
                         base_entity.Item1.SetGameColorInternally(ret.GameColor.Value);
                     }
+                    if (ret.IsSpectating != null)
+                    {
+                        base_entity.Item1.SetSpectatingStateInternally(ret.IsSpectating.Value);
+                    }
                     if (ret.Position != null)
                     {
                         base_entity.Item1.SetPositionInternally(ret.Position.Value);
@@ -91,8 +95,8 @@ namespace ElectrodZMultiplayer
             }
             else
             {
-                Entity new_entity = new Entity(entity.GUID, entity.EntityType, entity.GameColor, entity.Position, entity.Rotation, entity.Velocity, entity.AngularVelocity, entity.Actions, entity.IsResyncRequested);
-                ret = new EntityDelta(new_entity.GUID, new_entity.EntityType, new_entity.GameColor, new_entity.Position, new_entity.Rotation, new_entity.Velocity, new_entity.AngularVelocity, new_entity.Actions, new_entity.IsResyncRequested);
+                Entity new_entity = new Entity(entity.GUID, entity.EntityType, entity.GameColor, entity.IsSpectating, entity.Position, entity.Rotation, entity.Velocity, entity.AngularVelocity, entity.Actions, entity.IsResyncRequested);
+                ret = new EntityDelta(new_entity.GUID, new_entity.EntityType, new_entity.GameColor, new_entity.IsSpectating, new_entity.Position, new_entity.Rotation, new_entity.Velocity, new_entity.AngularVelocity, new_entity.Actions, new_entity.IsResyncRequested);
                 entities.Add(key, (new_entity, new EntityDelta(new_entity.GUID)));
                 OnEntityCreated?.Invoke(new_entity);
             }

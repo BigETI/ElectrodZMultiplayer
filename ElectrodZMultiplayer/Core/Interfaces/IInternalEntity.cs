@@ -30,6 +30,12 @@ namespace ElectrodZMultiplayer
         void SetGameColorInternally(EGameColor gameColor);
 
         /// <summary>
+        /// Sets a new spectating state internally
+        /// </summary>
+        /// <param name="isSpectating">Is spectating</param>
+        void SetSpectatingStateInternally(bool isSpectating);
+
+        /// <summary>
         /// Sets a new position internally
         /// </summary>
         /// <param name="position">New position</param>

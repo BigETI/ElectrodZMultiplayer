@@ -27,6 +27,11 @@ namespace ElectrodZMultiplayer
         EGameColor? GameColor { get; }
 
         /// <summary>
+        /// Is spectating (optional)
+        /// </summary>
+        bool? IsSpectating { get; }
+
+        /// <summary>
         /// Current position (optional)
         /// </summary>
         Vector3? Position { get; }
