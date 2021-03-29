@@ -352,6 +352,14 @@ namespace ElectrodZMultiplayer.Client
             {
                 entity.SetEntityTypeInternally(entityData.EntityType);
             }
+            if (entityData.IsSpectating != null)
+            {
+                entity.SetSpectatingStateInternally(entityData.IsSpectating.Value);
+            }
+            if (entityData.GameColor != null)
+            {
+                entity.SetGameColorInternally(entityData.GameColor.Value);
+            }
             if (entityData.Position != null)
             {
                 entity.SetPositionInternally(new Vector3(entityData.Position.X, entityData.Position.Y, entityData.Position.Z));
