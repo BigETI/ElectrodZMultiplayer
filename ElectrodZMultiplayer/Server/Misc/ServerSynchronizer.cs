@@ -1136,6 +1136,10 @@ namespace ElectrodZMultiplayer.Server
         /// <param name="entityDelta">Entity delta</param>
         private void SimulateEntity(IGameEntity gameEntity, EntityDelta entityDelta)
         {
+            if (entityDelta.IsSpectating != null)
+            {
+                gameEntity.SetSpectatingState(entityDelta.IsSpectating.Value, true);
+            }
             if (entityDelta.GameColor != null)
             {
                 gameEntity.SetGameColor(entityDelta.GameColor.Value, true);

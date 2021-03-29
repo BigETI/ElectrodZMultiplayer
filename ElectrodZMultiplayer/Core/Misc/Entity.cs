@@ -33,6 +33,11 @@ namespace ElectrodZMultiplayer
         public EGameColor GameColor { get; private set; } = EGameColor.Default;
 
         /// <summary>
+        /// Is spectating
+        /// </summary>
+        public bool IsSpectating { get; private set; }
+
+        /// <summary>
         /// Current position
         /// </summary>
         public Vector3 Position { get; private set; }
@@ -97,13 +102,14 @@ namespace ElectrodZMultiplayer
         /// <param name="guid">Entity GUID</param>
         /// <param name="entityType">Entity type</param>
         /// <param name="gameColor">Game color</param>
+        /// <param name="isSpectating">Is spectating</param>
         /// <param name="position">Position</param>
         /// <param name="rotation">Rotation</param>
         /// <param name="velocity">Velocity</param>
         /// <param name="angularVelocity">Angular velocity</param>
         /// <param name="actions">Game actions</param>
         /// <param name="isResyncRequested">Is resynchronization requested</param>
-        public Entity(Guid guid, string entityType, EGameColor gameColor, Vector3 position, Quaternion rotation, Vector3 velocity, Vector3 angularVelocity, IEnumerable<string> actions, bool isResyncRequested)
+        public Entity(Guid guid, string entityType, EGameColor gameColor, bool isSpectating, Vector3 position, Quaternion rotation, Vector3 velocity, Vector3 angularVelocity, IEnumerable<string> actions, bool isResyncRequested)
         {
             if (guid == Guid.Empty)
             {
@@ -128,6 +134,7 @@ namespace ElectrodZMultiplayer
             GUID = guid;
             EntityType = entityType;
             GameColor = gameColor;
+            IsSpectating = isSpectating;
             Position = position;
             Rotation = rotation;
             Velocity = velocity;
@@ -176,6 +183,7 @@ namespace ElectrodZMultiplayer
             bool ret = false;
             string entity_type = null;
             EGameColor? game_color = null;
+            bool? is_spectating = null;
             Vector3? position = null;
             Quaternion? rotation = null;
             Vector3? velocity = null;
@@ -198,6 +206,11 @@ namespace ElectrodZMultiplayer
                 {
                     ret = true;
                     game_color = patchEntity.GameColor;
+                }
+                if (baseEntity.IsSpectating != patchEntity.IsSpectating)
+                {
+                    ret = true;
+                    is_spectating = patchEntity.IsSpectating;
                 }
                 if (baseEntity.Position != patchEntity.Position)
                 {
@@ -244,7 +257,7 @@ namespace ElectrodZMultiplayer
                     }
                 }
             }
-            entityDelta = ret ? (IEntityDelta)new EntityDelta(baseEntity.GUID, entity_type, game_color, position, rotation, velocity, angular_velocity, actions, is_resync_requested) : null;
+            entityDelta = ret ? (IEntityDelta)new EntityDelta(baseEntity.GUID, entity_type, game_color, is_spectating, position, rotation, velocity, angular_velocity, actions, is_resync_requested) : null;
             return ret;
         }
 
@@ -286,6 +299,12 @@ namespace ElectrodZMultiplayer
             }
             GameColor = gameColor;
         }
+
+        /// <summary>
+        /// Sets a new spectating state internally
+        /// </summary>
+        /// <param name="isSpectating">Is spectating</param>
+        public void SetSpectatingStateInternally(bool isSpectating) => IsSpectating = isSpectating;
 
         /// <summary>
         /// Sets a new position internally
@@ -359,7 +378,7 @@ namespace ElectrodZMultiplayer
             {
                 throw new ArgumentException("Entity type can't be empty.", nameof(entity));
             }
-            return new Entity(entity.GUID, entity.EntityType, (entity.GameColor == null) ? EGameColor.Default : entity.GameColor.Value, (entity.Position == null) ? Vector3.Zero : new Vector3(entity.Position.X, entity.Position.Y, entity.Position.Z), (entity.Rotation == null) ? Quaternion.Identity : new Quaternion(entity.Rotation.X, entity.Rotation.Y, entity.Rotation.Z, entity.Rotation.W), (entity.Velocity == null) ? Vector3.Zero : new Vector3(entity.Velocity.X, entity.Velocity.Y, entity.Velocity.Z), (entity.AngularVelocity == null) ? Vector3.Zero : new Vector3(entity.AngularVelocity.X, entity.AngularVelocity.Y, entity.AngularVelocity.Z), entity.Actions ?? (IEnumerable<string>)Array.Empty<string>(), entity.IsResyncRequested ?? false);
+            return new Entity(entity.GUID, entity.EntityType, (entity.GameColor == null) ? EGameColor.Default : entity.GameColor.Value, (entity.IsSpectating != null) && entity.IsSpectating.Value, (entity.Position == null) ? Vector3.Zero : new Vector3(entity.Position.X, entity.Position.Y, entity.Position.Z), (entity.Rotation == null) ? Quaternion.Identity : new Quaternion(entity.Rotation.X, entity.Rotation.Y, entity.Rotation.Z, entity.Rotation.W), (entity.Velocity == null) ? Vector3.Zero : new Vector3(entity.Velocity.X, entity.Velocity.Y, entity.Velocity.Z), (entity.AngularVelocity == null) ? Vector3.Zero : new Vector3(entity.AngularVelocity.X, entity.AngularVelocity.Y, entity.AngularVelocity.Z), entity.Actions ?? (IEnumerable<string>)Array.Empty<string>(), entity.IsResyncRequested ?? false);
         }
     }
 }

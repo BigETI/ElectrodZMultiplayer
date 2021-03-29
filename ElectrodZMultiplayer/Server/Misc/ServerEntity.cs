@@ -22,6 +22,11 @@ namespace ElectrodZMultiplayer.Server
         public bool IsClientGameColorSet { get; private set; } = true;
 
         /// <summary>
+        /// Is client spectating state set
+        /// </summary>
+        public bool IsClientSpectatingStateSet { get; private set; } = true;
+
+        /// <summary>
         /// Is client position set
         /// </summary>
         public bool IsClientPositionSet { get; private set; } = true;
@@ -51,6 +56,7 @@ namespace ElectrodZMultiplayer.Server
         /// </summary>
         public override bool IsResyncRequested =>
             !IsClientGameColorSet ||
+            !IsClientSpectatingStateSet ||
             !IsClientPositionSet ||
             !IsClientRotationSet ||
             !IsClientVelocitySet ||
@@ -73,13 +79,14 @@ namespace ElectrodZMultiplayer.Server
         /// <param name="guid">Entity GUID</param>
         /// <param name="entityType">Entity type</param>
         /// <param name="gameColor">Game color</param>
+        /// <param name="isSpectating">Is spectating</param>
         /// <param name="position">Position</param>
         /// <param name="rotation">Rotation</param>
         /// <param name="velocity">Velocity</param>
         /// <param name="angularVelocity">Angular velocity</param>
         /// <param name="actions">Game actions</param>
         /// <param name="isResyncRequested">Is resynchronization requested</param>
-        public ServerEntity(Guid guid, string entityType, EGameColor gameColor, Vector3 position, Quaternion rotation, Vector3 velocity, Vector3 angularVelocity, IEnumerable<string> actions, bool isResyncRequested) : base(guid, entityType, gameColor, position, rotation, velocity, angularVelocity, actions, isResyncRequested)
+        public ServerEntity(Guid guid, string entityType, EGameColor gameColor, bool isSpectating, Vector3 position, Quaternion rotation, Vector3 velocity, Vector3 angularVelocity, IEnumerable<string> actions, bool isResyncRequested) : base(guid, entityType, gameColor, isSpectating, position, rotation, velocity, angularVelocity, actions, isResyncRequested)
         {
             // ...
         }
@@ -116,6 +123,30 @@ namespace ElectrodZMultiplayer.Server
             {
                 IsClientGameColorSet = false;
                 SetGameColorInternally(newGameColor);
+            }
+        }
+
+        /// <summary>
+        /// Sets the new spectating state
+        /// </summary>
+        /// <param name="newSpectatingState">New spectating state</param>
+        public void SetSpectatingState(bool newSpectatingState) => SetSpectatingState(newSpectatingState, false);
+
+        /// <summary>
+        /// Sets the new spectating state
+        /// </summary>
+        /// <param name="newSpectatingState">New spectating state</param>
+        /// <param name="isValueFromClient">Is value from client</param>
+        public void SetSpectatingState(bool newSpectatingState, bool isValueFromClient)
+        {
+            if (isValueFromClient)
+            {
+                IsClientSpectatingStateSet = IsSpectating == newSpectatingState;
+            }
+            else
+            {
+                IsClientSpectatingStateSet = false;
+                SetSpectatingStateInternally(newSpectatingState);
             }
         }
 

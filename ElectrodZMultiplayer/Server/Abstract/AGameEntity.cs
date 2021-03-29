@@ -32,6 +32,11 @@ namespace ElectrodZMultiplayer.Server
         public virtual EGameColor GameColor => ServerEntity.GameColor;
 
         /// <summary>
+        /// Is spectating
+        /// </summary>
+        public virtual bool IsSpectating => ServerEntity.IsSpectating;
+
+        /// <summary>
         /// Game entity position
         /// </summary>
         public virtual Vector3 Position => ServerEntity.Position;
@@ -65,6 +70,11 @@ namespace ElectrodZMultiplayer.Server
         /// Is client game color set
         /// </summary>
         public bool IsClientGameColorSet => ServerEntity.IsClientGameColorSet;
+
+        /// <summary>
+        /// Is client spectating state set
+        /// </summary>
+        public bool IsClientSpectatingStateSet => ServerEntity.IsClientSpectatingStateSet;
 
         /// <summary>
         /// Is client position set
@@ -127,6 +137,19 @@ namespace ElectrodZMultiplayer.Server
         /// <param name="newGameColor">New game entity game color</param>
         /// <param name="isValueFromClient">Is value from client</param>
         public virtual void SetGameColor(EGameColor newGameColor, bool isValueFromClient) => ServerEntity.SetGameColor(newGameColor, isValueFromClient);
+
+        /// <summary>
+        /// Sets the new spectating state
+        /// </summary>
+        /// <param name="newSpectatingState">New spectating state</param>
+        public virtual void SetSpectatingState(bool newSpectatingState) => ServerEntity.SetSpectatingState(newSpectatingState);
+
+        /// <summary>
+        /// Sets the new spectating state
+        /// </summary>
+        /// <param name="newSpectatingState">New spectating state</param>
+        /// <param name="isValueFromClient">Is value from client</param>
+        public virtual void SetSpectatingState(bool newSpectatingState, bool isValueFromClient) => ServerEntity.SetSpectatingState(newSpectatingState, isValueFromClient);
 
         /// <summary>
         /// Sets the new position

@@ -16,6 +16,11 @@ namespace ElectrodZMultiplayer.Server
         bool IsClientGameColorSet { get; }
 
         /// <summary>
+        /// Is client spectating state set
+        /// </summary>
+        bool IsClientSpectatingStateSet { get; }
+
+        /// <summary>
         /// Is client position set
         /// </summary>
         bool IsClientPositionSet { get; }
@@ -52,6 +57,19 @@ namespace ElectrodZMultiplayer.Server
         /// <param name="newGameColor">New game entity game color</param>
         /// <param name="isValueFromClient">Is value from client</param>
         void SetGameColor(EGameColor newGameColor, bool isValueFromClient);
+
+        /// <summary>
+        /// Sets the new spectating state
+        /// </summary>
+        /// <param name="newSpectatingState">New spectating state</param>
+        void SetSpectatingState(bool newSpectatingState);
+
+        /// <summary>
+        /// Sets the new spectating state
+        /// </summary>
+        /// <param name="newSpectatingState">New spectating state</param>
+        /// <param name="isValueFromClient">Is value from client</param>
+        void SetSpectatingState(bool newSpectatingState, bool isValueFromClient);
 
         /// <summary>
         /// Sets the new position of game entity
