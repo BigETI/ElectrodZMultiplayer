@@ -141,14 +141,7 @@ namespace ElectrodZMultiplayer.Server
         {
             if (isValueFromClient)
             {
-                if (IsClientSpectatingStateSet)
-                {
-                    SetSpectatingStateInternally(newSpectatingState);
-                }
-                else
-                {
-                    IsClientSpectatingStateSet = IsSpectating == newSpectatingState;
-                }
+                IsClientSpectatingStateSet = IsSpectating == newSpectatingState;
             }
             else
             {
