@@ -83,7 +83,14 @@ namespace ElectrodZMultiplayer.Client
         /// Sets a new username internally
         /// </summary>
         /// <param name="name">Username</param>
-        public void SetNameInternally(string name)
+        public void SetNameInternally(string name) => SetNameInternally(name, true);
+
+        /// <summary>
+        /// Sets a new username internally
+        /// </summary>
+        /// <param name="name">Username</param>
+        /// <param name="isEventInvoked">Is event invoked</param>
+        public void SetNameInternally(string name, bool isEventInvoked)
         {
             if (name == null)
             {
@@ -95,18 +102,41 @@ namespace ElectrodZMultiplayer.Client
                 throw new ArgumentException($"Username must be between { Defaults.minimalUsernameLength } and { Defaults.maximalUsernameLength } characters long.", nameof(name));
             }
             Name = new_name;
-            OnUsernameUpdated?.Invoke();
+            if (isEventInvoked)
+            {
+                InvokeUsernameUpdatedEvent();
+            }
         }
 
         /// <summary>
         /// Sets a new lobby color internally
         /// </summary>
         /// <param name="lobbyColor">Lobby color</param>
-        public void SetLobbyColorInternally(Color lobbyColor)
+        public void SetLobbyColorInternally(Color lobbyColor) => SetLobbyColorInternally(lobbyColor, true);
+
+        /// <summary>
+        /// Sets a new lobby color internally
+        /// </summary>
+        /// <param name="lobbyColor">Lobby color</param>
+        /// <param name="isEventInvoked">Is event invoked</param>
+        public void SetLobbyColorInternally(Color lobbyColor, bool isEventInvoked)
         {
             LobbyColor = lobbyColor;
-            OnUserLobbyColorUpdated?.Invoke();
+            if (isEventInvoked)
+            {
+                InvokeUserLobbyColorUpdatedEvent();
+            }
         }
+
+        /// <summary>
+        /// Invokes the username updated event
+        /// </summary>
+        public void InvokeUsernameUpdatedEvent() => OnUsernameUpdated?.Invoke();
+
+        /// <summary>
+        /// Invokes the user lobby color updated event
+        /// </summary>
+        public void InvokeUserLobbyColorUpdatedEvent() => OnUserLobbyColorUpdated?.Invoke();
 
         /// <summary>
         /// Invokes the client ticked event

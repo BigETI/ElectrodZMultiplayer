@@ -314,8 +314,8 @@ namespace ElectrodZMultiplayer.Client
                                 if (user.GUID == clientUser.GUID)
                                 {
                                     client_user = clientUser;
-                                    this.user.SetNameInternally(user.Name);
-                                    this.user.SetLobbyColorInternally(user.LobbyColor);
+                                    this.user.SetNameInternally(user.Name, false);
+                                    this.user.SetLobbyColorInternally(user.LobbyColor, false);
                                 }
                                 else
                                 {
@@ -352,6 +352,8 @@ namespace ElectrodZMultiplayer.Client
                             }
                             user_list.Clear();
                             OnLobbyJoinAcknowledged?.Invoke(client_lobby);
+                            user.InvokeUsernameUpdatedEvent();
+                            user.InvokeUserLobbyColorUpdatedEvent();
                         }
                         else
                         {
