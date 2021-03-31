@@ -746,7 +746,6 @@ namespace ElectrodZMultiplayer.Server
                             }
                             else
                             {
-                                serverLobby.RemainingGameStartTime = message.Time;
                                 serverLobby.SendGameStartRequestedMessage(message.Time);
                             }
                         }
@@ -788,7 +787,6 @@ namespace ElectrodZMultiplayer.Server
                             }
                             else
                             {
-                                serverLobby.RemainingGameStartTime = message.Time;
                                 serverLobby.SendGameRestartRequestedMessage(message.Time);
                             }
                         }
@@ -824,7 +822,6 @@ namespace ElectrodZMultiplayer.Server
                         }
                         else
                         {
-                            serverLobby.RemainingGameStopTime = message.Time;
                             serverLobby.SendGameStopRequestedMessage(message.Time);
                         }
                     }
