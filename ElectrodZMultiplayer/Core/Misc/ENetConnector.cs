@@ -58,7 +58,7 @@ namespace ElectrodZMultiplayer
         /// <summary>
         /// Is connector thread running
         /// </summary>
-        private bool isConnectorThreadRunning = true;
+        private volatile bool isConnectorThreadRunning = true;
 
         /// <summary>
         /// Buffer
@@ -172,6 +172,7 @@ namespace ElectrodZMultiplayer
                         disposePackets.Clear();
                     }
                 }
+                available_peer_ids.Clear();
             });
             connectorThread.Start();
         }
